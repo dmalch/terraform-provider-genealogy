@@ -31,7 +31,7 @@ func TestGetProfile(t *testing.T) {
 }
 
 func TestGetProfile2(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	RegisterTestingT(t)
 
 	profileId := "profile-5957"
@@ -58,6 +58,12 @@ func TestGetProfile2(t *testing.T) {
 			Day:   19,
 			Month: 8,
 			Year:  1922,
+		},
+		Location: &LocationResponse{
+			Country:   "РСФСР",
+			County:    "Спасский уезд, Кирилловская волость",
+			PlaceName: "село Кирилово",
+			State:     "Тамбовская губерния",
 		},
 		Name: "Birth of F M",
 	}))

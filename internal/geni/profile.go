@@ -96,10 +96,10 @@ type NameResponse struct {
 
 // EventResponse is the response for an event
 type EventResponse struct {
-	Date        DateResponse `json:"date"`
-	Description string       `json:"description"`
-	Location    string       `json:"location"`
-	Name        string       `json:"name"`
+	Date        DateResponse      `json:"date"`
+	Description string            `json:"description"`
+	Location    *LocationResponse `json:"location"`
+	Name        string            `json:"name"`
 }
 
 // DateResponse is the response for a date
