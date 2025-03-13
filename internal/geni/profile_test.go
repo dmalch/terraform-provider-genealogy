@@ -6,7 +6,105 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGetProfile(t *testing.T) {
+func TestCreateProfile1(t *testing.T) {
+	t.Skip()
+	RegisterTestingT(t)
+	profileRequest := ProfileRequest{
+		Gender: "male",
+		Names: map[string]NameElement{
+			"en-US": {
+				FirstName: "1TestFirstName",
+				LastName:  "1TestLastName",
+			},
+			"ru": {
+				FirstName:  "Ф",
+				LastName:   "М",
+				MiddleName: "Н",
+			},
+		},
+		Birth: &EventElement{
+			Date: DateResponse{
+				Day:   19,
+				Month: 8,
+				Year:  1922,
+			},
+			Location: &LocationElement{
+				Country:   "РСФСР",
+				County:    "Спасский уезд, Кирилловская волость",
+				PlaceName: "село Кирилово",
+				State:     "Тамбовская губерния",
+			},
+		},
+		Death: &EventElement{
+			Date: DateResponse{
+				Day:   25,
+				Month: 9,
+				Year:  1993,
+			},
+		},
+	}
+
+	profile, err := CreateProfile(testAccessToken, &profileRequest)
+
+	Expect(err).ToNot(HaveOccurred())
+	Expect(profile).ToNot(BeNil())
+	Expect(profile.Id).ToNot(BeEmpty())
+	Expect(profile.Guid).ToNot(BeEmpty())
+	Expect(profile.FirstName).To(BeEquivalentTo("1TestFirstName"))
+	Expect(profile.LastName).To(BeEquivalentTo("1TestLastName"))
+	Expect(profile.Gender).To(BeEquivalentTo("male"))
+	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameElement{
+		FirstName: "1TestFirstName",
+		LastName:  "1TestLastName",
+	}))
+	Expect(profile.Names).To(HaveKeyWithValue("ru", NameElement{
+		FirstName:  "Ф",
+		LastName:   "М",
+		MiddleName: "Н",
+	}))
+	Expect(profile.Birth).To(Equal(&EventElement{
+		Date: DateResponse{
+			Day:   19,
+			Month: 8,
+			Year:  1922,
+		},
+		Location: &LocationElement{
+			Country:   "РСФСР",
+			County:    "Спасский уезд, Кирилловская волость",
+			PlaceName: "село Кирилово",
+			State:     "Тамбовская губерния",
+		},
+		Name: "Birth of 1TestFirstName 1TestLastName",
+	}))
+	Expect(profile.Death).To(Equal(&EventElement{
+		Date: DateResponse{
+			Day:   25,
+			Month: 9,
+			Year:  1993,
+		},
+		Name: "Death of 1TestFirstName 1TestLastName",
+	}))
+	Expect(profile.CreatedAt).ToNot(BeEmpty())
+}
+
+func TestCreateProfile2(t *testing.T) {
+	t.Skip()
+	RegisterTestingT(t)
+	profileRequest := ProfileRequest{
+		//FirstName: `\u0418\u0432\u0430\u043D`,
+		FirstName: "Иван",
+	}
+
+	profile, err := CreateProfile(testAccessToken, &profileRequest)
+
+	Expect(err).ToNot(HaveOccurred())
+	Expect(profile).ToNot(BeNil())
+	Expect(profile.Id).ToNot(BeEmpty())
+	Expect(profile.Guid).ToNot(BeEmpty())
+	Expect(profile.FirstName).To(BeEquivalentTo("Иван"))
+}
+
+func TestGetProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
 
@@ -19,11 +117,11 @@ func TestGetProfile(t *testing.T) {
 	Expect(profile.FirstName).To(BeEquivalentTo("D"))
 	Expect(profile.LastName).To(BeEquivalentTo("M"))
 	Expect(profile.Gender).To(BeEquivalentTo("male"))
-	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameResponse{
+	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameElement{
 		FirstName: "D",
 		LastName:  "M",
 	}))
-	Expect(profile.Names).To(HaveKeyWithValue("ru", NameResponse{
+	Expect(profile.Names).To(HaveKeyWithValue("ru", NameElement{
 		FirstName:  "Д",
 		LastName:   "М",
 		MiddleName: "В",
@@ -44,22 +142,22 @@ func TestGetProfile2(t *testing.T) {
 	Expect(profile.FirstName).To(BeEquivalentTo("F"))
 	Expect(profile.LastName).To(BeEquivalentTo("M"))
 	Expect(profile.Gender).To(BeEquivalentTo("male"))
-	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameResponse{
+	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameElement{
 		FirstName: "F",
 		LastName:  "M",
 	}))
-	Expect(profile.Names).To(HaveKeyWithValue("ru", NameResponse{
+	Expect(profile.Names).To(HaveKeyWithValue("ru", NameElement{
 		FirstName:  "Ф",
 		LastName:   "М",
 		MiddleName: "Н",
 	}))
-	Expect(profile.Birth).To(Equal(&EventResponse{
+	Expect(profile.Birth).To(Equal(&EventElement{
 		Date: DateResponse{
 			Day:   19,
 			Month: 8,
 			Year:  1922,
 		},
-		Location: &LocationResponse{
+		Location: &LocationElement{
 			Country:   "РСФСР",
 			County:    "Спасский уезд, Кирилловская волость",
 			PlaceName: "село Кирилово",
@@ -67,7 +165,7 @@ func TestGetProfile2(t *testing.T) {
 		},
 		Name: "Birth of F M",
 	}))
-	Expect(profile.Death).To(Equal(&EventResponse{
+	Expect(profile.Death).To(Equal(&EventElement{
 		Date: DateResponse{
 			Day:   25,
 			Month: 9,
