@@ -1,5 +1,11 @@
 package geni
 
+import (
+	"encoding/json"
+	"log/slog"
+	"net/http"
+)
+
 // about_me	String	Profile's about me section (cf. detail_strings) (must be requested)
 // baptism 	Event	Profile's baptism event info
 // big_tree	Boolean	True if the profile is attached to the big tree
@@ -53,25 +59,55 @@ package geni
 // updated_at 	String	Timestamp of when the profile was last updated
 // url	String	URL to access profile through the API
 // videos_updated_at 	String	Timestamp of the last video updated/added to the profile. Will not be return if no videos exist.
-type Profile struct {
-	Id        string `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Gender    string `json:"gender"`
+type ProfileResponse struct {
+	Id        string                  `json:"id"`
+	FirstName string                  `json:"first_name"`
+	LastName  string                  `json:"last_name"`
+	Gender    string                  `json:"gender"`
+	Names     map[string]NameResponse `json:"names"`
 }
 
-func CreateProfile(apiKey, name, description string) (string, error) {
+type NameResponse struct {
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	MiddleName string `json:"middle_name"`
+}
+
+func CreateProfile(accessToken, name, description string) (string, error) {
 	return "", nil
 }
 
-func GetProfile(apiKey, profileId string) (*Profile, error) {
-	return nil, nil
+func GetProfile(accessToken, profileId string) (*ProfileResponse, error) {
+	// Create a new HTTP request
+	requestUrl := geniUrl + "api/" + profileId + "?access_token=" + accessToken + "&api_version=1"
+	req, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+
+	body, err := doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile ProfileResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &profile, nil
 }
 
-func UpdateProfile(apiKey, profileId, name, description string) error {
+func UpdateProfile(accessToken, profileId, name, description string) error {
 	return nil
 }
 
-func DeleteProfile(apiKey, profileId string) error {
+func DeleteProfile(accessToken, profileId string) error {
 	return nil
 }
