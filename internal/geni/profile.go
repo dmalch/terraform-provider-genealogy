@@ -60,17 +60,92 @@ import (
 // url	String	URL to access profile through the API
 // videos_updated_at 	String	Timestamp of the last video updated/added to the profile. Will not be return if no videos exist.
 type ProfileResponse struct {
-	Id        string                  `json:"id"`
-	FirstName string                  `json:"first_name"`
-	LastName  string                  `json:"last_name"`
-	Gender    string                  `json:"gender"`
-	Names     map[string]NameResponse `json:"names"`
+	// Id is the profile's node id
+	Id string `json:"id"`
+	// Guid is the profile's globally unique identifier
+	Guid string `json:"guid"`
+	// FirstName is the profile's first name
+	FirstName string `json:"first_name"`
+	// LastName is the profile's last name
+	LastName string `json:"last_name"`
+	// Gender is the profile's gender
+	Gender string `json:"gender"`
+	// Names is the name info
+	Names map[string]NameResponse `json:"names"`
+	// Birth is the birth event info
+	Birth *EventResponse `json:"birth"`
+	// Baptism is the baptism event info
+	Baptism *EventResponse `json:"baptism"`
+	// Death is the death event info
+	Death *EventResponse `json:"death"`
+	// Burial is the burial event info
+	Burial *EventResponse `json:"burial"`
+	// Events is the events associated with this profile
+	Events []EventResponse `json:"events"`
+	// IsAlive is a boolean that indicates whether the profile is living
+	IsAlive bool `json:"is_alive"`
+	// CreatedAt is the timestamp of when the profile was created
+	CreatedAt string `json:"created_at"`
 }
 
 type NameResponse struct {
 	FirstName  string `json:"first_name"`
 	LastName   string `json:"last_name"`
 	MiddleName string `json:"middle_name"`
+}
+
+// EventResponse is the response for an event
+type EventResponse struct {
+	Date        DateResponse `json:"date"`
+	Description string       `json:"description"`
+	Location    string       `json:"location"`
+	Name        string       `json:"name"`
+}
+
+// DateResponse is the response for a date
+type DateResponse struct {
+	// Circa is a boolean that indicates whether the date is approximate
+	Circa bool `json:"circa"`
+	// Day is the day of the month
+	Day int `json:"day"`
+	// EndCirca is a boolean that indicates whether the end date is approximate
+	EndCirca bool `json:"end_circa"`
+	// EndDay is the end day of the month (only valid if range is between)
+	EndDay int `json:"end_day"`
+	// EndMonth is the end month of the year (only valid if range is between)
+	EndMonth int `json:"end_month"`
+	// EndYear is the end year (only valid if range is between)
+	EndYear int `json:"end_year"`
+	// Month is the month of the year
+	Month int `json:"month"`
+	// Range is the range (before, after, or between)
+	Range string `json:"range"`
+	// Year is the year
+	Year int `json:"year"`
+}
+
+// LocationResponse is the response for a location
+type LocationResponse struct {
+	// City is the city name
+	City string `json:"city"`
+	// Country is the country name
+	Country string `json:"country"`
+	// County is the county name
+	County string `json:"county"`
+	// Latitude is the latitude
+	Latitude float64 `json:"latitude"`
+	// Longitude is the longitude
+	Longitude float64 `json:"longitude"`
+	// PlaceName is the place name
+	PlaceName string `json:"place_name"`
+	// State is the state name
+	State string `json:"state"`
+	// StreetAddress1 is the street address line 1
+	StreetAddress1 string `json:"street_address1"`
+	// StreetAddress2 is the street address line 2
+	StreetAddress2 string `json:"street_address2"`
+	// StreetAddress3 is the street address line 3
+	StreetAddress3 string `json:"street_address3"`
 }
 
 func CreateProfile(accessToken, name, description string) (string, error) {
