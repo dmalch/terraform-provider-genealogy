@@ -119,12 +119,17 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	err := geni.UpdateProfile(r.accessToken.ValueString(), plan.ID.ValueString(), plan.FirstName.ValueString(), plan.LastName.ValueString())
+	response, err := geni.UpdateProfile(r.accessToken.ValueString(), plan.ID.ValueString(), &geni.ProfileRequest{
+		FirstName: plan.FirstName.ValueString(),
+		LastName:  plan.LastName.ValueString(),
+		Gender:    plan.Gender.ValueString(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating profile", err.Error())
 		return
 	}
 
+	plan.CreatedAt = types.StringValue(response.CreatedAt)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 

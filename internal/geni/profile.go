@@ -267,8 +267,45 @@ func GetProfile(accessToken, profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func UpdateProfile(accessToken, profileId, name, description string) error {
-	return nil
+func UpdateProfile(accessToken string, profileId string, request *ProfileRequest) (*ProfileResponse, error) {
+	jsonBody, err := json.Marshal(request)
+	if err != nil {
+		slog.Error("Error marshaling request", "error", err)
+		return nil, err
+	}
+
+	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
+	jsonStr = escapeString(jsonStr)
+
+	baseUrl := geniUrl + "api/" + profileId + "/update"
+
+	req, err := http.NewRequest(http.MethodPost, baseUrl, bytes.NewBufferString(jsonStr))
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	query := req.URL.Query()
+	query.Add("access_token", accessToken)
+	query.Add("api_version", apiVersion)
+
+	req.URL.RawQuery = query.Encode()
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+
+	body, err := doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile ProfileResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &profile, nil
 }
 
 func DeleteProfile(accessToken, profileId string) error {

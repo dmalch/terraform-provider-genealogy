@@ -176,6 +176,91 @@ func TestGetProfile2(t *testing.T) {
 	Expect(profile.CreatedAt).To(BeEquivalentTo("1741860385"))
 }
 
+func TestUpdateProfile1(t *testing.T) {
+	t.Skip()
+	RegisterTestingT(t)
+	profileRequest := ProfileRequest{
+		Gender: "male",
+		Names: map[string]NameElement{
+			"en-US": {
+				FirstName: "1TestFirstName",
+				LastName:  "1TestLastName",
+			},
+			"ru": {
+				FirstName:  "Ф",
+				LastName:   "М",
+				MiddleName: "Н",
+			},
+		},
+		Birth: &EventElement{
+			Date: DateResponse{
+				Day:   19,
+				Month: 8,
+				Year:  1922,
+			},
+			Location: &LocationElement{
+				Country:   "РСФСР",
+				County:    "Спасский уезд, Кирилловская волость",
+				PlaceName: "село Кирилово",
+				State:     "Тамбовская губерния",
+			},
+		},
+		Death: &EventElement{
+			Date: DateResponse{
+				Day:   25,
+				Month: 9,
+				Year:  1993,
+			},
+		},
+	}
+
+	profile, err := CreateProfile(testAccessToken, &profileRequest)
+	Expect(err).ToNot(HaveOccurred())
+
+	profileRequest.FirstName = "2TestFirstName"
+	updatedProfile, err := UpdateProfile(testAccessToken, profile.Id, &profileRequest)
+	Expect(err).ToNot(HaveOccurred())
+
+	Expect(updatedProfile).ToNot(BeNil())
+	Expect(updatedProfile.Id).ToNot(BeEmpty())
+	Expect(updatedProfile.Guid).ToNot(BeEmpty())
+	Expect(updatedProfile.FirstName).To(BeEquivalentTo("2TestFirstName"))
+	Expect(updatedProfile.LastName).To(BeEquivalentTo("1TestLastName"))
+	Expect(updatedProfile.Gender).To(BeEquivalentTo("male"))
+	Expect(updatedProfile.Names).To(HaveKeyWithValue("en-US", NameElement{
+		FirstName: "2TestFirstName",
+		LastName:  "1TestLastName",
+	}))
+	Expect(updatedProfile.Names).To(HaveKeyWithValue("ru", NameElement{
+		FirstName:  "Ф",
+		LastName:   "М",
+		MiddleName: "Н",
+	}))
+	Expect(updatedProfile.Birth).To(Equal(&EventElement{
+		Date: DateResponse{
+			Day:   19,
+			Month: 8,
+			Year:  1922,
+		},
+		Location: &LocationElement{
+			Country:   "РСФСР",
+			County:    "Спасский уезд, Кирилловская волость",
+			PlaceName: "село Кирилово",
+			State:     "Тамбовская губерния",
+		},
+		Name: "Birth of 2TestFirstName 1TestLastName",
+	}))
+	Expect(updatedProfile.Death).To(Equal(&EventElement{
+		Date: DateResponse{
+			Day:   25,
+			Month: 9,
+			Year:  1993,
+		},
+		Name: "Death of 2TestFirstName 1TestLastName",
+	}))
+	Expect(updatedProfile.CreatedAt).ToNot(BeEmpty())
+}
+
 func TestDeleteProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
