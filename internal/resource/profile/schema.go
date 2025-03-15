@@ -27,6 +27,9 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"gender": schema.StringAttribute{
 				Optional: true,
 			},
+			"created_at": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }

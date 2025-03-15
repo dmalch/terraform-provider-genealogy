@@ -73,6 +73,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	plan.ID = types.StringValue(response.Id)
+	plan.CreatedAt = types.StringValue(response.CreatedAt)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
