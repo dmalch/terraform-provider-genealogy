@@ -175,3 +175,12 @@ func TestGetProfile2(t *testing.T) {
 	}))
 	Expect(profile.CreatedAt).To(BeEquivalentTo("1741860385"))
 }
+
+func TestDeleteProfile1(t *testing.T) {
+	t.Skip()
+	RegisterTestingT(t)
+
+	err := DeleteProfile(testAccessToken, "profile-g599969")
+
+	Expect(err).ToNot(HaveOccurred())
+}

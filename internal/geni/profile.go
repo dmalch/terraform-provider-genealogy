@@ -272,5 +272,33 @@ func UpdateProfile(accessToken, profileId, name, description string) error {
 }
 
 func DeleteProfile(accessToken, profileId string) error {
+	baseUrl := geniUrl + "api/" + profileId + "/delete"
+	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return err
+	}
+
+	query := req.URL.Query()
+	query.Add("access_token", accessToken)
+	query.Add("api_version", apiVersion)
+
+	req.URL.RawQuery = query.Encode()
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+
+	body, err := doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	var profile ProfileResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return err
+	}
+
 	return nil
 }
