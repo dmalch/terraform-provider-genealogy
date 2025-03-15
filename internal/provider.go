@@ -26,8 +26,8 @@ func (p *GeniProvider) Metadata(_ context.Context, _ provider.MetadataRequest, r
 func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"api_key": schema.StringAttribute{
-				Description: "The API key for the Geni API",
+			"access_token": schema.StringAttribute{
+				Description: "The Access Token for the Geni API",
 				Required:    true,
 				Sensitive:   true,
 			},
