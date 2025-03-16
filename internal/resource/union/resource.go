@@ -78,6 +78,15 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		}
 	}
 
+	if len(union.Partners) > 0 {
+		listValue, diag := types.ListValueFrom(ctx, types.StringType, union.Partners)
+		state.Partners = listValue
+		resp.Diagnostics.Append(diag...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
