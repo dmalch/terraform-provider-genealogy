@@ -67,3 +67,17 @@ func doRequest(req *http.Request) ([]byte, error) {
 
 	return body, nil
 }
+
+func addStandardHeadersAndQueryParams(req *http.Request, accessToken string) {
+	query := req.URL.Query()
+	query.Add("access_token", accessToken)
+	query.Add("api_version", apiVersion)
+	// The returned data structures will contain urls to other objects by default,
+	// unless the request includes 'only_ids=true.' Passing only_ids will force the
+	// system to return ids only.
+	query.Add("only_ids", "true")
+
+	req.URL.RawQuery = query.Encode()
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+}

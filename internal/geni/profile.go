@@ -197,13 +197,7 @@ func CreateProfile(accessToken string, request *ProfileRequest) (*ProfileRespons
 		return nil, err
 	}
 
-	query := req.URL.Query()
-	query.Add("access_token", accessToken)
-	query.Add("api_version", apiVersion)
-
-	req.URL.RawQuery = query.Encode()
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
+	addStandardHeadersAndQueryParams(req, accessToken)
 
 	body, err := doRequest(req)
 	if err != nil {
@@ -244,13 +238,7 @@ func GetProfile(accessToken, profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	query := req.URL.Query()
-	query.Add("access_token", accessToken)
-	query.Add("api_version", apiVersion)
-
-	req.URL.RawQuery = query.Encode()
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
+	addStandardHeadersAndQueryParams(req, accessToken)
 
 	body, err := doRequest(req)
 	if err != nil {
@@ -285,13 +273,7 @@ func UpdateProfile(accessToken string, profileId string, request *ProfileRequest
 		return nil, err
 	}
 
-	query := req.URL.Query()
-	query.Add("access_token", accessToken)
-	query.Add("api_version", apiVersion)
-
-	req.URL.RawQuery = query.Encode()
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
+	addStandardHeadersAndQueryParams(req, accessToken)
 
 	body, err := doRequest(req)
 	if err != nil {
@@ -317,13 +299,7 @@ func DeleteProfile(accessToken, profileId string) error {
 		return err
 	}
 
-	query := req.URL.Query()
-	query.Add("access_token", accessToken)
-	query.Add("api_version", apiVersion)
-
-	req.URL.RawQuery = query.Encode()
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
+	addStandardHeadersAndQueryParams(req, accessToken)
 
 	body, err := doRequest(req)
 	if err != nil {
