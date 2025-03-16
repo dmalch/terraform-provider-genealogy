@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmalch/terraform-provider-geni/internal/config"
 	"github.com/dmalch/terraform-provider-geni/internal/resource/profile"
+	"github.com/dmalch/terraform-provider-geni/internal/resource/union"
 )
 
 type GeniProvider struct {
@@ -49,6 +50,7 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		profile.NewProfileResource,
+		union.NewUnionResource,
 	}
 }
 
