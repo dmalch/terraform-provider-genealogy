@@ -1,3 +1,3 @@
 package geni
 
-const testAccessToken = "mA25JGlX2e6JGxZOk5MgH3Jkg5CswMrTaRJafqHY"
+const testAccessToken = "6A5sFDS6l0St1rAojdq47qACHNXgF5FQU5RAPeFU"
