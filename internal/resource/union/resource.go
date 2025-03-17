@@ -60,18 +60,34 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	//response, err := geni.CreateProfile(r.accessToken.ValueString(), &geni.ProfileRequest{
-	//	FirstName: plan.FirstName.ValueString(),
-	//	LastName:  plan.LastName.ValueString(),
-	//	Gender:    plan.Gender.ValueString(),
-	//})
-	//if err != nil {
-	//	resp.Diagnostics.AddError("Error creating profile", err.Error())
-	//	return
-	//}
+	// If there are two partners, we can create a union by calling the profile/add-partner API
+	if len(plan.Partners.Elements()) == 2 {
+		// It is impossible to create a union using the API, so we need to create a
+		// temporary partner profile and then merge it with the second partner.
 
-	//plan.ID = types.StringValue(response.Id)
-	//resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+		partnerIds := make([]types.String, 0, len(plan.Partners.Elements()))
+		diag := plan.Partners.ElementsAs(ctx, &partnerIds, false)
+		if diag.HasError() {
+			resp.Diagnostics.Append(diag...)
+			return
+		}
+
+		tmpProfile, err := geni.AddPartner(r.accessToken.ValueString(), partnerIds[0].ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Error adding partner", err.Error())
+			return
+		}
+
+		// Merge the temporary profile with the second partner
+		if err := geni.MergeProfiles(r.accessToken.ValueString(), partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
+			resp.Diagnostics.AddError("Error merging profiles", err.Error())
+			return
+		}
+
+		plan.ID = types.StringValue(tmpProfile.Unions[0])
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Read reads the resource
