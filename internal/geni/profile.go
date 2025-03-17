@@ -254,13 +254,17 @@ func GetProfile(accessToken, profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
+	fixResponse(&profile)
+
+	return &profile, nil
+}
+
+func fixResponse(profile *ProfileResponse) {
 	//The only_ids flag does not work for the profile endpoint, so we need to remove
 	//the geniUrl from the Unions field.
 	for i, union := range profile.Unions {
 		profile.Unions[i] = strings.Replace(union, geniApiUrl, "", 1)
 	}
-
-	return &profile, nil
 }
 
 func UpdateProfile(accessToken string, profileId string, request *ProfileRequest) (*ProfileResponse, error) {
@@ -298,6 +302,10 @@ func UpdateProfile(accessToken string, profileId string, request *ProfileRequest
 	return &profile, nil
 }
 
+type ResultResponse struct {
+	Result string `json:"result,omitempty"`
+}
+
 func DeleteProfile(accessToken, profileId string) error {
 	baseUrl := geniUrl + "api/" + profileId + "/delete"
 	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
@@ -314,8 +322,8 @@ func DeleteProfile(accessToken, profileId string) error {
 		return err
 	}
 
-	var profile ProfileResponse
-	err = json.Unmarshal(body, &profile)
+	var result ResultResponse
+	err = json.Unmarshal(body, &result)
 	if err != nil {
 		slog.Error("Error unmarshaling response", "error", err)
 		return err
@@ -346,5 +354,32 @@ func AddPartner(accessToken, profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
+	fixResponse(&profile)
+
 	return &profile, nil
+}
+
+func MergeProfiles(accessToken, profile1Id, profile2Id string) error {
+	baseUrl := geniUrl + "api/" + profile1Id + "/merge/" + profile2Id
+	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return err
+	}
+
+	addStandardHeadersAndQueryParams(req, accessToken)
+
+	body, err := doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	var result ResultResponse
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return err
+	}
+
+	return nil
 }
