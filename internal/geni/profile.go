@@ -113,6 +113,8 @@ type ProfileResponse struct {
 	MergeNote []string `json:"merge_note,omitempty"`
 	// Url is the URL to access profile through the API
 	Url string `json:"url,omitempty"`
+	// Unions is the URLs to unions
+	Unions []string `json:"unions,omitempty"`
 	// UpdatedAt is the timestamp of when the profile was last updated
 	UpdatedAt string `json:"updated_at,omitempty"`
 	// CreatedAt is the timestamp of when the profile was created
@@ -250,6 +252,12 @@ func GetProfile(accessToken, profileId string) (*ProfileResponse, error) {
 	if err != nil {
 		slog.Error("Error unmarshaling response", "error", err)
 		return nil, err
+	}
+
+	//The only_ids flag does not work for the profile endpoint, so we need to remove
+	//the geniUrl from the Unions field.
+	for i, union := range profile.Unions {
+		profile.Unions[i] = strings.Replace(union, geniApiUrl, "", 1)
 	}
 
 	return &profile, nil

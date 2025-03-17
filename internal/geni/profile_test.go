@@ -126,6 +126,7 @@ func TestGetProfile1(t *testing.T) {
 		LastName:   "М",
 		MiddleName: "В",
 	}))
+	Expect(profile.Unions).To(ContainElement("union-1837"))
 }
 
 func TestGetProfile2(t *testing.T) {
