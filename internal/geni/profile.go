@@ -323,3 +323,28 @@ func DeleteProfile(accessToken, profileId string) error {
 
 	return nil
 }
+
+func AddPartner(accessToken, profileId string) (*ProfileResponse, error) {
+	baseUrl := geniUrl + "api/" + profileId + "/add-partner"
+	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	addStandardHeadersAndQueryParams(req, accessToken)
+
+	body, err := doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile ProfileResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &profile, nil
+}
