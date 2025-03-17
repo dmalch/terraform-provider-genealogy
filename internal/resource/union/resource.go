@@ -46,15 +46,37 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	r.accessToken = cfg.AccessToken
 }
 
-type UnionModel struct {
+type ResourceModel struct {
 	ID       types.String `tfsdk:"id"`
 	Children types.List   `tfsdk:"children"`
 	Partners types.List   `tfsdk:"partners"`
 }
 
+// Create creates the resource
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan ResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	//response, err := geni.CreateProfile(r.accessToken.ValueString(), &geni.ProfileRequest{
+	//	FirstName: plan.FirstName.ValueString(),
+	//	LastName:  plan.LastName.ValueString(),
+	//	Gender:    plan.Gender.ValueString(),
+	//})
+	//if err != nil {
+	//	resp.Diagnostics.AddError("Error creating profile", err.Error())
+	//	return
+	//}
+
+	//plan.ID = types.StringValue(response.Id)
+	//resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
 // Read reads the resource
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state UnionModel
+	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
