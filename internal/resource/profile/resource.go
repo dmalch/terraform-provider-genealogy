@@ -51,6 +51,7 @@ type ResourceModel struct {
 	FirstName types.String `tfsdk:"first_name"`
 	LastName  types.String `tfsdk:"last_name"`
 	Gender    types.String `tfsdk:"gender"`
+	Unions    types.List   `tfsdk:"unions"`
 	CreatedAt types.String `tfsdk:"created_at"`
 }
 
@@ -62,7 +63,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	response, err := geni.CreateProfile(r.accessToken.ValueString(), &geni.ProfileRequest{
+	profile, err := geni.CreateProfile(r.accessToken.ValueString(), &geni.ProfileRequest{
 		FirstName: plan.FirstName.ValueString(),
 		LastName:  plan.LastName.ValueString(),
 		Gender:    plan.Gender.ValueString(),
@@ -72,8 +73,16 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	plan.ID = types.StringValue(response.Id)
-	plan.CreatedAt = types.StringValue(response.CreatedAt)
+	plan.ID = types.StringValue(profile.Id)
+	if len(profile.Unions) > 0 {
+		listValue, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+		plan.Unions = listValue
+		resp.Diagnostics.Append(diag...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+	plan.CreatedAt = types.StringValue(profile.CreatedAt)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -102,6 +111,17 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 	if profile.Gender != "" {
 		state.Gender = types.StringValue(profile.Gender)
+	}
+	if len(profile.Unions) > 0 {
+		listValue, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+		state.Unions = listValue
+		resp.Diagnostics.Append(diag...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+	if profile.CreatedAt != "" {
+		state.CreatedAt = types.StringValue(profile.CreatedAt)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
