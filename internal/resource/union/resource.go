@@ -131,3 +131,16 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
+
+// Delete deletes the resource
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state ResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// We can't delete a union, so we just remove the resource from the state
+
+	resp.State.RemoveResource(ctx)
+}

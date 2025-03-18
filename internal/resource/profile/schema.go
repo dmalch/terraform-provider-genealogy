@@ -30,6 +30,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			},
 			"unions": schema.ListAttribute{
 				ElementType: types.StringType,
+				Computed:    true,
 				Optional:    true,
 			},
 			"created_at": schema.StringAttribute{

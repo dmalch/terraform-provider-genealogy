@@ -74,14 +74,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	plan.ID = types.StringValue(profile.Id)
-	if len(profile.Unions) > 0 {
-		listValue, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
-		plan.Unions = listValue
-		resp.Diagnostics.Append(diag...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+
+	unions, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	plan.Unions = unions
+
 	plan.CreatedAt = types.StringValue(profile.CreatedAt)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -103,23 +103,26 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	if profile.Id != "" {
 		state.ID = types.StringValue(profile.Id)
 	}
+
 	if profile.FirstName != "" {
 		state.FirstName = types.StringValue(profile.FirstName)
 	}
+
 	if profile.LastName != "" {
 		state.LastName = types.StringValue(profile.LastName)
 	}
+
 	if profile.Gender != "" {
 		state.Gender = types.StringValue(profile.Gender)
 	}
-	if len(profile.Unions) > 0 {
-		listValue, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
-		state.Unions = listValue
-		resp.Diagnostics.Append(diag...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+
+	unions, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	resp.Diagnostics.Append(diag...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	state.Unions = unions
+
 	if profile.CreatedAt != "" {
 		state.CreatedAt = types.StringValue(profile.CreatedAt)
 	}
