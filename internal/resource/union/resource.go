@@ -85,6 +85,9 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		}
 
 		plan.ID = types.StringValue(tmpProfile.Unions[0])
+	} else {
+		resp.Diagnostics.AddError("Union must have exactly 2 partners", "")
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
