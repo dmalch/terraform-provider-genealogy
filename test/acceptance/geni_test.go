@@ -1,6 +1,9 @@
 package acceptance
 
 import (
+	"regexp"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
@@ -8,8 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-
-	"testing"
 
 	"github.com/dmalch/terraform-provider-geni/internal"
 )
@@ -317,6 +318,40 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		  children = [
 			geni_profile.sibling1.id,
 			geni_profile.sibling2.id,
+		  ]
+		}
+		`
+}
+
+func TestAccExampleWidget_failToCreateUnionWithOneParent(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      unionWithOneParent(testAccessToken),
+				ExpectError: regexp.MustCompile(`Insufficient Attribute Configuration`),
+			},
+		},
+	})
+}
+
+func unionWithOneParent(testAccessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		}
+
+		resource "geni_profile" "mother" {
+		  first_name = "Jane"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_union" "doe_family" {
+		  partners = [
+			geni_profile.mother.id,
 		  ]
 		}
 		`

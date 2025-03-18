@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+const fieldPartners = "partners"
+const fieldChildren = "children"
+
 // Schema defines the schema for the resource
 func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -19,11 +22,11 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
-			"children": schema.SetAttribute{
+			fieldPartners: schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 			},
-			"partners": schema.SetAttribute{
+			fieldChildren: schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 			},
