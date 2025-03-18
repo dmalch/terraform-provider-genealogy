@@ -61,7 +61,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	// If there are two partners, we can create a union by calling the profile/add-partner API
-	if len(plan.Partners.Elements()) == 2 {
+	if len(plan.Partners.Elements()) == 2 || len(plan.Partners.Elements()) == 0 {
 		// It is impossible to create a union using the API, so we need to create a
 		// temporary partner profile and then merge it with the second partner.
 
@@ -86,7 +86,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 		plan.ID = types.StringValue(tmpProfile.Unions[0])
 	} else {
-		resp.Diagnostics.AddError("Union must have exactly 2 partners", "")
+		resp.Diagnostics.AddError("Invalid number of partners", "A union can only have two partners")
 		return
 	}
 
