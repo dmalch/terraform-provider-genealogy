@@ -153,3 +153,55 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		}
 		`
 }
+
+func TestAccExampleWidget_createUnionWithOneParentAndChild(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithOneParentAndChild(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.mother", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.child", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(1)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.mother", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
+						"geni_profile.child", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+		},
+	})
+}
+
+func unionWithOneParentAndChild(testAccessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		}
+
+		resource "geni_profile" "mother" {
+		  first_name = "Jane"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_profile" "child" {
+		  first_name = "Alice"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_union" "doe_family" {
+		  partners = [
+			geni_profile.mother.id,
+		  ]
+		
+		  children = [
+			geni_profile.child.id,
+		  ]
+		}
+		`
+}

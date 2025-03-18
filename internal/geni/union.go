@@ -50,7 +50,7 @@ func GetUnion(accessToken, unionId string) (*UnionResponse, error) {
 	return &union, nil
 }
 
-func AddChild(accessToken, unionId string) (*ProfileResponse, error) {
+func AddChildToUnion(accessToken, unionId string) (*ProfileResponse, error) {
 	baseUrl := geniUrl + "api/" + unionId + "/add-child"
 	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
 	if err != nil {
