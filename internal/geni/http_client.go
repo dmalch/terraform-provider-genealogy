@@ -6,12 +6,23 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 )
 
-var errCode429 = errors.New("received 429 status")
+type errCode429WithRetry struct {
+	secondsUntilRetry time.Duration
+}
+
+func (e errCode429WithRetry) Error() string {
+	return fmt.Sprintf("received 429 status, retrying in %d seconds", e.secondsUntilRetry)
+}
+
+func newErrCode429WithRetry(secondsUntilRetry time.Duration) error {
+	return errCode429WithRetry{secondsUntilRetry: secondsUntilRetry}
+}
 
 func doRequest(req *http.Request) ([]byte, error) {
 	var body []byte
@@ -37,7 +48,12 @@ func doRequest(req *http.Request) ([]byte, error) {
 
 			if res.StatusCode == http.StatusTooManyRequests {
 				slog.Warn("Received 429 Too Many Requests, retrying...")
-				return errCode429
+				apiRateWindow := res.Header.Get("X-API-Rate-Window")
+				secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
+				if err != nil {
+					return fmt.Errorf("invalid value for X-API-Rate-Window: %s", secondsUntilRetry)
+				}
+				return newErrCode429WithRetry(time.Duration(secondsUntilRetry))
 			}
 
 			if res.StatusCode != http.StatusOK {
@@ -48,14 +64,15 @@ func doRequest(req *http.Request) ([]byte, error) {
 			return nil
 		},
 		retry.RetryIf(func(err error) bool {
-			if errors.Is(err, errCode429) {
+			var errCode429WithRetry errCode429WithRetry
+			if errors.As(err, &errCode429WithRetry) {
 				return true
 			}
 			return false
 		}),
 		retry.Attempts(3),
-		retry.Delay(2*time.Second),        // Wait 2 seconds between retries
-		retry.DelayType(retry.FixedDelay), // Use a fixed delay between retries
+		retry.Delay(2*time.Second), // Wait 2 seconds between retries
+		retry.DelayType(rateLimitingDelay),
 		retry.OnRetry(func(n uint, err error) {
 			slog.Info("Retrying request", "attempt", n+1, "error", err)
 		}),
@@ -66,6 +83,14 @@ func doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
+	var errCode429WithRetry errCode429WithRetry
+	if errors.As(err, &errCode429WithRetry) {
+		return (1 + errCode429WithRetry.secondsUntilRetry) * time.Second
+	}
+	return retry.FixedDelay(n, err, config)
 }
 
 func addStandardHeadersAndQueryParams(req *http.Request, accessToken string) {
