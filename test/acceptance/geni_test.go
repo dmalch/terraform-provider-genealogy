@@ -3,6 +3,7 @@ package acceptance
 import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
@@ -56,6 +57,11 @@ func TestAccExampleWidget_createUnionWithTwoPartners(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
 				},
 			},
 		},
@@ -79,10 +85,10 @@ func unionWithTwoPartners(testAccessToken string) string {
 		}
 		
 		resource "geni_union" "doe_family" {
-		 partners = [
+		  partners = [
 			geni_profile.husband.id,
 			geni_profile.wife.id,
-		 ]
+		  ]
 		}
 		`
 }
