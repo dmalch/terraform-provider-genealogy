@@ -7,20 +7,21 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 )
 
 type errCode429WithRetry struct {
-	secondsUntilRetry time.Duration
+	secondsUntilRetry int
 }
 
 func (e errCode429WithRetry) Error() string {
 	return fmt.Sprintf("received 429 status, retrying in %d seconds", e.secondsUntilRetry)
 }
 
-func newErrCode429WithRetry(secondsUntilRetry time.Duration) error {
+func newErrCode429WithRetry(secondsUntilRetry int) error {
 	return errCode429WithRetry{secondsUntilRetry: secondsUntilRetry}
 }
 
@@ -46,18 +47,23 @@ func doRequest(req *http.Request) ([]byte, error) {
 				return err
 			}
 
-			if res.StatusCode == http.StatusTooManyRequests {
-				slog.Warn("Received 429 Too Many Requests, retrying...")
-				apiRateWindow := res.Header.Get("X-API-Rate-Window")
-				secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
-				if err != nil {
-					return fmt.Errorf("invalid value for X-API-Rate-Window: %s", secondsUntilRetry)
-				}
-				return newErrCode429WithRetry(time.Duration(secondsUntilRetry))
-			}
-
 			if res.StatusCode != http.StatusOK {
-				slog.Error("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+				if res.StatusCode == http.StatusTooManyRequests {
+					slog.Warn("Received 429 Too Many Requests, retrying...")
+					apiRateWindow := res.Header.Get("X-API-Rate-Window")
+					secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
+					if err != nil {
+						return fmt.Errorf("invalid value for X-API-Rate-Window: %s", secondsUntilRetry)
+					}
+
+					return newErrCode429WithRetry(secondsUntilRetry)
+				}
+
+				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
+					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+					return newErrCode429WithRetry(1)
+				}
+
 				return fmt.Errorf("non-OK HTTP status: %s", res.Status)
 			}
 
@@ -88,7 +94,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
 	var errCode429WithRetry errCode429WithRetry
 	if errors.As(err, &errCode429WithRetry) {
-		return (1 + errCode429WithRetry.secondsUntilRetry) * time.Second
+		return time.Duration(errCode429WithRetry.secondsUntilRetry+1) * time.Second
 	}
 	return retry.FixedDelay(n, err, config)
 }
