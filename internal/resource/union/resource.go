@@ -48,8 +48,8 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 
 type ResourceModel struct {
 	ID       types.String `tfsdk:"id"`
-	Children types.List   `tfsdk:"children"`
-	Partners types.List   `tfsdk:"partners"`
+	Children types.Set    `tfsdk:"children"`
+	Partners types.Set    `tfsdk:"partners"`
 }
 
 // Create creates the resource
@@ -108,21 +108,21 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		state.ID = types.StringValue(union.Id)
 	}
 	if len(union.Children) > 0 {
-		listValue, diag := types.ListValueFrom(ctx, types.StringType, union.Children)
-		state.Children = listValue
+		children, diag := types.SetValueFrom(ctx, types.StringType, union.Children)
 		resp.Diagnostics.Append(diag...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
+		state.Children = children
 	}
 
 	if len(union.Partners) > 0 {
-		listValue, diag := types.ListValueFrom(ctx, types.StringType, union.Partners)
-		state.Partners = listValue
+		partners, diag := types.SetValueFrom(ctx, types.StringType, union.Partners)
 		resp.Diagnostics.Append(diag...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
+		state.Partners = partners
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)

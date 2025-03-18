@@ -19,11 +19,11 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
-			"children": schema.ListAttribute{
+			"children": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 			},
-			"partners": schema.ListAttribute{
+			"partners": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 			},
