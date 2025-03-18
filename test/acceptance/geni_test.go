@@ -356,3 +356,37 @@ func unionWithOneParent(testAccessToken string) string {
 		}
 		`
 }
+
+func TestAccExampleWidget_failToCreateUnionWithOneChild(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      unionWithOneChild(testAccessToken),
+				ExpectError: regexp.MustCompile(`Insufficient Attribute Configuration`),
+			},
+		},
+	})
+}
+
+func unionWithOneChild(testAccessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		}
+
+		resource "geni_profile" "child" {
+		  first_name = "Alice"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_union" "doe_family" {
+		  children = [
+			geni_profile.child.id,
+		  ]
+		}
+		`
+}
