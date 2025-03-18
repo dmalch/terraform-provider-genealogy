@@ -62,8 +62,9 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	// If there are two partners, we can create a union by calling the profile/add-partner API
 	if len(plan.Partners.Elements()) == 2 || len(plan.Partners.Elements()) == 0 {
-		// It is impossible to create a union using the API, so we need to create a
-		// temporary partner profile and then merge it with the second partner.
+		// It is impossible to create a union from two existing profiles using the API,
+		// so we need to create a temporary partner profile and then merge it with the
+		// existing second partner profile.
 
 		partnerIds := make([]types.String, 0, len(plan.Partners.Elements()))
 		diag := plan.Partners.ElementsAs(ctx, &partnerIds, false)
@@ -86,8 +87,42 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 		plan.ID = types.StringValue(tmpProfile.Unions[0])
 	} else {
+		// TODO: Implement the case when there is one parent only
 		resp.Diagnostics.AddError("Invalid number of partners", "A union can only have two partners")
 		return
+	}
+
+	// Set the children. If the union already exists and has children, we can set
+	// them by calling the union/add-child API. If not, we can use profile/add-child
+	// on a parent profile.
+	if len(plan.Children.Elements()) > 0 {
+
+		childrenIds := make([]types.String, 0, len(plan.Children.Elements()))
+		diag := plan.Children.ElementsAs(ctx, &childrenIds, false)
+		if diag.HasError() {
+			resp.Diagnostics.Append(diag...)
+			return
+		}
+
+		// If the union already exists, we can add children to it
+		if !plan.ID.IsUnknown() || !plan.ID.IsNull() {
+			for _, childId := range childrenIds {
+				// It is impossible to add an existing child profile to a union using the API, so
+				// we need to create a temporary child profile and then merge it with the
+				// existing child profile.
+				tmpProfile, err := geni.AddChild(r.accessToken.ValueString(), plan.ID.ValueString())
+				if err != nil {
+					resp.Diagnostics.AddError("Error adding child", err.Error())
+					return
+				}
+
+				// Merge the temporary profile with the child profile
+				if err := geni.MergeProfiles(r.accessToken.ValueString(), childId.ValueString(), tmpProfile.Id); err != nil {
+					resp.Diagnostics.AddError("Error merging profiles", err.Error())
+					return
+				}
+			}
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
