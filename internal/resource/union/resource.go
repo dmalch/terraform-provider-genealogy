@@ -100,7 +100,13 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			return
 		}
 
-		for _, childId := range childrenIds {
+		var skipNextIteration bool
+		for i, childId := range childrenIds {
+			if skipNextIteration {
+				skipNextIteration = false
+				continue
+			}
+
 			var tmpProfile *geni.ProfileResponse
 
 			// If the union already exists, we can add children to it
@@ -126,6 +132,21 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 						resp.Diagnostics.AddError("Error adding child", err.Error())
 						return
 					}
+				} else if len(partnerIds) == 0 && len(childrenIds) > 1 {
+					// If there are no partners, we can add a child as a sibling to the first child
+					// in the union using the union/add-sibling API.
+					// It is impossible to add an existing child profile to a sibling using the API,
+					// so we need to create a temporary child profile and then merge it with the
+					// existing child profile.
+					var err error
+					tmpProfile, err = geni.AddSibling(r.accessToken.ValueString(), childrenIds[i+1].ValueString())
+					if err != nil {
+						resp.Diagnostics.AddError("Error adding child", err.Error())
+						return
+					}
+
+					// Skip the next iteration because we already added the child
+					skipNextIteration = true
 				}
 			}
 
