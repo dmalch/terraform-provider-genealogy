@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -220,23 +221,27 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	// Check if parents were updated
 	if !plan.Partners.Equal(state.Partners) {
-		planPartnerIds := make([]types.String, 0, len(plan.Partners.Elements()))
-		diag := plan.Partners.ElementsAs(ctx, &planPartnerIds, false)
-		if diag.HasError() {
-			resp.Diagnostics.Append(diag...)
+		planPartnerIds, diags := convertToSlice(ctx, plan.Partners)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
+		knownPlanPartnerIds := hashMapFrom(planPartnerIds)
 
-		statePartnerIds := make([]types.String, 0, len(state.Partners.Elements()))
-		diag = state.Partners.ElementsAs(ctx, &statePartnerIds, false)
-		if diag.HasError() {
-			resp.Diagnostics.Append(diag...)
+		statePartnerIds, diags := convertToSlice(ctx, state.Partners)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
 			return
 		}
+		knownStatePartnerIds := hashMapFrom(statePartnerIds)
 
-		knownStatePartnerIds := make(map[string]struct{}, len(statePartnerIds))
 		for _, partnerId := range statePartnerIds {
-			knownStatePartnerIds[partnerId.ValueString()] = struct{}{}
+			// If the partner is not in the plan, fail the update because we can't remove
+			// partners from a union using the API
+			if _, ok := knownPlanPartnerIds[partnerId.ValueString()]; !ok {
+				resp.Diagnostics.AddError("Cannot remove partners", "Partners cannot be removed from a union")
+				return
+			}
 		}
 
 		for _, partnerId := range planPartnerIds {
@@ -262,6 +267,20 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func hashMapFrom(slice []types.String) map[string]struct{} {
+	hashMap := make(map[string]struct{}, len(slice))
+	for _, elem := range slice {
+		hashMap[elem.ValueString()] = struct{}{}
+	}
+	return hashMap
+}
+
+func convertToSlice(ctx context.Context, set types.Set) ([]types.String, diag.Diagnostics) {
+	slice := make([]types.String, 0, len(set.Elements()))
+	diags := set.ElementsAs(ctx, &slice, false)
+	return slice, diags
 }
 
 // Delete deletes the resource
