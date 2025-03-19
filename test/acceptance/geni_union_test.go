@@ -15,38 +15,7 @@ import (
 	"github.com/dmalch/terraform-provider-geni/internal"
 )
 
-func TestAccExampleWidget_createProfile(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: profile(testAccessToken),
-				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
-				},
-			},
-		},
-	})
-}
-
-func profile(testAccessToken string) string {
-	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		}
-
-		resource "geni_profile" "test" {
-		  first_name = "John"
-		  last_name  = "Doe"
-		}
-		`
-}
-
-func TestAccExampleWidget_createUnionWithTwoPartners(t *testing.T) {
+func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -94,7 +63,7 @@ func unionWithTwoPartners(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_createUnionWithTwoPartnersAndChild(t *testing.T) {
+func TestAccUnion_createUnionWithTwoPartnersAndChild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -155,7 +124,7 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_createUnionWithTwoPartnersTwoChildren(t *testing.T) {
+func TestAccUnion_createUnionWithTwoPartnersTwoChildren(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -225,7 +194,7 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_createUnionWithOneParentAndChild(t *testing.T) {
+func TestAccUnion_createUnionWithOneParentAndChild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -277,7 +246,7 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_createUnionWithTwoSiblingsWithoutParents(t *testing.T) {
+func TestAccUnion_createUnionWithTwoSiblingsWithoutParents(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -325,7 +294,7 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *testing.T) {
+func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -395,7 +364,7 @@ func TestAccExampleWidget_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep
 	})
 }
 
-func TestAccExampleWidget_failToCreateUnionWithOneParent(t *testing.T) {
+func TestAccUnion_failToCreateUnionWithOneParent(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -429,7 +398,7 @@ func unionWithOneParent(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_failToCreateUnionWithOneChild(t *testing.T) {
+func TestAccUnion_failToCreateUnionWithOneChild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -463,7 +432,7 @@ func unionWithOneChild(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_failToCreateUnionWithThreePartners(t *testing.T) {
+func TestAccUnion_failToCreateUnionWithThreePartners(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -509,7 +478,7 @@ func unionWithThreePartners(testAccessToken string) string {
 		`
 }
 
-func TestAccExampleWidget_failToAddThirdPartnerToUnion(t *testing.T) {
+func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -568,7 +537,7 @@ func TestAccExampleWidget_failToAddThirdPartnerToUnion(t *testing.T) {
 	})
 }
 
-func TestAccExampleWidget_failToRemovePartnerFromUnion(t *testing.T) {
+func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -620,7 +589,7 @@ func TestAccExampleWidget_failToRemovePartnerFromUnion(t *testing.T) {
 	})
 }
 
-func TestAccExampleWidget_failToRemoveChildrenFromUnion(t *testing.T) {
+func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -669,7 +638,7 @@ func TestAccExampleWidget_failToRemoveChildrenFromUnion(t *testing.T) {
 	})
 }
 
-func TestAccExampleWidget_addAnotherChildToUnion(t *testing.T) {
+func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
