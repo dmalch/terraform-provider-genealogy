@@ -57,7 +57,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 					apiRateWindow := res.Header.Get("X-API-Rate-Window")
 					secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 					if err != nil {
-						return fmt.Errorf("invalid value for X-API-Rate-Window: %s", secondsUntilRetry)
+						return fmt.Errorf("invalid value for X-API-Rate-Window: %d", secondsUntilRetry)
 					}
 
 					return newErrWithRetry(res.StatusCode, secondsUntilRetry)
