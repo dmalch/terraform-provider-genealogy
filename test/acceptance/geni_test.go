@@ -594,6 +594,11 @@ func TestAccExampleWidget_failToRemovePartnerFromUnion(t *testing.T) {
 				  last_name  = "Doe"
 				}
 		
+				resource "geni_profile" "wife" {
+				  first_name = "Jane"
+				  last_name  = "Doe"
+				}
+		
 				resource "geni_profile" "child" {
 				  first_name = "Alice"
 				  last_name  = "Doe"
@@ -611,9 +616,54 @@ func TestAccExampleWidget_failToRemovePartnerFromUnion(t *testing.T) {
 				`,
 				ExpectError: regexp.MustCompile(`Cannot remove partners`),
 			},
+		},
+	})
+}
+
+func TestAccExampleWidget_failToRemoveChildrenFromUnion(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
 			{
-				// Revert back to the original state
 				Config: unionWithTwoPartnersAndChild(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
+				},
+			},
+			{
+				// Try to remove a child from the union
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				}
+
+				resource "geni_profile" "husband" {
+				  first_name = "John"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "wife" {
+				  first_name = "Jane"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "child" {
+				  first_name = "Alice"
+				  last_name  = "Doe"
+				}
+				
+				resource "geni_union" "doe_family" {
+				  partners = [
+					geni_profile.husband.id,
+					geni_profile.wife.id,
+				  ]
+				}
+				`,
+				ExpectError: regexp.MustCompile(`Cannot remove children`),
 			},
 		},
 	})

@@ -266,6 +266,31 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		}
 	}
 
+	// Check if children were updated
+	if !plan.Children.Equal(state.Children) {
+		planChildIds, diags := convertToSlice(ctx, plan.Children)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		knownPlanChildIds := hashMapFrom(planChildIds)
+
+		stateChildIds, diags := convertToSlice(ctx, state.Children)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		for _, childId := range stateChildIds {
+			// If the child is not in the plan, fail the update because we can't remove
+			// children from a union using the API
+			if _, ok := knownPlanChildIds[childId.ValueString()]; !ok {
+				resp.Diagnostics.AddError("Cannot remove children", "Children cannot be removed from a union")
+				return
+			}
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
