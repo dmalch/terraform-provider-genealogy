@@ -668,3 +668,65 @@ func TestAccExampleWidget_failToRemoveChildrenFromUnion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccExampleWidget_addAnotherChildToUnion(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithTwoPartnersAndChild(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
+				},
+			},
+			{
+				// Add another child to the union
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				}
+
+				resource "geni_profile" "husband" {
+				  first_name = "John"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "wife" {
+				  first_name = "Jane"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "child1" {
+				  first_name = "Alice"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "child2" {
+				  first_name = "Bob"
+				  last_name  = "Doe"
+				}
+				
+				resource "geni_union" "doe_family" {
+				  partners = [
+					geni_profile.husband.id,
+					geni_profile.wife.id,
+				  ]
+				
+				  children = [
+					geni_profile.child1.id,
+					geni_profile.child2.id,
+				  ]
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(2)),
+				},
+			},
+		},
+	})
+}

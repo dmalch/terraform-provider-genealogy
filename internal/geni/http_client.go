@@ -14,15 +14,19 @@ import (
 )
 
 type errCode429WithRetry struct {
+	statusCode        int
 	secondsUntilRetry int
 }
 
 func (e errCode429WithRetry) Error() string {
-	return fmt.Sprintf("received 429 status, retrying in %d seconds", e.secondsUntilRetry)
+	return fmt.Sprintf("received %d status, window is %d seconds", e.statusCode, e.secondsUntilRetry)
 }
 
-func newErrCode429WithRetry(secondsUntilRetry int) error {
-	return errCode429WithRetry{secondsUntilRetry: secondsUntilRetry}
+func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
+	return errCode429WithRetry{
+		statusCode:        statusCode,
+		secondsUntilRetry: secondsUntilRetry,
+	}
 }
 
 func doRequest(req *http.Request) ([]byte, error) {
@@ -56,12 +60,12 @@ func doRequest(req *http.Request) ([]byte, error) {
 						return fmt.Errorf("invalid value for X-API-Rate-Window: %s", secondsUntilRetry)
 					}
 
-					return newErrCode429WithRetry(secondsUntilRetry)
+					return newErrWithRetry(res.StatusCode, secondsUntilRetry)
 				}
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
 					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-					return newErrCode429WithRetry(1)
+					return newErrWithRetry(res.StatusCode, 1)
 				}
 
 				return fmt.Errorf("non-OK HTTP status: %s", res.Status)
@@ -92,9 +96,9 @@ func doRequest(req *http.Request) ([]byte, error) {
 }
 
 func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
-	var errCode429WithRetry errCode429WithRetry
-	if errors.As(err, &errCode429WithRetry) {
-		return time.Duration(errCode429WithRetry.secondsUntilRetry+3) * time.Second
+	var retryErr errCode429WithRetry
+	if errors.As(err, &retryErr) {
+		return time.Duration(retryErr.secondsUntilRetry+1) * time.Second
 	}
 	return retry.FixedDelay(n, err, config)
 }

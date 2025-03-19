@@ -277,12 +277,34 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		if resp.Diagnostics.HasError() {
 			return
 		}
+		knownStateChildIds := hashMapFrom(stateChildIds)
 
 		for _, childId := range stateChildIds {
 			// If the child is not in the plan, fail the update because we can't remove
 			// children from a union using the API
 			if _, ok := knownPlanChildIds[childId.ValueString()]; !ok {
 				resp.Diagnostics.AddAttributeWarning(path.Root(fieldChildren), "Cannot remove children", "Children cannot be removed from a union using terraform unless the profile is deleted")
+			}
+		}
+
+		for _, childId := range planChildIds {
+			// If the child is not in the state, we need to add it
+			if _, ok := knownStateChildIds[childId.ValueString()]; !ok {
+				// It is impossible to add an existing profile to a union using the API, so we
+				// need to create a temporary profile and then merge it with the existing
+				// profile.
+
+				tmpProfile, err := geni.AddChild(r.accessToken.ValueString(), plan.ID.ValueString())
+				if err != nil {
+					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
+					return
+				}
+
+				// Merge the temporary profile with the child profile
+				if err := geni.MergeProfiles(r.accessToken.ValueString(), childId.ValueString(), tmpProfile.Id); err != nil {
+					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
+					return
+				}
 			}
 		}
 	}
