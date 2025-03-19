@@ -614,7 +614,7 @@ func TestAccExampleWidget_failToRemovePartnerFromUnion(t *testing.T) {
 				  ]
 				}
 				`,
-				ExpectError: regexp.MustCompile(`Cannot remove partners`),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -663,7 +663,7 @@ func TestAccExampleWidget_failToRemoveChildrenFromUnion(t *testing.T) {
 				  ]
 				}
 				`,
-				ExpectError: regexp.MustCompile(`Cannot remove children`),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

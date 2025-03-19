@@ -61,10 +61,9 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	partnerIds := make([]types.String, 0, len(plan.Partners.Elements()))
-	diag := plan.Partners.ElementsAs(ctx, &partnerIds, false)
-	if diag.HasError() {
-		resp.Diagnostics.Append(diag...)
+	partnerIds, diags := convertToSlice(ctx, plan.Partners)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -76,13 +75,13 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 		tmpProfile, err := geni.AddPartner(r.accessToken.ValueString(), partnerIds[0].ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Error adding partner", err.Error())
+			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 			return
 		}
 
 		// Merge the temporary profile with the second partner
 		if err := geni.MergeProfiles(r.accessToken.ValueString(), partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
-			resp.Diagnostics.AddError("Error merging profiles", err.Error())
+			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 			return
 		}
 
@@ -94,10 +93,9 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	// on a parent profile.
 	if len(plan.Children.Elements()) > 0 {
 
-		childrenIds := make([]types.String, 0, len(plan.Children.Elements()))
-		diag := plan.Children.ElementsAs(ctx, &childrenIds, false)
-		if diag.HasError() {
-			resp.Diagnostics.Append(diag...)
+		childrenIds, diags := convertToSlice(ctx, plan.Children)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -118,7 +116,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				var err error
 				tmpProfile, err = geni.AddChild(r.accessToken.ValueString(), plan.ID.ValueString())
 				if err != nil {
-					resp.Diagnostics.AddError("Error adding child", err.Error())
+					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 					return
 				}
 			} else {
@@ -130,7 +128,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					var err error
 					tmpProfile, err = geni.AddChild(r.accessToken.ValueString(), partnerIds[0].ValueString())
 					if err != nil {
-						resp.Diagnostics.AddError("Error adding child", err.Error())
+						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
 					}
 				} else if len(partnerIds) == 0 && len(childrenIds) > 1 {
@@ -142,7 +140,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					var err error
 					tmpProfile, err = geni.AddSibling(r.accessToken.ValueString(), childrenIds[i+1].ValueString())
 					if err != nil {
-						resp.Diagnostics.AddError("Error adding child", err.Error())
+						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
 					}
 
@@ -153,7 +151,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 			// Merge the temporary profile with the child profile
 			if err := geni.MergeProfiles(r.accessToken.ValueString(), childId.ValueString(), tmpProfile.Id); err != nil {
-				resp.Diagnostics.AddError("Error merging profiles", err.Error())
+				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 				return
 			}
 
@@ -184,8 +182,8 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		state.ID = types.StringValue(union.Id)
 	}
 	if len(union.Children) > 0 {
-		children, diag := types.SetValueFrom(ctx, types.StringType, union.Children)
-		resp.Diagnostics.Append(diag...)
+		children, diags := types.SetValueFrom(ctx, types.StringType, union.Children)
+		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -193,8 +191,8 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	if len(union.Partners) > 0 {
-		partners, diag := types.SetValueFrom(ctx, types.StringType, union.Partners)
-		resp.Diagnostics.Append(diag...)
+		partners, diags := types.SetValueFrom(ctx, types.StringType, union.Partners)
+		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -222,15 +220,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	// Check if parents were updated
 	if !plan.Partners.Equal(state.Partners) {
 		planPartnerIds, diags := convertToSlice(ctx, plan.Partners)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 		knownPlanPartnerIds := hashMapFrom(planPartnerIds)
 
 		statePartnerIds, diags := convertToSlice(ctx, state.Partners)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 		knownStatePartnerIds := hashMapFrom(statePartnerIds)
@@ -239,8 +237,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 			// If the partner is not in the plan, fail the update because we can't remove
 			// partners from a union using the API
 			if _, ok := knownPlanPartnerIds[partnerId.ValueString()]; !ok {
-				resp.Diagnostics.AddError("Cannot remove partners", "Partners cannot be removed from a union")
-				return
+				resp.Diagnostics.AddAttributeWarning(path.Root(fieldPartners), "Cannot remove partners", "Partners cannot be removed from a union using terraform unless the profile is deleted")
 			}
 		}
 
@@ -253,13 +250,13 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 				tmpProfile, err := geni.AddPartner(r.accessToken.ValueString(), plan.ID.ValueString())
 				if err != nil {
-					resp.Diagnostics.AddError("Error adding partner", err.Error())
+					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the second partner
 				if err := geni.MergeProfiles(r.accessToken.ValueString(), partnerId.ValueString(), tmpProfile.Id); err != nil {
-					resp.Diagnostics.AddError("Error merging profiles", err.Error())
+					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 					return
 				}
 			}
@@ -269,15 +266,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	// Check if children were updated
 	if !plan.Children.Equal(state.Children) {
 		planChildIds, diags := convertToSlice(ctx, plan.Children)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 		knownPlanChildIds := hashMapFrom(planChildIds)
 
 		stateChildIds, diags := convertToSlice(ctx, state.Children)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
@@ -285,8 +282,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 			// If the child is not in the plan, fail the update because we can't remove
 			// children from a union using the API
 			if _, ok := knownPlanChildIds[childId.ValueString()]; !ok {
-				resp.Diagnostics.AddError("Cannot remove children", "Children cannot be removed from a union")
-				return
+				resp.Diagnostics.AddAttributeWarning(path.Root(fieldChildren), "Cannot remove children", "Children cannot be removed from a union using terraform unless the profile is deleted")
 			}
 		}
 	}

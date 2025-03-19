@@ -76,7 +76,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 			}
 			return false
 		}),
-		retry.Attempts(3),
+		retry.Attempts(5),
 		retry.Delay(2*time.Second), // Wait 2 seconds between retries
 		retry.DelayType(rateLimitingDelay),
 		retry.OnRetry(func(n uint, err error) {
@@ -94,7 +94,7 @@ func doRequest(req *http.Request) ([]byte, error) {
 func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
 	var errCode429WithRetry errCode429WithRetry
 	if errors.As(err, &errCode429WithRetry) {
-		return time.Duration(errCode429WithRetry.secondsUntilRetry+1) * time.Second
+		return time.Duration(errCode429WithRetry.secondsUntilRetry+3) * time.Second
 	}
 	return retry.FixedDelay(n, err, config)
 }
