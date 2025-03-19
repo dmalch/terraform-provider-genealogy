@@ -35,16 +35,14 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:    true,
 				Optional:    true,
 			},
-			"created_at": schema.StringAttribute{
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			},
-		},
-		Blocks: map[string]schema.Block{
 			"birth":   event.Schema(),
 			"baptism": event.Schema(),
 			"death":   event.Schema(),
 			"burial":  event.Schema(),
+			"created_at": schema.StringAttribute{
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+			},
 		},
 	}
 }

@@ -1,3 +1,3 @@
 package acceptance
 
-const testAccessToken = "O6ntwsEmeUfrHWXj4sCje5LPuwM57ccsq2rpOTGY"
+const testAccessToken = "hIOP1fmxJjzABmxkZlvTmJUG5JMavhUUWF2A1dau"

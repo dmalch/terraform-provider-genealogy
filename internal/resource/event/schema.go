@@ -4,38 +4,81 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func Schema() schema.SingleNestedBlock {
-	return schema.SingleNestedBlock{
+func Schema() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Optional: true,
 		Attributes: map[string]schema.Attribute{
-			"description": schema.StringAttribute{},
-			"name":        schema.StringAttribute{},
-		},
-		Blocks: map[string]schema.Block{
-			"date": schema.SingleNestedBlock{
+			"description": schema.StringAttribute{
+				Optional: true,
+			},
+			"name": schema.StringAttribute{
+				Optional: true,
+			},
+			"date": schema.SingleNestedAttribute{
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					"circa":     schema.BoolAttribute{},
-					"day":       schema.NumberAttribute{},
-					"end_circa": schema.BoolAttribute{},
-					"end_day":   schema.NumberAttribute{},
-					"end_month": schema.NumberAttribute{},
-					"end_year":  schema.NumberAttribute{},
-					"month":     schema.NumberAttribute{},
-					"range":     schema.StringAttribute{},
-					"year":      schema.NumberAttribute{},
+					// Range (before, after, or between)
+					"range": schema.StringAttribute{
+						Optional: true},
+					// Indicates whether the date is an approximation
+					"circa": schema.BoolAttribute{
+						Optional: true},
+					// Date's day
+					"day": schema.NumberAttribute{
+						Optional: true},
+					// Date's month
+					"month": schema.NumberAttribute{
+						Optional: true},
+					// Date's year
+					"year": schema.NumberAttribute{
+						Optional: true},
+					// Indicates whether the end date is an approximation
+					"end_circa": schema.BoolAttribute{
+						Optional: true},
+					// Date's end day (only valid if range is between)
+					"end_day": schema.NumberAttribute{
+						Optional: true},
+					// Date's end month (only valid if range is between)
+					"end_month": schema.NumberAttribute{
+						Optional: true},
+					// Date's end year (only valid if range is between)
+					"end_year": schema.NumberAttribute{
+						Optional: true},
 				},
 			},
-			"location": schema.SingleNestedBlock{
+			"location": schema.SingleNestedAttribute{
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					"city":            schema.StringAttribute{},
-					"country":         schema.StringAttribute{},
-					"county":          schema.StringAttribute{},
-					"latitude":        schema.NumberAttribute{},
-					"longitude":       schema.NumberAttribute{},
-					"place_name":      schema.StringAttribute{},
-					"state":           schema.StringAttribute{},
-					"street_address1": schema.StringAttribute{},
-					"street_address2": schema.StringAttribute{},
-					"street_address3": schema.StringAttribute{},
+					"city": schema.StringAttribute{
+						Optional: true,
+					},
+					"country": schema.StringAttribute{
+						Optional: true,
+					},
+					"county": schema.StringAttribute{
+						Optional: true,
+					},
+					"latitude": schema.NumberAttribute{
+						Optional: true,
+					},
+					"longitude": schema.NumberAttribute{
+						Optional: true,
+					},
+					"place_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"state": schema.StringAttribute{
+						Optional: true,
+					},
+					"street_address1": schema.StringAttribute{
+						Optional: true,
+					},
+					"street_address2": schema.StringAttribute{
+						Optional: true,
+					},
+					"street_address3": schema.StringAttribute{
+						Optional: true,
+					},
 				},
 			},
 		},

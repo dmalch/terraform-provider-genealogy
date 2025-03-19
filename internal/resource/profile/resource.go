@@ -46,15 +46,6 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	r.accessToken = cfg.AccessToken
 }
 
-type ResourceModel struct {
-	ID        types.String `tfsdk:"id"`
-	FirstName types.String `tfsdk:"first_name"`
-	LastName  types.String `tfsdk:"last_name"`
-	Gender    types.String `tfsdk:"gender"`
-	Unions    types.List   `tfsdk:"unions"`
-	CreatedAt types.String `tfsdk:"created_at"`
-}
-
 // Create creates the resource
 func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ResourceModel
