@@ -23,7 +23,7 @@ func TestCreateProfile1(t *testing.T) {
 			},
 		},
 		Birth: &EventElement{
-			Date: DateResponse{
+			Date: &DateElement{
 				Day:   19,
 				Month: 8,
 				Year:  1922,
@@ -36,7 +36,7 @@ func TestCreateProfile1(t *testing.T) {
 			},
 		},
 		Death: &EventElement{
-			Date: DateResponse{
+			Date: &DateElement{
 				Day:   25,
 				Month: 9,
 				Year:  1993,
@@ -63,7 +63,7 @@ func TestCreateProfile1(t *testing.T) {
 		MiddleName: "Н",
 	}))
 	Expect(profile.Birth).To(Equal(&EventElement{
-		Date: DateResponse{
+		Date: &DateElement{
 			Day:   19,
 			Month: 8,
 			Year:  1922,
@@ -77,7 +77,7 @@ func TestCreateProfile1(t *testing.T) {
 		Name: "Birth of 1TestFirstName 1TestLastName",
 	}))
 	Expect(profile.Death).To(Equal(&EventElement{
-		Date: DateResponse{
+		Date: &DateElement{
 			Day:   25,
 			Month: 9,
 			Year:  1993,
@@ -153,7 +153,7 @@ func TestGetProfile2(t *testing.T) {
 		MiddleName: "Н",
 	}))
 	Expect(profile.Birth).To(Equal(&EventElement{
-		Date: DateResponse{
+		Date: &DateElement{
 			Day:   19,
 			Month: 8,
 			Year:  1922,
@@ -167,7 +167,7 @@ func TestGetProfile2(t *testing.T) {
 		Name: "Birth of F M",
 	}))
 	Expect(profile.Death).To(Equal(&EventElement{
-		Date: DateResponse{
+		Date: &DateElement{
 			Day:   25,
 			Month: 9,
 			Year:  1993,
@@ -194,7 +194,7 @@ func TestUpdateProfile1(t *testing.T) {
 			},
 		},
 		Birth: &EventElement{
-			Date: DateResponse{
+			Date: &DateElement{
 				Day:   19,
 				Month: 8,
 				Year:  1922,
@@ -207,7 +207,7 @@ func TestUpdateProfile1(t *testing.T) {
 			},
 		},
 		Death: &EventElement{
-			Date: DateResponse{
+			Date: &DateElement{
 				Day:   25,
 				Month: 9,
 				Year:  1993,
@@ -238,7 +238,7 @@ func TestUpdateProfile1(t *testing.T) {
 		MiddleName: "Н",
 	}))
 	Expect(updatedProfile.Birth).To(Equal(&EventElement{
-		Date: DateResponse{
+		Date: &DateElement{
 			Day:   19,
 			Month: 8,
 			Year:  1922,
@@ -252,7 +252,7 @@ func TestUpdateProfile1(t *testing.T) {
 		Name: "Birth of 2TestFirstName 1TestLastName",
 	}))
 	Expect(updatedProfile.Death).To(Equal(&EventElement{
-		Date: DateResponse{
+		Date: &DateElement{
 			Day:   25,
 			Month: 9,
 			Year:  1993,

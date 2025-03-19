@@ -6,16 +6,16 @@ import (
 )
 
 type Model struct {
-	Description types.String `json:"description"`
-	Name        types.String `json:"name"`
-	Date        types.Object `json:"date"`
-	Location    types.Object `json:"location"`
+	Name        types.String `tfsdk:"name"`
+	Description types.String `tfsdk:"description"`
+	Date        types.Object `tfsdk:"date"`
+	Location    types.Object `tfsdk:"location"`
 }
 
 func (m Model) AttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"description": types.StringType,
 		"name":        types.StringType,
+		"description": types.StringType,
 		"date": types.ObjectType{
 			AttrTypes: DateModelAttributeTypes(),
 		},
@@ -26,15 +26,15 @@ func (m Model) AttributeTypes() map[string]attr.Type {
 }
 
 type DateModel struct {
-	Range    types.String `json:"range"`
-	Circa    types.Bool   `json:"circa"`
-	Day      types.Int32  `json:"day"`
-	Month    types.Int32  `json:"month"`
-	Year     types.Int32  `json:"year"`
-	EndCirca types.Bool   `json:"end_circa"`
-	EndDay   types.Int32  `json:"end_day"`
-	EndMonth types.Int32  `json:"end_month"`
-	EndYear  types.Int32  `json:"end_year"`
+	Range    types.String `tfsdk:"range"`
+	Circa    types.Bool   `tfsdk:"circa"`
+	Day      types.Int32  `tfsdk:"day"`
+	Month    types.Int32  `tfsdk:"month"`
+	Year     types.Int32  `tfsdk:"year"`
+	EndCirca types.Bool   `tfsdk:"end_circa"`
+	EndDay   types.Int32  `tfsdk:"end_day"`
+	EndMonth types.Int32  `tfsdk:"end_month"`
+	EndYear  types.Int32  `tfsdk:"end_year"`
 }
 
 func (m DateModel) AttributeTypes() map[string]attr.Type {
@@ -56,16 +56,16 @@ func DateModelAttributeTypes() map[string]attr.Type {
 }
 
 type LocationModel struct {
-	City           types.String `json:"city"`
-	Country        types.String `json:"country"`
-	County         types.String `json:"county"`
-	Latitude       types.Number `json:"latitude"`
-	Longitude      types.Number `json:"longitude"`
-	PlaceName      types.String `json:"place_name"`
-	State          types.String `json:"state"`
-	StreetAddress1 types.String `json:"street_address1"`
-	StreetAddress2 types.String `json:"street_address2"`
-	StreetAddress3 types.String `json:"street_address3"`
+	City           types.String `tfsdk:"city"`
+	Country        types.String `tfsdk:"country"`
+	County         types.String `tfsdk:"county"`
+	Latitude       types.Number `tfsdk:"latitude"`
+	Longitude      types.Number `tfsdk:"longitude"`
+	PlaceName      types.String `tfsdk:"place_name"`
+	State          types.String `tfsdk:"state"`
+	StreetAddress1 types.String `tfsdk:"street_address1"`
+	StreetAddress2 types.String `tfsdk:"street_address2"`
+	StreetAddress3 types.String `tfsdk:"street_address3"`
 }
 
 func (m LocationModel) AttributeTypes() map[string]attr.Type {

@@ -24,25 +24,25 @@ func Schema() schema.SingleNestedAttribute {
 					"circa": schema.BoolAttribute{
 						Optional: true},
 					// Date's day
-					"day": schema.NumberAttribute{
+					"day": schema.Int32Attribute{
 						Optional: true},
 					// Date's month
-					"month": schema.NumberAttribute{
+					"month": schema.Int32Attribute{
 						Optional: true},
 					// Date's year
-					"year": schema.NumberAttribute{
+					"year": schema.Int32Attribute{
 						Optional: true},
 					// Indicates whether the end date is an approximation
 					"end_circa": schema.BoolAttribute{
 						Optional: true},
 					// Date's end day (only valid if range is between)
-					"end_day": schema.NumberAttribute{
+					"end_day": schema.Int32Attribute{
 						Optional: true},
 					// Date's end month (only valid if range is between)
-					"end_month": schema.NumberAttribute{
+					"end_month": schema.Int32Attribute{
 						Optional: true},
 					// Date's end year (only valid if range is between)
-					"end_year": schema.NumberAttribute{
+					"end_year": schema.Int32Attribute{
 						Optional: true},
 				},
 			},

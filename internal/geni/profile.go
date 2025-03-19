@@ -130,14 +130,14 @@ type NameElement struct {
 
 // EventElement is the response for an event
 type EventElement struct {
-	Date        *DateResponse    `json:"date,omitempty"`
+	Date        *DateElement     `json:"date,omitempty"`
 	Description string           `json:"description,omitempty"`
 	Location    *LocationElement `json:"location,omitempty"`
 	Name        string           `json:"name,omitempty"`
 }
 
-// DateResponse is the response for a date
-type DateResponse struct {
+// DateElement is the response for a date
+type DateElement struct {
 	// Circa is a boolean that indicates whether the date is approximate
 	Circa bool `json:"circa,omitempty"`
 	// Day is the day of the month

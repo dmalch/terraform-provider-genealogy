@@ -72,7 +72,7 @@ func profileWithDetails(testAccessToken string) string {
 		  last_name  = "Doe"
 		  gender     = "male"
 		  birth      = {
-			name = "Birth"
+			name = "Birth of John Doe"
 			description = "Born in the USA"
 			date = {
 			  range = "between"
