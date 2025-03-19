@@ -462,3 +462,108 @@ func unionWithOneChild(testAccessToken string) string {
 		}
 		`
 }
+
+func TestAccExampleWidget_failToCreateUnionWithThreePartners(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      unionWithThreePartners(testAccessToken),
+				ExpectError: regexp.MustCompile(`Too Many Partners`),
+			},
+		},
+	})
+}
+
+func unionWithThreePartners(testAccessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		}
+
+		resource "geni_profile" "partner1" {
+		  first_name = "John"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_profile" "partner2" {
+		  first_name = "Jane"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_profile" "partner3" {
+		  first_name = "Alice"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_union" "doe_family" {
+		  partners = [
+			geni_profile.partner1.id,
+			geni_profile.partner2.id,
+			geni_profile.partner3.id,
+		  ]
+		}
+		`
+}
+
+func TestAccExampleWidget_failToAddThirdPartnerToUnion(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithTwoPartners(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+			{
+				// Try to add a third partner to the union
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				}
+
+				resource "geni_profile" "husband" {
+				  first_name = "John"
+				  last_name  = "Doe"
+				}
+			
+				resource "geni_profile" "wife" {
+				  first_name = "Jane"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "partner3" {
+				  first_name = "Alice"
+				  last_name  = "Doe"
+				}
+				
+				resource "geni_union" "doe_family" {
+				  partners = [
+					geni_profile.husband.id,
+					geni_profile.wife.id,
+					geni_profile.partner3.id,
+				  ]
+				}
+				`,
+				ExpectError: regexp.MustCompile(`Too Many Partners`),
+			},
+			{
+				// Revert back to the original state
+				Config: unionWithTwoPartners(testAccessToken),
+			},
+		},
+	})
+}

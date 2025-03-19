@@ -15,7 +15,13 @@ func (r *Resource) ValidateConfig(ctx context.Context, req resource.ValidateConf
 		return
 	}
 
-	// If attribute_one is not configured, return without warning.
+	if len(data.Partners.Elements()) > 2 {
+		resp.Diagnostics.AddAttributeError(path.Root(fieldPartners),
+			"Too Many Partners",
+			"Only 2 partners are allowed in the union. Please remove any extra partners.",
+		)
+	}
+
 	if len(data.Children.Elements())+len(data.Partners.Elements()) < 2 {
 		resp.Diagnostics.AddAttributeError(path.Root(fieldPartners),
 			"Insufficient Attribute Configuration",
