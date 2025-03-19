@@ -115,7 +115,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				// we need to create a temporary child profile and then merge it with the
 				// existing child profile.
 				var err error
-				tmpProfile, err = geni.AddChildToUnion(r.accessToken.ValueString(), plan.ID.ValueString())
+				tmpProfile, err = geni.AddChild(r.accessToken.ValueString(), plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddError("Error adding child", err.Error())
 					return
@@ -205,6 +205,63 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// Update updates the resource
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state ResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Check if parents were updated
+	if !plan.Partners.Equal(state.Partners) {
+		planPartnerIds := make([]types.String, 0, len(plan.Partners.Elements()))
+		diag := plan.Partners.ElementsAs(ctx, &planPartnerIds, false)
+		if diag.HasError() {
+			resp.Diagnostics.Append(diag...)
+			return
+		}
+
+		statePartnerIds := make([]types.String, 0, len(state.Partners.Elements()))
+		diag = state.Partners.ElementsAs(ctx, &statePartnerIds, false)
+		if diag.HasError() {
+			resp.Diagnostics.Append(diag...)
+			return
+		}
+
+		knownStatePartnerIds := make(map[string]struct{}, len(statePartnerIds))
+		for _, partnerId := range statePartnerIds {
+			knownStatePartnerIds[partnerId.ValueString()] = struct{}{}
+		}
+
+		for _, partnerId := range planPartnerIds {
+			// If the partner is not in the state, we need to add it
+			if _, ok := knownStatePartnerIds[partnerId.ValueString()]; !ok {
+				// It is impossible to add an existing profile to a union using the API, so we
+				// need to create a temporary profile and then merge it with the existing
+				// profile.
+
+				tmpProfile, err := geni.AddPartner(r.accessToken.ValueString(), plan.ID.ValueString())
+				if err != nil {
+					resp.Diagnostics.AddError("Error adding partner", err.Error())
+					return
+				}
+
+				// Merge the temporary profile with the second partner
+				if err := geni.MergeProfiles(r.accessToken.ValueString(), partnerId.ValueString(), tmpProfile.Id); err != nil {
+					resp.Diagnostics.AddError("Error merging profiles", err.Error())
+					return
+				}
+			}
+		}
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Delete deletes the resource

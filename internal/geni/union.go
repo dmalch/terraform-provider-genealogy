@@ -49,30 +49,3 @@ func GetUnion(accessToken, unionId string) (*UnionResponse, error) {
 
 	return &union, nil
 }
-
-func AddChildToUnion(accessToken, unionId string) (*ProfileResponse, error) {
-	baseUrl := geniUrl + "api/" + unionId + "/add-child"
-	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
-	if err != nil {
-		slog.Error("Error creating request", "error", err)
-		return nil, err
-	}
-
-	addStandardHeadersAndQueryParams(req, accessToken)
-
-	body, err := doRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	var profile ProfileResponse
-	err = json.Unmarshal(body, &profile)
-	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
-		return nil, err
-	}
-
-	fixResponse(&profile)
-
-	return &profile, nil
-}

@@ -292,6 +292,8 @@ func TestAccExampleWidget_createUnionWithTwoSiblingsWithoutParents(t *testing.T)
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
 						"geni_profile.sibling1", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
+						"geni_profile.sibling2", tfjsonpath.New("id"), compare.ValuesSame()),
 				},
 			},
 		},
@@ -321,6 +323,76 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		  ]
 		}
 		`
+}
+
+func TestAccExampleWidget_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithTwoSiblingsWithoutParents(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("first_name"), knownvalue.StringExact("Bob")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
+						"geni_profile.sibling1", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
+						"geni_profile.sibling2", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+			{
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				}
+
+				resource "geni_profile" "sibling1" {
+				  first_name = "Alice"
+				  last_name  = "Doe"
+				}
+				
+				resource "geni_profile" "sibling2" {
+				  first_name = "Bob"
+				  last_name  = "Doe"
+				}
+		
+				resource "geni_profile" "mother" {
+				  first_name = "Jane"
+				  last_name  = "Doe"
+				}
+
+				resource "geni_profile" "father" {
+				  first_name = "John"
+				  last_name  = "Doe"
+				}
+				
+				resource "geni_union" "doe_family" {
+				  partners = [
+					geni_profile.mother.id,
+					geni_profile.father.id,
+				  ]
+
+				  children = [
+					geni_profile.sibling1.id,
+					geni_profile.sibling2.id,
+				  ]
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.mother", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.father", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(2)),
+				},
+			},
+		},
+	})
 }
 
 func TestAccExampleWidget_failToCreateUnionWithOneParent(t *testing.T) {
