@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"strings"
 )
@@ -129,7 +130,7 @@ type NameElement struct {
 
 // EventElement is the response for an event
 type EventElement struct {
-	Date        DateResponse     `json:"date,omitempty"`
+	Date        *DateResponse    `json:"date,omitempty"`
 	Description string           `json:"description,omitempty"`
 	Location    *LocationElement `json:"location,omitempty"`
 	Name        string           `json:"name,omitempty"`
@@ -166,9 +167,9 @@ type LocationElement struct {
 	// County is the county name
 	County string `json:"county,omitempty"`
 	// Latitude is the latitude
-	Latitude float64 `json:"latitude,omitempty"`
+	Latitude *big.Float `json:"latitude,omitempty"`
 	// Longitude is the longitude
-	Longitude float64 `json:"longitude,omitempty"`
+	Longitude *big.Float `json:"longitude,omitempty"`
 	// PlaceName is the place name
 	PlaceName string `json:"place_name,omitempty"`
 	// State is the state name

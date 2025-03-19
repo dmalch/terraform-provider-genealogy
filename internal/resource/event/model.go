@@ -17,10 +17,10 @@ func (m Model) AttributeTypes() map[string]attr.Type {
 		"description": types.StringType,
 		"name":        types.StringType,
 		"date": types.ObjectType{
-			AttrTypes: dateModelObjectType(),
+			AttrTypes: DateModelAttributeTypes(),
 		},
 		"location": types.ObjectType{
-			AttrTypes: locationModelObjectType(),
+			AttrTypes: LocationModelAttributeTypes(),
 		},
 	}
 }
@@ -28,30 +28,30 @@ func (m Model) AttributeTypes() map[string]attr.Type {
 type DateModel struct {
 	Range    types.String `json:"range"`
 	Circa    types.Bool   `json:"circa"`
-	Day      types.Number `json:"day"`
-	Month    types.Number `json:"month"`
-	Year     types.Number `json:"year"`
+	Day      types.Int32  `json:"day"`
+	Month    types.Int32  `json:"month"`
+	Year     types.Int32  `json:"year"`
 	EndCirca types.Bool   `json:"end_circa"`
-	EndDay   types.Number `json:"end_day"`
-	EndMonth types.Number `json:"end_month"`
-	EndYear  types.Number `json:"end_year"`
+	EndDay   types.Int32  `json:"end_day"`
+	EndMonth types.Int32  `json:"end_month"`
+	EndYear  types.Int32  `json:"end_year"`
 }
 
 func (m DateModel) AttributeTypes() map[string]attr.Type {
-	return dateModelObjectType()
+	return DateModelAttributeTypes()
 }
 
-func dateModelObjectType() map[string]attr.Type {
+func DateModelAttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"range":     types.StringType,
 		"circa":     types.BoolType,
-		"day":       types.NumberType,
-		"month":     types.NumberType,
-		"year":      types.NumberType,
+		"day":       types.Int32Type,
+		"month":     types.Int32Type,
+		"year":      types.Int32Type,
 		"end_circa": types.BoolType,
-		"end_day":   types.NumberType,
-		"end_month": types.NumberType,
-		"end_year":  types.NumberType,
+		"end_day":   types.Int32Type,
+		"end_month": types.Int32Type,
+		"end_year":  types.Int32Type,
 	}
 }
 
@@ -69,10 +69,10 @@ type LocationModel struct {
 }
 
 func (m LocationModel) AttributeTypes() map[string]attr.Type {
-	return locationModelObjectType()
+	return LocationModelAttributeTypes()
 }
 
-func locationModelObjectType() map[string]attr.Type {
+func LocationModelAttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"city":            types.StringType,
 		"country":         types.StringType,

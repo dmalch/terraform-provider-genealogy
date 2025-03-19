@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmalch/terraform-provider-geni/internal/config"
 	"github.com/dmalch/terraform-provider-geni/internal/geni"
+	"github.com/dmalch/terraform-provider-geni/internal/resource/event"
 )
 
 type Resource struct {
@@ -107,12 +108,65 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		state.Gender = types.StringValue(profile.Gender)
 	}
 
-	unions, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
-	resp.Diagnostics.Append(diag...)
+	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	state.Unions = unions
+
+	if profile.Birth != nil {
+		dateObjectValue := types.ObjectNull(event.DateModelAttributeTypes())
+
+		if profile.Birth.Date != nil {
+			dateModel := event.DateModel{
+				Range:    types.StringValue(profile.Birth.Date.Range),
+				Circa:    types.BoolValue(profile.Birth.Date.Circa),
+				Day:      types.Int32Value(int32(profile.Birth.Date.Day)),
+				Month:    types.Int32Value(int32(profile.Birth.Date.Month)),
+				Year:     types.Int32Value(int32(profile.Birth.Date.Year)),
+				EndCirca: types.BoolValue(profile.Birth.Date.EndCirca),
+				EndDay:   types.Int32Value(int32(profile.Birth.Date.EndDay)),
+				EndMonth: types.Int32Value(int32(profile.Birth.Date.EndMonth)),
+				EndYear:  types.Int32Value(int32(profile.Birth.Date.EndYear)),
+			}
+			dateObjectValue, diags = types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
+			resp.Diagnostics.Append(diags...)
+		}
+
+		locationObjectValue := types.ObjectNull(event.LocationModelAttributeTypes())
+
+		if profile.Birth.Location != nil {
+			locationModel := event.LocationModel{
+				City:           types.StringValue(profile.Birth.Location.City),
+				Country:        types.StringValue(profile.Birth.Location.Country),
+				County:         types.StringValue(profile.Birth.Location.County),
+				Latitude:       types.NumberValue(profile.Birth.Location.Latitude),
+				Longitude:      types.NumberValue(profile.Birth.Location.Longitude),
+				PlaceName:      types.StringValue(profile.Birth.Location.PlaceName),
+				State:          types.StringValue(profile.Birth.Location.State),
+				StreetAddress1: types.StringValue(profile.Birth.Location.StreetAddress1),
+				StreetAddress2: types.StringValue(profile.Birth.Location.StreetAddress2),
+				StreetAddress3: types.StringValue(profile.Birth.Location.StreetAddress3),
+			}
+			locationObjectValue, diags = types.ObjectValueFrom(ctx, locationModel.AttributeTypes(), locationModel)
+			resp.Diagnostics.Append(diags...)
+		}
+
+		eventModel := event.Model{
+			Description: types.StringValue(profile.Birth.Description),
+			Name:        types.StringValue(profile.Birth.Name),
+			Date:        dateObjectValue,
+			Location:    locationObjectValue,
+		}
+
+		eventObjectValue, diags := types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.Birth = eventObjectValue
+	}
 
 	if profile.CreatedAt != "" {
 		state.CreatedAt = types.StringValue(profile.CreatedAt)
