@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-geni/internal/resource/event"
 )
 
 // Schema defines the schema for the resource
@@ -37,6 +39,12 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
+		},
+		Blocks: map[string]schema.Block{
+			"birth":   event.Schema(),
+			"baptism": event.Schema(),
+			"death":   event.Schema(),
+			"burial":  event.Schema(),
 		},
 	}
 }

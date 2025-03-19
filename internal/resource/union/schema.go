@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-geni/internal/resource/event"
 )
 
 const fieldPartners = "partners"
@@ -30,6 +32,10 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				ElementType: types.StringType,
 				Optional:    true,
 			},
+		},
+		Blocks: map[string]schema.Block{
+			"marriage": event.Schema(),
+			"divorce":  event.Schema(),
 		},
 	}
 }
