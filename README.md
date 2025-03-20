@@ -1,6 +1,7 @@
 # terraform-provider-genealogy
 
 ## Terraform Provider for Geni.com
+![img.png](docs/img.png)
 
 ## Overview
 This provider enables managing data on Geni.com through Terraform. It exposes configuration and resources that help automate genealogical information.  
