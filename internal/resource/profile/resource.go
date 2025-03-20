@@ -126,8 +126,8 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	plan.ID = types.StringValue(profile.Id)
 
-	unions, diag := types.ListValueFrom(ctx, types.StringType, profile.Unions)
-	resp.Diagnostics.Append(diag...)
+	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
