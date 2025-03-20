@@ -118,8 +118,12 @@ func updateComputedFields(ctx context.Context, profileModel *ResourceModel, prof
 func updateComputedFieldsInEvent(_ context.Context, eventObjectValue *event.Model, eventElement *geni.EventElement) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	eventObjectValue.Name = types.StringValue(eventElement.Name)
-	eventObjectValue.Description = types.StringValue(eventElement.Description)
+	if eventObjectValue.Name.IsNull() || eventObjectValue.Name.IsUnknown() {
+		eventObjectValue.Name = types.StringValue(eventElement.Name)
+	}
+	if eventObjectValue.Description.IsNull() || eventObjectValue.Description.IsUnknown() {
+		eventObjectValue.Description = types.StringValue(eventElement.Description)
+	}
 
 	return d
 }
@@ -159,16 +163,16 @@ func LocationElementFrom(ctx context.Context, locationObject types.Object) (*gen
 		d.Append(locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})...)
 
 		return &geni.LocationElement{
-			City:           locationModel.City.ValueString(),
-			Country:        locationModel.Country.ValueString(),
-			County:         locationModel.County.ValueString(),
+			City:           locationModel.City.ValueStringPointer(),
+			Country:        locationModel.Country.ValueStringPointer(),
+			County:         locationModel.County.ValueStringPointer(),
 			Latitude:       locationModel.Latitude.ValueBigFloat(),
 			Longitude:      locationModel.Longitude.ValueBigFloat(),
-			PlaceName:      locationModel.PlaceName.ValueString(),
-			State:          locationModel.State.ValueString(),
-			StreetAddress1: locationModel.StreetAddress1.ValueString(),
-			StreetAddress2: locationModel.StreetAddress2.ValueString(),
-			StreetAddress3: locationModel.StreetAddress3.ValueString(),
+			PlaceName:      locationModel.PlaceName.ValueStringPointer(),
+			State:          locationModel.State.ValueStringPointer(),
+			StreetAddress1: locationModel.StreetAddress1.ValueStringPointer(),
+			StreetAddress2: locationModel.StreetAddress2.ValueStringPointer(),
+			StreetAddress3: locationModel.StreetAddress3.ValueStringPointer(),
 		}, d
 	}
 
@@ -304,16 +308,16 @@ func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetype
 func LocationValueFrom(ctx context.Context, location *geni.LocationElement) (basetypes.ObjectValue, diag.Diagnostics) {
 	if location != nil {
 		locationModel := event.LocationModel{
-			City:           types.StringValue(location.City),
-			Country:        types.StringValue(location.Country),
-			County:         types.StringValue(location.County),
+			City:           types.StringPointerValue(location.City),
+			Country:        types.StringPointerValue(location.Country),
+			County:         types.StringPointerValue(location.County),
 			Latitude:       types.NumberValue(location.Latitude),
 			Longitude:      types.NumberValue(location.Longitude),
-			PlaceName:      types.StringValue(location.PlaceName),
-			State:          types.StringValue(location.State),
-			StreetAddress1: types.StringValue(location.StreetAddress1),
-			StreetAddress2: types.StringValue(location.StreetAddress2),
-			StreetAddress3: types.StringValue(location.StreetAddress3),
+			PlaceName:      types.StringPointerValue(location.PlaceName),
+			State:          types.StringPointerValue(location.State),
+			StreetAddress1: types.StringPointerValue(location.StreetAddress1),
+			StreetAddress2: types.StringPointerValue(location.StreetAddress2),
+			StreetAddress3: types.StringPointerValue(location.StreetAddress3),
 		}
 
 		return types.ObjectValueFrom(ctx, locationModel.AttributeTypes(), locationModel)

@@ -73,7 +73,6 @@ func profileWithDetails(testAccessToken string) string {
 		  gender     = "male"
 		  birth      = {
 			name = "Birth of John Doe"
-			description = "Born in the USA"
 			date = {
 			  range = "between"
 			  year = 1980

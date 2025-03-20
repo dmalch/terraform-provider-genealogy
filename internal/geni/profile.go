@@ -161,25 +161,25 @@ type DateElement struct {
 // LocationElement is the response for a location
 type LocationElement struct {
 	// City is the city name
-	City string `json:"city,omitempty"`
+	City *string `json:"city,omitempty"`
 	// Country is the country name
-	Country string `json:"country,omitempty"`
+	Country *string `json:"country,omitempty"`
 	// County is the county name
-	County string `json:"county,omitempty"`
+	County *string `json:"county,omitempty"`
 	// Latitude is the latitude
 	Latitude *big.Float `json:"latitude,omitempty"`
 	// Longitude is the longitude
 	Longitude *big.Float `json:"longitude,omitempty"`
 	// PlaceName is the place name
-	PlaceName string `json:"place_name,omitempty"`
+	PlaceName *string `json:"place_name,omitempty"`
 	// State is the state name
-	State string `json:"state,omitempty"`
+	State *string `json:"state,omitempty"`
 	// StreetAddress1 is the street address line 1
-	StreetAddress1 string `json:"street_address1,omitempty"`
+	StreetAddress1 *string `json:"street_address1,omitempty"`
 	// StreetAddress2 is the street address line 2
-	StreetAddress2 string `json:"street_address2,omitempty"`
+	StreetAddress2 *string `json:"street_address2,omitempty"`
 	// StreetAddress3 is the street address line 3
-	StreetAddress3 string `json:"street_address3,omitempty"`
+	StreetAddress3 *string `json:"street_address3,omitempty"`
 }
 
 func CreateProfile(accessToken string, request *ProfileRequest) (*ProfileResponse, error) {
