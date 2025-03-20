@@ -76,7 +76,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	diags = updateComputedFields(ctx, plan, profileResponse)
+	diags = updateComputedFields(ctx, &plan, profileResponse)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -85,7 +85,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func updateComputedFields(ctx context.Context, profileModel ResourceModel, profile *geni.ProfileResponse) diag.Diagnostics {
+func updateComputedFields(ctx context.Context, profileModel *ResourceModel, profile *geni.ProfileResponse) diag.Diagnostics {
 	var d diag.Diagnostics
 
 	profileModel.ID = types.StringValue(profile.Id)
@@ -94,7 +94,32 @@ func updateComputedFields(ctx context.Context, profileModel ResourceModel, profi
 	d.Append(diags...)
 	profileModel.Unions = unions
 
+	eventObject := profileModel.Birth
+	if !eventObject.IsNull() && !eventObject.IsUnknown() && profile.Birth != nil {
+		var eventModel event.Model
+
+		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
+		d.Append(diags...)
+
+		diags = updateComputedFieldsInEvent(ctx, &eventModel, profile.Birth)
+		d.Append(diags...)
+
+		eventObject, diags = types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+		d.Append(diags...)
+
+		profileModel.Birth = eventObject
+	}
+
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
+
+	return d
+}
+
+func updateComputedFieldsInEvent(_ context.Context, eventObjectValue *event.Model, eventElement *geni.EventElement) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	eventObjectValue.Name = types.StringValue(eventElement.Name)
+	eventObjectValue.Description = types.StringValue(eventElement.Description)
 
 	return d
 }
@@ -231,18 +256,18 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	return d
 }
 
-func EventValueFrom(ctx context.Context, birth *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
-	if birth != nil {
+func EventValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
+	if eventElement != nil {
 		var d diag.Diagnostics
-		dateObjectValue, diags := DateValueFrom(ctx, birth.Date)
+		dateObjectValue, diags := DateValueFrom(ctx, eventElement.Date)
 		d.Append(diags...)
 
-		locationObjectValue, diags := LocationValueFrom(ctx, birth.Location)
+		locationObjectValue, diags := LocationValueFrom(ctx, eventElement.Location)
 		d.Append(diags...)
 
 		eventModel := event.Model{
-			Description: types.StringValue(birth.Description),
-			Name:        types.StringValue(birth.Name),
+			Description: types.StringValue(eventElement.Description),
+			Name:        types.StringValue(eventElement.Name),
 			Date:        dateObjectValue,
 			Location:    locationObjectValue,
 		}
