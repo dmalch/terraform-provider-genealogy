@@ -1,8 +1,14 @@
 package event
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
+
+var rangePath = path.MatchRelative().AtParent().AtName("range")
 
 type SchemaOptions struct {
 	NameComputed        bool
@@ -30,33 +36,46 @@ func Schema(opts ...SchemaOptions) schema.SingleNestedAttribute {
 			"date": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					// Range (before, after, or between)
 					"range": schema.StringAttribute{
-						Optional: true},
-					// Indicates whether the date is an approximation
+						Optional:    true,
+						Validators:  []validator.String{stringvalidator.OneOf("before", "after", "between")},
+						Description: "Range (before, after, or between)",
+					},
 					"circa": schema.BoolAttribute{
-						Optional: true},
-					// Date's day
+						Optional:    true,
+						Description: "Indicates whether the date is an approximation",
+					},
 					"day": schema.Int32Attribute{
-						Optional: true},
-					// Date's month
+						Optional:    true,
+						Description: "Day of the month",
+					},
 					"month": schema.Int32Attribute{
-						Optional: true},
-					// Date's year
+						Optional:    true,
+						Description: "Month of the year",
+					},
 					"year": schema.Int32Attribute{
-						Optional: true},
-					// Indicates whether the end date is an approximation
+						Optional:    true,
+						Description: "Date's year",
+					},
 					"end_circa": schema.BoolAttribute{
-						Optional: true},
-					// Date's end day (only valid if range is between)
+						Optional:    true,
+						Description: "Indicates whether the end date is an approximation",
+					},
 					"end_day": schema.Int32Attribute{
-						Optional: true},
-					// Date's end month (only valid if range is between)
+						Optional:    true,
+						Validators:  []validator.Int32{int32validator.AlsoRequires(rangePath)},
+						Description: "Date's end day (only valid if range is between)",
+					},
 					"end_month": schema.Int32Attribute{
-						Optional: true},
-					// Date's end year (only valid if range is between)
+						Optional:    true,
+						Validators:  []validator.Int32{int32validator.AlsoRequires(rangePath)},
+						Description: "Date's end month (only valid if range is between)",
+					},
 					"end_year": schema.Int32Attribute{
-						Optional: true},
+						Optional:    true,
+						Validators:  []validator.Int32{int32validator.AlsoRequires(rangePath)},
+						Description: "Date's end year (only valid if range is between)",
+					},
 				},
 			},
 			"location": schema.SingleNestedAttribute{
