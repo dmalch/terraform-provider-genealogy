@@ -70,13 +70,13 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		Birth:     birth,
 	}
 
-	profile, err := geni.CreateProfile(r.accessToken.ValueString(), profileRequest)
+	profileResponse, err := geni.CreateProfile(r.accessToken.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
 		return
 	}
 
-	diags = updateComputedFields(ctx, plan, profile)
+	diags = updateComputedFields(ctx, plan, profileResponse)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -182,13 +182,13 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	profile, err := geni.GetProfile(r.accessToken.ValueString(), state.ID.ValueString())
+	profileResponse, err := geni.GetProfile(r.accessToken.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading profile", err.Error())
 		return
 	}
 
-	diags := ValueFrom(ctx, profile, &state)
+	diags := ValueFrom(ctx, profileResponse, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
