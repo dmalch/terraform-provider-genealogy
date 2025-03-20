@@ -57,68 +57,20 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	var birth *geni.EventElement
-	if !plan.Birth.IsNull() && !plan.Birth.IsUnknown() {
-		var eventModel event.Model
-
-		diags := plan.Birth.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
-		resp.Diagnostics.Append(diags...)
-
-		var date *geni.DateElement
-		if !eventModel.Date.IsNull() && !eventModel.Date.IsUnknown() {
-			var dateModel event.DateModel
-
-			diags = eventModel.Date.As(ctx, &dateModel, basetypes.ObjectAsOptions{})
-			resp.Diagnostics.Append(diags...)
-
-			date = &geni.DateElement{
-				Range:    dateModel.Range.ValueString(),
-				Circa:    dateModel.Circa.ValueBool(),
-				Day:      int(dateModel.Day.ValueInt32()),
-				Month:    int(dateModel.Month.ValueInt32()),
-				Year:     int(dateModel.Year.ValueInt32()),
-				EndCirca: dateModel.EndCirca.ValueBool(),
-				EndDay:   int(dateModel.EndDay.ValueInt32()),
-				EndMonth: int(dateModel.EndMonth.ValueInt32()),
-				EndYear:  int(dateModel.EndYear.ValueInt32()),
-			}
-		}
-
-		var location *geni.LocationElement
-		if !eventModel.Location.IsNull() && !eventModel.Location.IsUnknown() {
-			var locationModel event.LocationModel
-
-			diags = eventModel.Location.As(ctx, &locationModel, basetypes.ObjectAsOptions{})
-			resp.Diagnostics.Append(diags...)
-
-			location = &geni.LocationElement{
-				City:           locationModel.City.ValueString(),
-				Country:        locationModel.Country.ValueString(),
-				County:         locationModel.County.ValueString(),
-				Latitude:       locationModel.Latitude.ValueBigFloat(),
-				Longitude:      locationModel.Longitude.ValueBigFloat(),
-				PlaceName:      locationModel.PlaceName.ValueString(),
-				State:          locationModel.State.ValueString(),
-				StreetAddress1: locationModel.StreetAddress1.ValueString(),
-				StreetAddress2: locationModel.StreetAddress2.ValueString(),
-				StreetAddress3: locationModel.StreetAddress3.ValueString(),
-			}
-		}
-
-		birth = &geni.EventElement{
-			Name:        eventModel.Name.ValueString(),
-			Description: eventModel.Description.ValueString(),
-			Date:        date,
-			Location:    location,
-		}
+	birth, diags := EventElementFrom(ctx, plan.Birth)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	profile, err := geni.CreateProfile(r.accessToken.ValueString(), &geni.ProfileRequest{
+	profileRequest := &geni.ProfileRequest{
 		FirstName: plan.FirstName.ValueString(),
 		LastName:  plan.LastName.ValueString(),
 		Gender:    plan.Gender.ValueString(),
 		Birth:     birth,
-	})
+	}
+
+	profile, err := geni.CreateProfile(r.accessToken.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
 		return
@@ -135,6 +87,84 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	plan.CreatedAt = types.StringValue(profile.CreatedAt)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func EventElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElement, diag.Diagnostics) {
+	var eventElement *geni.EventElement
+	var d diag.Diagnostics
+
+	if !eventObject.IsNull() && !eventObject.IsUnknown() {
+		var eventModel event.Model
+
+		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
+		d.Append(diags...)
+
+		date, diags := DateElementFrom(ctx, eventModel.Date)
+		d.Append(diags...)
+
+		location, diags := LocationElementFrom(ctx, eventModel.Location)
+		d.Append(diags...)
+
+		eventElement = &geni.EventElement{
+			Name:        eventModel.Name.ValueString(),
+			Description: eventModel.Description.ValueString(),
+			Date:        date,
+			Location:    location,
+		}
+	}
+
+	return eventElement, d
+}
+
+func LocationElementFrom(ctx context.Context, locationObject types.Object) (*geni.LocationElement, diag.Diagnostics) {
+	var locationElement *geni.LocationElement
+	var d diag.Diagnostics
+
+	if !locationObject.IsNull() && !locationObject.IsUnknown() {
+		var locationModel event.LocationModel
+
+		d.Append(locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})...)
+
+		locationElement = &geni.LocationElement{
+			City:           locationModel.City.ValueString(),
+			Country:        locationModel.Country.ValueString(),
+			County:         locationModel.County.ValueString(),
+			Latitude:       locationModel.Latitude.ValueBigFloat(),
+			Longitude:      locationModel.Longitude.ValueBigFloat(),
+			PlaceName:      locationModel.PlaceName.ValueString(),
+			State:          locationModel.State.ValueString(),
+			StreetAddress1: locationModel.StreetAddress1.ValueString(),
+			StreetAddress2: locationModel.StreetAddress2.ValueString(),
+			StreetAddress3: locationModel.StreetAddress3.ValueString(),
+		}
+	}
+
+	return locationElement, d
+}
+
+func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateElement, diag.Diagnostics) {
+	var dateElement *geni.DateElement
+	var d diag.Diagnostics
+
+	if !dateObject.IsNull() && !dateObject.IsUnknown() {
+		var dateModel event.DateModel
+
+		d.Append(dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})...)
+
+		dateElement = &geni.DateElement{
+			Range:    dateModel.Range.ValueString(),
+			Circa:    dateModel.Circa.ValueBool(),
+			Day:      int(dateModel.Day.ValueInt32()),
+			Month:    int(dateModel.Month.ValueInt32()),
+			Year:     int(dateModel.Year.ValueInt32()),
+			EndCirca: dateModel.EndCirca.ValueBool(),
+			EndDay:   int(dateModel.EndDay.ValueInt32()),
+			EndMonth: int(dateModel.EndMonth.ValueInt32()),
+			EndYear:  int(dateModel.EndYear.ValueInt32()),
+		}
+	}
+
+	return dateElement, d
 }
 
 // Read reads the resource
