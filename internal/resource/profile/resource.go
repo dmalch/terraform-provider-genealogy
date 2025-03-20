@@ -57,7 +57,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	birth, diags := EventElementFrom(ctx, plan.Birth)
+	birth, diags := event.ElementFrom(ctx, plan.Birth)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -128,81 +128,6 @@ func updateComputedFieldsInEvent(_ context.Context, eventObjectValue *event.Mode
 	return d
 }
 
-func EventElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElement, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	if !eventObject.IsNull() && !eventObject.IsUnknown() {
-		var eventModel event.Model
-
-		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
-		d.Append(diags...)
-
-		date, diags := DateElementFrom(ctx, eventModel.Date)
-		d.Append(diags...)
-
-		location, diags := LocationElementFrom(ctx, eventModel.Location)
-		d.Append(diags...)
-
-		return &geni.EventElement{
-			Name:        eventModel.Name.ValueString(),
-			Description: eventModel.Description.ValueString(),
-			Date:        date,
-			Location:    location,
-		}, d
-	}
-
-	return nil, d
-}
-
-func LocationElementFrom(ctx context.Context, locationObject types.Object) (*geni.LocationElement, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	if !locationObject.IsNull() && !locationObject.IsUnknown() {
-		var locationModel event.LocationModel
-
-		d.Append(locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})...)
-
-		return &geni.LocationElement{
-			City:           locationModel.City.ValueStringPointer(),
-			Country:        locationModel.Country.ValueStringPointer(),
-			County:         locationModel.County.ValueStringPointer(),
-			Latitude:       locationModel.Latitude.ValueBigFloat(),
-			Longitude:      locationModel.Longitude.ValueBigFloat(),
-			PlaceName:      locationModel.PlaceName.ValueStringPointer(),
-			State:          locationModel.State.ValueStringPointer(),
-			StreetAddress1: locationModel.StreetAddress1.ValueStringPointer(),
-			StreetAddress2: locationModel.StreetAddress2.ValueStringPointer(),
-			StreetAddress3: locationModel.StreetAddress3.ValueStringPointer(),
-		}, d
-	}
-
-	return nil, d
-}
-
-func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateElement, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	if !dateObject.IsNull() && !dateObject.IsUnknown() {
-		var dateModel event.DateModel
-
-		d.Append(dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})...)
-
-		return &geni.DateElement{
-			Range:    dateModel.Range.ValueString(),
-			Circa:    dateModel.Circa.ValueBool(),
-			Day:      int(dateModel.Day.ValueInt32()),
-			Month:    int(dateModel.Month.ValueInt32()),
-			Year:     int(dateModel.Year.ValueInt32()),
-			EndCirca: dateModel.EndCirca.ValueBool(),
-			EndDay:   int(dateModel.EndDay.ValueInt32()),
-			EndMonth: int(dateModel.EndMonth.ValueInt32()),
-			EndYear:  int(dateModel.EndYear.ValueInt32()),
-		}, d
-	}
-
-	return nil, d
-}
-
 // Read reads the resource
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceModel
@@ -224,106 +149,6 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
-}
-
-func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel *ResourceModel) diag.Diagnostics {
-	var d diag.Diagnostics
-
-	if profile.Id != "" {
-		profileModel.ID = types.StringValue(profile.Id)
-	}
-
-	if profile.FirstName != "" {
-		profileModel.FirstName = types.StringValue(profile.FirstName)
-	}
-
-	if profile.LastName != "" {
-		profileModel.LastName = types.StringValue(profile.LastName)
-	}
-
-	if profile.Gender != "" {
-		profileModel.Gender = types.StringValue(profile.Gender)
-	}
-
-	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
-	d.Append(diags...)
-	profileModel.Unions = unions
-
-	eventObjectValue, diags := EventValueFrom(ctx, profile.Birth)
-	d.Append(diags...)
-	profileModel.Birth = eventObjectValue
-
-	if profile.CreatedAt != "" {
-		profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
-	}
-
-	return d
-}
-
-func EventValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
-	if eventElement != nil {
-		var d diag.Diagnostics
-		dateObjectValue, diags := DateValueFrom(ctx, eventElement.Date)
-		d.Append(diags...)
-
-		locationObjectValue, diags := LocationValueFrom(ctx, eventElement.Location)
-		d.Append(diags...)
-
-		eventModel := event.Model{
-			Description: types.StringValue(eventElement.Description),
-			Name:        types.StringValue(eventElement.Name),
-			Date:        dateObjectValue,
-			Location:    locationObjectValue,
-		}
-
-		eventObjectValue, diags := types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
-		d.Append(diags...)
-
-		return eventObjectValue, d
-	}
-
-	return types.ObjectNull(event.EventModelAttributeTypes()), nil
-}
-
-func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
-	if dateElement != nil {
-		dateModel := event.DateModel{
-			Range:    types.StringValue(dateElement.Range),
-			Circa:    types.BoolValue(dateElement.Circa),
-			Day:      types.Int32Value(int32(dateElement.Day)),
-			Month:    types.Int32Value(int32(dateElement.Month)),
-			Year:     types.Int32Value(int32(dateElement.Year)),
-			EndCirca: types.BoolValue(dateElement.EndCirca),
-			EndDay:   types.Int32Value(int32(dateElement.EndDay)),
-			EndMonth: types.Int32Value(int32(dateElement.EndMonth)),
-			EndYear:  types.Int32Value(int32(dateElement.EndYear)),
-		}
-
-		return types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
-	}
-
-	return types.ObjectNull(event.DateModelAttributeTypes()), nil
-}
-
-func LocationValueFrom(ctx context.Context, location *geni.LocationElement) (basetypes.ObjectValue, diag.Diagnostics) {
-	if location != nil {
-		locationModel := event.LocationModel{
-			City:           types.StringPointerValue(location.City),
-			Country:        types.StringPointerValue(location.Country),
-			County:         types.StringPointerValue(location.County),
-			Latitude:       types.NumberValue(location.Latitude),
-			Longitude:      types.NumberValue(location.Longitude),
-			PlaceName:      types.StringPointerValue(location.PlaceName),
-			State:          types.StringPointerValue(location.State),
-			StreetAddress1: types.StringPointerValue(location.StreetAddress1),
-			StreetAddress2: types.StringPointerValue(location.StreetAddress2),
-			StreetAddress3: types.StringPointerValue(location.StreetAddress3),
-		}
-
-		return types.ObjectValueFrom(ctx, locationModel.AttributeTypes(), locationModel)
-	}
-
-	return types.ObjectNull(event.LocationModelAttributeTypes()), nil
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
