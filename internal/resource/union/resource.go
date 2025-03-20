@@ -11,6 +11,7 @@ import (
 
 	"github.com/dmalch/terraform-provider-geni/internal/config"
 	"github.com/dmalch/terraform-provider-geni/internal/geni"
+	"github.com/dmalch/terraform-provider-geni/internal/resource/event"
 )
 
 type Resource struct {
@@ -155,7 +156,64 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		}
 	}
 
+	if !plan.Marriage.IsUnknown() && !plan.Marriage.IsNull() {
+		unionRequest, diags := RequestFrom(ctx, plan)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		unionResponse, err := geni.UpdateUnion(r.accessToken.ValueString(), plan.ID.ValueString(), unionRequest)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating union", err.Error())
+			return
+		}
+
+		diags = updateComputedFields(ctx, &plan, unionResponse)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func updateComputedFields(ctx context.Context, unionModel *ResourceModel, union *geni.UnionResponse) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	unionModel.ID = types.StringValue(union.Id)
+
+	if union.Marriage != nil {
+		marriage, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Marriage, union.Marriage)
+		d.Append(diags...)
+		unionModel.Marriage = marriage
+	}
+
+	if union.Divorce != nil {
+		divorce, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Divorce, union.Divorce)
+		d.Append(diags...)
+		unionModel.Divorce = divorce
+	}
+
+	return d
+}
+
+func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	marriage, diags := event.ElementFrom(ctx, plan.Marriage)
+	d.Append(diags...)
+
+	divorce, diags := event.ElementFrom(ctx, plan.Divorce)
+	d.Append(diags...)
+
+	unionRequest := geni.UnionRequest{
+		Marriage: marriage,
+		Divorce:  divorce,
+	}
+
+	return &unionRequest, d
 }
 
 // Read reads the resource
@@ -166,31 +224,16 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	union, err := geni.GetUnion(r.accessToken.ValueString(), state.ID.ValueString())
+	unionResponse, err := geni.GetUnion(r.accessToken.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading union", err.Error())
 		return
 	}
 
-	if union.Id != "" {
-		state.ID = types.StringValue(union.Id)
-	}
-	if len(union.Children) > 0 {
-		children, diags := types.SetValueFrom(ctx, types.StringType, union.Children)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.Children = children
-	}
-
-	if len(union.Partners) > 0 {
-		partners, diags := types.SetValueFrom(ctx, types.StringType, union.Partners)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.Partners = partners
+	diags := ValueFrom(ctx, unionResponse, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)

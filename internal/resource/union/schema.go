@@ -32,8 +32,8 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				ElementType: types.StringType,
 				Optional:    true,
 			},
-			"marriage": event.Schema(),
-			"divorce":  event.Schema(),
+			"marriage": event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
+			"divorce":  event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
 		},
 	}
 }

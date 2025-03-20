@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/dmalch/terraform-provider-geni/internal/config"
 	"github.com/dmalch/terraform-provider-geni/internal/geni"
@@ -88,62 +87,30 @@ func updateComputedFields(ctx context.Context, profileModel *ResourceModel, prof
 	profileModel.Unions = unions
 
 	if profile.Birth != nil {
-		birth, diags := updateComputedFieldsInEvent(ctx, profileModel.Birth, profile.Birth)
+		birth, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Birth, profile.Birth)
 		d.Append(diags...)
 		profileModel.Birth = birth
 	}
 
 	if profile.Baptism != nil {
-		baptism, diags := updateComputedFieldsInEvent(ctx, profileModel.Baptism, profile.Baptism)
+		baptism, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Baptism, profile.Baptism)
 		d.Append(diags...)
 		profileModel.Baptism = baptism
 	}
 
 	if profile.Death != nil {
-		death, diags := updateComputedFieldsInEvent(ctx, profileModel.Death, profile.Death)
+		death, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Death, profile.Death)
 		d.Append(diags...)
 		profileModel.Death = death
 	}
 
 	if profile.Burial != nil {
-		burial, diags := updateComputedFieldsInEvent(ctx, profileModel.Burial, profile.Burial)
+		burial, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Burial, profile.Burial)
 		d.Append(diags...)
 		profileModel.Burial = burial
 	}
 
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
-
-	return d
-}
-
-func updateComputedFieldsInEvent(ctx context.Context, eventObject types.Object, eventElement *geni.EventElement) (types.Object, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	if !eventObject.IsNull() && !eventObject.IsUnknown() {
-		var eventModel event.Model
-
-		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
-		d.Append(diags...)
-
-		diags = updateComputedFieldsInEventObject(ctx, &eventModel, eventElement)
-		d.Append(diags...)
-
-		eventObject, diags = types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
-		d.Append(diags...)
-	}
-
-	return eventObject, d
-}
-
-func updateComputedFieldsInEventObject(_ context.Context, eventObject *event.Model, eventElement *geni.EventElement) diag.Diagnostics {
-	var d diag.Diagnostics
-
-	if eventObject.Name.IsNull() || eventObject.Name.IsUnknown() {
-		eventObject.Name = types.StringValue(eventElement.Name)
-	}
-	if eventObject.Description.IsNull() || eventObject.Description.IsUnknown() {
-		eventObject.Description = types.StringValue(eventElement.Description)
-	}
 
 	return d
 }

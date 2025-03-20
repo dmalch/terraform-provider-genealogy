@@ -699,3 +699,99 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 		},
 	})
 }
+
+func TestAccUnion_createUnionWithTwoPartnersAndDetails(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithTwoPartnersAndDetails(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+		},
+	})
+}
+
+func unionWithTwoPartnersAndDetails(testAccessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		}
+
+		resource "geni_profile" "husband" {
+		  first_name = "John"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_profile" "wife" {
+		  first_name = "Jane"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_union" "doe_family" {
+		  partners = [
+			geni_profile.husband.id,
+			geni_profile.wife.id,
+		  ]
+
+		  marriage = {
+			name = "Marriage of John and Jane Doe"
+			date = {
+			  range = "between"
+			  year = 1980
+			  month = 1
+			  day = 1
+			  circa = true
+			  end_year = 1980
+			  end_month = 1
+			  end_day = 2
+			  end_circa = true
+			}
+			location = {
+			  city = "New York"
+			  country = "USA"
+			  place_name = "City Hall"
+			  state = "New York"
+			  street_address1 = "123 Main St"
+			  street_address2 = "Apt 1"
+			  street_address3 = "Floor 2"
+			}
+		  }
+
+		  divorce = {
+			name = "Divorce of John and Jane Doe"
+			date = {
+			  range = "between"
+			  year = 1980
+			  month = 1
+			  day = 1
+			  circa = true
+			  end_year = 1980
+			  end_month = 1
+			  end_day = 2
+			  end_circa = true
+			}
+			location = {
+			  city = "New York"
+			  country = "USA"
+			  place_name = "City Hall"
+			  state = "New York"
+			  street_address1 = "123 Main St"
+			  street_address2 = "Apt 1"
+			  street_address3 = "Floor 2"
+			}
+		  }
+		}
+		`
+}
