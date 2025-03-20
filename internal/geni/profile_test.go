@@ -6,6 +6,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func ptr[T any](s T) *T {
+	return &s
+}
+
 func TestCreateProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
@@ -29,10 +33,10 @@ func TestCreateProfile1(t *testing.T) {
 				Year:  1922,
 			},
 			Location: &LocationElement{
-				Country:   "РСФСР",
-				County:    "Спасский уезд, Кирилловская волость",
-				PlaceName: "село Кирилово",
-				State:     "Тамбовская губерния",
+				Country:   ptr("РСФСР"),
+				County:    ptr("Спасский уезд, Кирилловская волость"),
+				PlaceName: ptr("село Кирилово"),
+				State:     ptr("Тамбовская губерния"),
 			},
 		},
 		Death: &EventElement{
@@ -69,10 +73,10 @@ func TestCreateProfile1(t *testing.T) {
 			Year:  1922,
 		},
 		Location: &LocationElement{
-			Country:   "РСФСР",
-			County:    "Спасский уезд, Кирилловская волость",
-			PlaceName: "село Кирилово",
-			State:     "Тамбовская губерния",
+			Country:   ptr("РСФСР"),
+			County:    ptr("Спасский уезд, Кирилловская волость"),
+			PlaceName: ptr("село Кирилово"),
+			State:     ptr("Тамбовская губерния"),
 		},
 		Name: "Birth of 1TestFirstName 1TestLastName",
 	}))
@@ -159,10 +163,10 @@ func TestGetProfile2(t *testing.T) {
 			Year:  1922,
 		},
 		Location: &LocationElement{
-			Country:   "РСФСР",
-			County:    "Спасский уезд, Кирилловская волость",
-			PlaceName: "село Кирилово",
-			State:     "Тамбовская губерния",
+			Country:   ptr("РСФСР"),
+			County:    ptr("Спасский уезд, Кирилловская волость"),
+			PlaceName: ptr("село Кирилово"),
+			State:     ptr("Тамбовская губерния"),
 		},
 		Name: "Birth of F M",
 	}))
@@ -200,10 +204,10 @@ func TestUpdateProfile1(t *testing.T) {
 				Year:  1922,
 			},
 			Location: &LocationElement{
-				Country:   "РСФСР",
-				County:    "Спасский уезд, Кирилловская волость",
-				PlaceName: "село Кирилово",
-				State:     "Тамбовская губерния",
+				Country:   ptr("РСФСР"),
+				County:    ptr("Спасский уезд, Кирилловская волость"),
+				PlaceName: ptr("село Кирилово"),
+				State:     ptr("Тамбовская губерния"),
 			},
 		},
 		Death: &EventElement{
@@ -244,10 +248,10 @@ func TestUpdateProfile1(t *testing.T) {
 			Year:  1922,
 		},
 		Location: &LocationElement{
-			Country:   "РСФСР",
-			County:    "Спасский уезд, Кирилловская волость",
-			PlaceName: "село Кирилово",
-			State:     "Тамбовская губерния",
+			Country:   ptr("РСФСР"),
+			County:    ptr("Спасский уезд, Кирилловская волость"),
+			PlaceName: ptr("село Кирилово"),
+			State:     ptr("Тамбовская губерния"),
 		},
 		Name: "Birth of 2TestFirstName 1TestLastName",
 	}))
