@@ -57,17 +57,10 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	birth, diags := event.ElementFrom(ctx, plan.Birth)
+	profileRequest, diags := ElementFrom(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	profileRequest := &geni.ProfileRequest{
-		FirstName: plan.FirstName.ValueString(),
-		LastName:  plan.LastName.ValueString(),
-		Gender:    plan.Gender.ValueString(),
-		Birth:     birth,
 	}
 
 	profileResponse, err := geni.CreateProfile(r.accessToken.ValueString(), profileRequest)

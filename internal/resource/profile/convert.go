@@ -43,3 +43,19 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 
 	return d
 }
+
+func ElementFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	birth, diags := event.ElementFrom(ctx, plan.Birth)
+	d.Append(diags...)
+
+	profileRequest := &geni.ProfileRequest{
+		FirstName: plan.FirstName.ValueString(),
+		LastName:  plan.LastName.ValueString(),
+		Gender:    plan.Gender.ValueString(),
+		Birth:     birth,
+	}
+
+	return profileRequest, d
+}
