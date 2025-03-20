@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -173,64 +174,84 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 	state.Unions = unions
 
-	if profile.Birth != nil {
-		dateObjectValue := types.ObjectNull(event.DateModelAttributeTypes())
-
-		if profile.Birth.Date != nil {
-			dateModel := event.DateModel{
-				Range:    types.StringValue(profile.Birth.Date.Range),
-				Circa:    types.BoolValue(profile.Birth.Date.Circa),
-				Day:      types.Int32Value(int32(profile.Birth.Date.Day)),
-				Month:    types.Int32Value(int32(profile.Birth.Date.Month)),
-				Year:     types.Int32Value(int32(profile.Birth.Date.Year)),
-				EndCirca: types.BoolValue(profile.Birth.Date.EndCirca),
-				EndDay:   types.Int32Value(int32(profile.Birth.Date.EndDay)),
-				EndMonth: types.Int32Value(int32(profile.Birth.Date.EndMonth)),
-				EndYear:  types.Int32Value(int32(profile.Birth.Date.EndYear)),
-			}
-			dateObjectValue, diags = types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
-			resp.Diagnostics.Append(diags...)
-		}
-
-		locationObjectValue := types.ObjectNull(event.LocationModelAttributeTypes())
-
-		if profile.Birth.Location != nil {
-			locationModel := event.LocationModel{
-				City:           types.StringValue(profile.Birth.Location.City),
-				Country:        types.StringValue(profile.Birth.Location.Country),
-				County:         types.StringValue(profile.Birth.Location.County),
-				Latitude:       types.NumberValue(profile.Birth.Location.Latitude),
-				Longitude:      types.NumberValue(profile.Birth.Location.Longitude),
-				PlaceName:      types.StringValue(profile.Birth.Location.PlaceName),
-				State:          types.StringValue(profile.Birth.Location.State),
-				StreetAddress1: types.StringValue(profile.Birth.Location.StreetAddress1),
-				StreetAddress2: types.StringValue(profile.Birth.Location.StreetAddress2),
-				StreetAddress3: types.StringValue(profile.Birth.Location.StreetAddress3),
-			}
-			locationObjectValue, diags = types.ObjectValueFrom(ctx, locationModel.AttributeTypes(), locationModel)
-			resp.Diagnostics.Append(diags...)
-		}
-
-		eventModel := event.Model{
-			Description: types.StringValue(profile.Birth.Description),
-			Name:        types.StringValue(profile.Birth.Name),
-			Date:        dateObjectValue,
-			Location:    locationObjectValue,
-		}
-
-		eventObjectValue, diags := types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.Birth = eventObjectValue
+	eventObjectValue, diags := EventValueFrom(ctx, profile.Birth)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	state.Birth = eventObjectValue
 
 	if profile.CreatedAt != "" {
 		state.CreatedAt = types.StringValue(profile.CreatedAt)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func EventValueFrom(ctx context.Context, birth *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
+	if birth != nil {
+		var d diag.Diagnostics
+		dateObjectValue, diags := DateValueFrom(ctx, birth.Date)
+		d.Append(diags...)
+
+		locationObjectValue, diags := LocationValueFrom(ctx, birth.Location)
+		d.Append(diags...)
+
+		eventModel := event.Model{
+			Description: types.StringValue(birth.Description),
+			Name:        types.StringValue(birth.Name),
+			Date:        dateObjectValue,
+			Location:    locationObjectValue,
+		}
+
+		eventObjectValue, diags := types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+		d.Append(diags...)
+
+		return eventObjectValue, d
+	}
+
+	return types.ObjectNull(event.EventModelAttributeTypes()), nil
+}
+
+func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
+	if dateElement != nil {
+		dateModel := event.DateModel{
+			Range:    types.StringValue(dateElement.Range),
+			Circa:    types.BoolValue(dateElement.Circa),
+			Day:      types.Int32Value(int32(dateElement.Day)),
+			Month:    types.Int32Value(int32(dateElement.Month)),
+			Year:     types.Int32Value(int32(dateElement.Year)),
+			EndCirca: types.BoolValue(dateElement.EndCirca),
+			EndDay:   types.Int32Value(int32(dateElement.EndDay)),
+			EndMonth: types.Int32Value(int32(dateElement.EndMonth)),
+			EndYear:  types.Int32Value(int32(dateElement.EndYear)),
+		}
+
+		return types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
+	}
+
+	return types.ObjectNull(event.DateModelAttributeTypes()), nil
+}
+
+func LocationValueFrom(ctx context.Context, location *geni.LocationElement) (basetypes.ObjectValue, diag.Diagnostics) {
+	if location != nil {
+		locationModel := event.LocationModel{
+			City:           types.StringValue(location.City),
+			Country:        types.StringValue(location.Country),
+			County:         types.StringValue(location.County),
+			Latitude:       types.NumberValue(location.Latitude),
+			Longitude:      types.NumberValue(location.Longitude),
+			PlaceName:      types.StringValue(location.PlaceName),
+			State:          types.StringValue(location.State),
+			StreetAddress1: types.StringValue(location.StreetAddress1),
+			StreetAddress2: types.StringValue(location.StreetAddress2),
+			StreetAddress3: types.StringValue(location.StreetAddress3),
+		}
+
+		return types.ObjectValueFrom(ctx, locationModel.AttributeTypes(), locationModel)
+	}
+
+	return types.ObjectNull(event.LocationModelAttributeTypes()), nil
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -13,6 +13,10 @@ type Model struct {
 }
 
 func (m Model) AttributeTypes() map[string]attr.Type {
+	return EventModelAttributeTypes()
+}
+
+func EventModelAttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"name":        types.StringType,
 		"description": types.StringType,
