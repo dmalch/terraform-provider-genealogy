@@ -57,7 +57,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	profileRequest, diags := ElementFrom(ctx, plan)
+	profileRequest, diags := RequestFrom(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -87,20 +87,28 @@ func updateComputedFields(ctx context.Context, profileModel *ResourceModel, prof
 	d.Append(diags...)
 	profileModel.Unions = unions
 
-	eventObject := profileModel.Birth
-	if !eventObject.IsNull() && !eventObject.IsUnknown() && profile.Birth != nil {
-		var eventModel event.Model
-
-		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
+	if profile.Birth != nil {
+		birth, diags := updateComputedFieldsInEvent(ctx, profileModel.Birth, profile.Birth)
 		d.Append(diags...)
+		profileModel.Birth = birth
+	}
 
-		diags = updateComputedFieldsInEvent(ctx, &eventModel, profile.Birth)
+	if profile.Baptism != nil {
+		baptism, diags := updateComputedFieldsInEvent(ctx, profileModel.Baptism, profile.Baptism)
 		d.Append(diags...)
+		profileModel.Baptism = baptism
+	}
 
-		eventObject, diags = types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+	if profile.Death != nil {
+		death, diags := updateComputedFieldsInEvent(ctx, profileModel.Death, profile.Death)
 		d.Append(diags...)
+		profileModel.Death = death
+	}
 
-		profileModel.Birth = eventObject
+	if profile.Burial != nil {
+		burial, diags := updateComputedFieldsInEvent(ctx, profileModel.Burial, profile.Burial)
+		d.Append(diags...)
+		profileModel.Burial = burial
 	}
 
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
@@ -108,14 +116,33 @@ func updateComputedFields(ctx context.Context, profileModel *ResourceModel, prof
 	return d
 }
 
-func updateComputedFieldsInEvent(_ context.Context, eventObjectValue *event.Model, eventElement *geni.EventElement) diag.Diagnostics {
+func updateComputedFieldsInEvent(ctx context.Context, eventObject types.Object, eventElement *geni.EventElement) (types.Object, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	if eventObjectValue.Name.IsNull() || eventObjectValue.Name.IsUnknown() {
-		eventObjectValue.Name = types.StringValue(eventElement.Name)
+	if !eventObject.IsNull() && !eventObject.IsUnknown() {
+		var eventModel event.Model
+
+		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
+		d.Append(diags...)
+
+		diags = updateComputedFieldsInEventObject(ctx, &eventModel, eventElement)
+		d.Append(diags...)
+
+		eventObject, diags = types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+		d.Append(diags...)
 	}
-	if eventObjectValue.Description.IsNull() || eventObjectValue.Description.IsUnknown() {
-		eventObjectValue.Description = types.StringValue(eventElement.Description)
+
+	return eventObject, d
+}
+
+func updateComputedFieldsInEventObject(_ context.Context, eventObject *event.Model, eventElement *geni.EventElement) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	if eventObject.Name.IsNull() || eventObject.Name.IsUnknown() {
+		eventObject.Name = types.StringValue(eventElement.Name)
+	}
+	if eventObject.Description.IsNull() || eventObject.Description.IsUnknown() {
+		eventObject.Description = types.StringValue(eventElement.Description)
 	}
 
 	return d

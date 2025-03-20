@@ -33,9 +33,21 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	d.Append(diags...)
 	profileModel.Unions = unions
 
-	eventObjectValue, diags := event.ValueFrom(ctx, profile.Birth)
+	birth, diags := event.ValueFrom(ctx, profile.Birth)
 	d.Append(diags...)
-	profileModel.Birth = eventObjectValue
+	profileModel.Birth = birth
+
+	baptism, diags := event.ValueFrom(ctx, profile.Baptism)
+	d.Append(diags...)
+	profileModel.Baptism = baptism
+
+	death, diags := event.ValueFrom(ctx, profile.Death)
+	d.Append(diags...)
+	profileModel.Death = death
+
+	burial, diags := event.ValueFrom(ctx, profile.Burial)
+	d.Append(diags...)
+	profileModel.Burial = burial
 
 	if profile.CreatedAt != "" {
 		profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
@@ -44,10 +56,19 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	return d
 }
 
-func ElementFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
+func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
 	var d diag.Diagnostics
 
 	birth, diags := event.ElementFrom(ctx, plan.Birth)
+	d.Append(diags...)
+
+	baptism, diags := event.ElementFrom(ctx, plan.Baptism)
+	d.Append(diags...)
+
+	death, diags := event.ElementFrom(ctx, plan.Death)
+	d.Append(diags...)
+
+	burial, diags := event.ElementFrom(ctx, plan.Burial)
 	d.Append(diags...)
 
 	profileRequest := &geni.ProfileRequest{
@@ -55,6 +76,9 @@ func ElementFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 		LastName:  plan.LastName.ValueString(),
 		Gender:    plan.Gender.ValueString(),
 		Birth:     birth,
+		Baptism:   baptism,
+		Death:     death,
+		Burial:    burial,
 	}
 
 	return profileRequest, d

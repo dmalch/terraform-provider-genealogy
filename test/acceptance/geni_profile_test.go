@@ -95,8 +95,7 @@ func profileWithDetails(testAccessToken string) string {
 			}
 		  }
 		  baptism = {
-			name = "Baptism"
-			description = "Baptized in the USA"
+			name = "Baptism of John Doe"
 			date = {
 			  range = "between"
 			  year = 1980
@@ -119,8 +118,7 @@ func profileWithDetails(testAccessToken string) string {
 			}
 		  }
 		  death = {
-			name = "Death"
-			description = "Died in the USA"
+			name = "Death of John Doe at Hospital"
 			date = {
 			  range = "between"
 			  year = 1999
@@ -143,8 +141,7 @@ func profileWithDetails(testAccessToken string) string {
 			}
 		  }
 		  burial = {
-			name = "Burial"
-			description = "Buried in the USA"
+			name = "Burial of John Doe"
 			date = {
 			  range = "between"
 			  year = 1999
