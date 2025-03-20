@@ -76,21 +76,30 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	plan.ID = types.StringValue(profile.Id)
-
-	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	diags = updateComputedFields(ctx, plan, profile)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	plan.Unions = unions
 
-	plan.CreatedAt = types.StringValue(profile.CreatedAt)
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
+func updateComputedFields(ctx context.Context, profileModel ResourceModel, profile *geni.ProfileResponse) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	profileModel.ID = types.StringValue(profile.Id)
+
+	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	d.Append(diags...)
+	profileModel.Unions = unions
+
+	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
+
+	return d
+}
+
 func EventElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElement, diag.Diagnostics) {
-	var eventElement *geni.EventElement
 	var d diag.Diagnostics
 
 	if !eventObject.IsNull() && !eventObject.IsUnknown() {
@@ -105,19 +114,18 @@ func EventElementFrom(ctx context.Context, eventObject types.Object) (*geni.Even
 		location, diags := LocationElementFrom(ctx, eventModel.Location)
 		d.Append(diags...)
 
-		eventElement = &geni.EventElement{
+		return &geni.EventElement{
 			Name:        eventModel.Name.ValueString(),
 			Description: eventModel.Description.ValueString(),
 			Date:        date,
 			Location:    location,
-		}
+		}, d
 	}
 
-	return eventElement, d
+	return nil, d
 }
 
 func LocationElementFrom(ctx context.Context, locationObject types.Object) (*geni.LocationElement, diag.Diagnostics) {
-	var locationElement *geni.LocationElement
 	var d diag.Diagnostics
 
 	if !locationObject.IsNull() && !locationObject.IsUnknown() {
@@ -125,7 +133,7 @@ func LocationElementFrom(ctx context.Context, locationObject types.Object) (*gen
 
 		d.Append(locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})...)
 
-		locationElement = &geni.LocationElement{
+		return &geni.LocationElement{
 			City:           locationModel.City.ValueString(),
 			Country:        locationModel.Country.ValueString(),
 			County:         locationModel.County.ValueString(),
@@ -136,14 +144,13 @@ func LocationElementFrom(ctx context.Context, locationObject types.Object) (*gen
 			StreetAddress1: locationModel.StreetAddress1.ValueString(),
 			StreetAddress2: locationModel.StreetAddress2.ValueString(),
 			StreetAddress3: locationModel.StreetAddress3.ValueString(),
-		}
+		}, d
 	}
 
-	return locationElement, d
+	return nil, d
 }
 
 func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateElement, diag.Diagnostics) {
-	var dateElement *geni.DateElement
 	var d diag.Diagnostics
 
 	if !dateObject.IsNull() && !dateObject.IsUnknown() {
@@ -151,7 +158,7 @@ func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateEl
 
 		d.Append(dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})...)
 
-		dateElement = &geni.DateElement{
+		return &geni.DateElement{
 			Range:    dateModel.Range.ValueString(),
 			Circa:    dateModel.Circa.ValueBool(),
 			Day:      int(dateModel.Day.ValueInt32()),
@@ -161,10 +168,10 @@ func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateEl
 			EndDay:   int(dateModel.EndDay.ValueInt32()),
 			EndMonth: int(dateModel.EndMonth.ValueInt32()),
 			EndYear:  int(dateModel.EndYear.ValueInt32()),
-		}
+		}, d
 	}
 
-	return dateElement, d
+	return nil, d
 }
 
 // Read reads the resource
@@ -181,41 +188,47 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	if profile.Id != "" {
-		state.ID = types.StringValue(profile.Id)
-	}
-
-	if profile.FirstName != "" {
-		state.FirstName = types.StringValue(profile.FirstName)
-	}
-
-	if profile.LastName != "" {
-		state.LastName = types.StringValue(profile.LastName)
-	}
-
-	if profile.Gender != "" {
-		state.Gender = types.StringValue(profile.Gender)
-	}
-
-	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	diags := ValueFrom(ctx, profile, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	state.Unions = unions
-
-	eventObjectValue, diags := EventValueFrom(ctx, profile.Birth)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	state.Birth = eventObjectValue
-
-	if profile.CreatedAt != "" {
-		state.CreatedAt = types.StringValue(profile.CreatedAt)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel *ResourceModel) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	if profile.Id != "" {
+		profileModel.ID = types.StringValue(profile.Id)
+	}
+
+	if profile.FirstName != "" {
+		profileModel.FirstName = types.StringValue(profile.FirstName)
+	}
+
+	if profile.LastName != "" {
+		profileModel.LastName = types.StringValue(profile.LastName)
+	}
+
+	if profile.Gender != "" {
+		profileModel.Gender = types.StringValue(profile.Gender)
+	}
+
+	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	d.Append(diags...)
+	profileModel.Unions = unions
+
+	eventObjectValue, diags := EventValueFrom(ctx, profile.Birth)
+	d.Append(diags...)
+	profileModel.Birth = eventObjectValue
+
+	if profile.CreatedAt != "" {
+		profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
+	}
+
+	return d
 }
 
 func EventValueFrom(ctx context.Context, birth *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {

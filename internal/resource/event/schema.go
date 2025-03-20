@@ -4,15 +4,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func Schema() schema.SingleNestedAttribute {
+type SchemaOptions struct {
+	NameComputed        bool
+	DescriptionComputed bool
+}
+
+func Schema(opts ...SchemaOptions) schema.SingleNestedAttribute {
+	// Get first opt or default
+	opt := SchemaOptions{}
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+
 	return schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: map[string]schema.Attribute{
-			"description": schema.StringAttribute{
-				Optional: true,
-			},
 			"name": schema.StringAttribute{
 				Optional: true,
+				Computed: opt.NameComputed,
+			},
+			"description": schema.StringAttribute{
+				Optional: true,
+				Computed: opt.DescriptionComputed,
 			},
 			"date": schema.SingleNestedAttribute{
 				Optional: true,
