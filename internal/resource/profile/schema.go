@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/terraform-provider-geni/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 var (

@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/dmalch/terraform-provider-geni/internal/config"
-	"github.com/dmalch/terraform-provider-geni/internal/resource/profile"
-	"github.com/dmalch/terraform-provider-geni/internal/resource/union"
+	"github.com/dmalch/terraform-provider-genealogy/internal/config"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
 )
 
 type GeniProvider struct {

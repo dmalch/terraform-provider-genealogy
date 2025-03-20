@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 
-	"github.com/dmalch/terraform-provider-geni/internal"
+	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
 func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {

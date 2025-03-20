@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	"github.com/dmalch/terraform-provider-geni/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 func ElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElement, diag.Diagnostics) {

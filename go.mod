@@ -1,4 +1,4 @@
-module github.com/dmalch/terraform-provider-geni
+module github.com/dmalch/terraform-provider-genealogy
 
 go 1.24.1
 

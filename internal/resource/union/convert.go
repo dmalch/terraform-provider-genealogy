@@ -6,8 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/terraform-provider-geni/internal/geni"
-	"github.com/dmalch/terraform-provider-geni/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 func ValueFrom(ctx context.Context, union *geni.UnionResponse, unionModel *ResourceModel) diag.Diagnostics {
