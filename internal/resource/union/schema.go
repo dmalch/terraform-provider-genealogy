@@ -29,17 +29,28 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 				Validators:    []validator.String{stringvalidator.RegexMatches(unionIdFormat, "must be in the format union-1 or union-g1")},
+				Description:   "The unique identifier for the union. This is a string that starts with 'union-' followed by a number.",
 			},
 			fieldPartners: schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Description: "List of partner IDs.",
 			},
 			fieldChildren: schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Description: "List of children IDs.",
 			},
-			"marriage": event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
-			"divorce":  event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
+			"marriage": event.Schema(event.SchemaOptions{
+				NameComputed:        true,
+				DescriptionComputed: true,
+				Description:         "Marriage event information.",
+			}),
+			"divorce": event.Schema(event.SchemaOptions{
+				NameComputed:        true,
+				DescriptionComputed: true,
+				Description:         "Divorce event information.",
+			}),
 		},
 	}
 }

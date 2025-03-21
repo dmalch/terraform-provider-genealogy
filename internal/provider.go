@@ -28,11 +28,12 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"access_token": schema.StringAttribute{
-				Description: "The Access Token for the Geni API",
 				Required:    true,
 				Sensitive:   true,
+				Description: "The Access Token for the Geni API",
 			},
 		},
+		Description: "This provider enables managing data on Geni.com through Terraform. It exposes configuration and resources that help automate genealogical information. This application uses the Geni API but is not endorsed, operated, or sponsored by Geni.com.",
 	}
 }
 

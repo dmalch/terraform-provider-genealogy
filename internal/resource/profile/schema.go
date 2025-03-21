@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	profileIdFormat = regexp.MustCompile(`^profile-(g)?\d+$`)
+	profileIdFormat = regexp.MustCompile(`^profile-\d+$`)
 	createdAtFormat = regexp.MustCompile(`^\d+$`)
 )
 
@@ -28,32 +28,54 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:      true,
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				Validators:    []validator.String{stringvalidator.RegexMatches(profileIdFormat, "must be in the format profile-1 or profile-g1")},
+				Validators:    []validator.String{stringvalidator.RegexMatches(profileIdFormat, "must be in the format profile-1")},
+				Description:   "The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.",
 			},
 			"first_name": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "The first name of the person.",
 			},
 			"last_name": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "The last name of the person.",
 			},
 			"gender": schema.StringAttribute{
-				Optional:   true,
-				Validators: []validator.String{stringvalidator.OneOf("female", "male")},
+				Optional:    true,
+				Validators:  []validator.String{stringvalidator.OneOf("female", "male")},
+				Description: "Profile's gender.",
 			},
 			"unions": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
 				Optional:    true,
+				Description: "List of union IDs.",
 			},
-			"birth":   event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
-			"baptism": event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
-			"death":   event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
-			"burial":  event.Schema(event.SchemaOptions{NameComputed: true, DescriptionComputed: true}),
+			"birth": event.Schema(event.SchemaOptions{
+				NameComputed:        true,
+				DescriptionComputed: true,
+				Description:         "Birth event information.",
+			}),
+			"baptism": event.Schema(event.SchemaOptions{
+				NameComputed:        true,
+				DescriptionComputed: true,
+				Description:         "Baptism event information.",
+			}),
+			"death": event.Schema(event.SchemaOptions{
+				NameComputed:        true,
+				DescriptionComputed: true,
+				Description:         "Death event information.",
+			}),
+			"burial": event.Schema(event.SchemaOptions{
+				NameComputed:        true,
+				DescriptionComputed: true,
+				Description:         "Burial event information.",
+			}),
 			"created_at": schema.StringAttribute{
 				Computed:      true,
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 				Validators:    []validator.String{stringvalidator.RegexMatches(createdAtFormat, "must be a Unix epoch time in seconds")},
+				Description:   "The Unix epoch time in seconds when the profile was created.",
 			},
 		},
 	}
