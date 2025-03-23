@@ -128,9 +128,9 @@ func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
 	return retry.FixedDelay(n, err, config)
 }
 
-func addStandardHeadersAndQueryParams(req *http.Request, accessToken string) {
+func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("access_token", accessToken)
+	query.Add("access_token", c.accessToken)
 	query.Add("api_version", apiVersion)
 	// The returned data structures will contain urls to other objects by default,
 	// unless the request includes 'only_ids=true.' Passing only_ids will force the

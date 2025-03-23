@@ -42,7 +42,7 @@ func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -77,7 +77,7 @@ func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionRespo
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {

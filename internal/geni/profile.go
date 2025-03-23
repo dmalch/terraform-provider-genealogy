@@ -200,7 +200,7 @@ func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -241,7 +241,7 @@ func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -286,7 +286,7 @@ func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*Prof
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -316,7 +316,7 @@ func (c *Client) DeleteProfile(profileId string) error {
 		return err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -341,7 +341,7 @@ func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -368,7 +368,7 @@ func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -395,7 +395,7 @@ func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -422,7 +422,7 @@ func (c *Client) MergeProfiles(profile1Id, profile2Id string) error {
 		return err
 	}
 
-	addStandardHeadersAndQueryParams(req, c.accessToken)
+	c.addStandardHeadersAndQueryParams(req)
 
 	body, err := c.doRequest(req)
 	if err != nil {
