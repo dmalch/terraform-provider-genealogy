@@ -182,7 +182,7 @@ type LocationElement struct {
 	StreetAddress3 *string `json:"street_address3,omitempty"`
 }
 
-func CreateProfile(accessToken string, request *ProfileRequest) (*ProfileResponse, error) {
+func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -192,17 +192,17 @@ func CreateProfile(accessToken string, request *ProfileRequest) (*ProfileRespons
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	baseUrl := geniUrl + "api/profile/add"
+	url := c.getBaseUrl() + "api/profile/add"
 
-	req, err := http.NewRequest(http.MethodPost, baseUrl, bytes.NewBufferString(jsonStr))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -233,17 +233,17 @@ func escapeStringToUTF(s string) string {
 	return sb.String()
 }
 
-func GetProfile(accessToken, profileId string) (*ProfileResponse, error) {
-	baseUrl := geniUrl + "api/" + profileId
-	req, err := http.NewRequest(http.MethodGet, baseUrl, nil)
+func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
+	url := c.getBaseUrl() + "api/" + profileId
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func fixResponse(profile *ProfileResponse) {
 	}
 }
 
-func UpdateProfile(accessToken string, profileId string, request *ProfileRequest) (*ProfileResponse, error) {
+func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*ProfileResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -278,17 +278,17 @@ func UpdateProfile(accessToken string, profileId string, request *ProfileRequest
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	baseUrl := geniUrl + "api/" + profileId + "/update"
+	url := c.getBaseUrl() + "api/" + profileId + "/update"
 
-	req, err := http.NewRequest(http.MethodPost, baseUrl, bytes.NewBufferString(jsonStr))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -307,18 +307,18 @@ type ResultResponse struct {
 	Result string `json:"result,omitempty"`
 }
 
-func DeleteProfile(accessToken, profileId string) error {
-	baseUrl := geniUrl + "api/" + profileId + "/delete"
-	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+func (c *Client) DeleteProfile(profileId string) error {
+	url := c.getBaseUrl() + "api/" + profileId + "/delete"
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -333,17 +333,17 @@ func DeleteProfile(accessToken, profileId string) error {
 	return nil
 }
 
-func AddPartner(accessToken, profileId string) (*ProfileResponse, error) {
-	baseUrl := geniUrl + "api/" + profileId + "/add-partner"
-	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
+	url := c.getBaseUrl() + "api/" + profileId + "/add-partner"
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -360,17 +360,17 @@ func AddPartner(accessToken, profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func AddChild(accessToken, profileId string) (*ProfileResponse, error) {
-	baseUrl := geniUrl + "api/" + profileId + "/add-child"
-	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
+	url := c.getBaseUrl() + "api/" + profileId + "/add-child"
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -387,17 +387,17 @@ func AddChild(accessToken, profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func AddSibling(accessToken, profileId string) (*ProfileResponse, error) {
-	baseUrl := geniUrl + "api/" + profileId + "/add-sibling"
-	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
+	url := c.getBaseUrl() + "api/" + profileId + "/add-sibling"
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -414,17 +414,17 @@ func AddSibling(accessToken, profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func MergeProfiles(accessToken, profile1Id, profile2Id string) error {
-	baseUrl := geniUrl + "api/" + profile1Id + "/merge/" + profile2Id
-	req, err := http.NewRequest(http.MethodPost, baseUrl, nil)
+func (c *Client) MergeProfiles(profile1Id, profile2Id string) error {
+	url := c.getBaseUrl() + "api/" + profile1Id + "/merge/" + profile2Id
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return err
 	}

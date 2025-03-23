@@ -16,7 +16,7 @@ import (
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	accessToken types.String
+	client *geni.Client
 }
 
 func NewUnionResource() resource.Resource {
@@ -35,17 +35,17 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 		return
 	}
 
-	cfg, ok := req.ProviderData.(*config.GeniProviderConfig)
+	cfg, ok := req.ProviderData.(*config.ClientData)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *config.GeniProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *config.ClientData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	r.accessToken = cfg.AccessToken
+	r.client = cfg.Client
 }
 
 // Create creates the resource
@@ -68,14 +68,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		// so we need to create a temporary partner profile and then merge it with the
 		// existing second partner profile.
 
-		tmpProfile, err := geni.AddPartner(r.accessToken.ValueString(), partnerIds[0].ValueString())
+		tmpProfile, err := r.client.AddPartner(partnerIds[0].ValueString())
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 			return
 		}
 
 		// Merge the temporary profile with the second partner
-		if err := geni.MergeProfiles(r.accessToken.ValueString(), partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
+		if err := r.client.MergeProfiles(partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 			return
 		}
@@ -109,7 +109,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				// we need to create a temporary child profile and then merge it with the
 				// existing child profile.
 				var err error
-				tmpProfile, err = geni.AddChild(r.accessToken.ValueString(), plan.ID.ValueString())
+				tmpProfile, err = r.client.AddChild(plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 					return
@@ -121,7 +121,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = geni.AddChild(r.accessToken.ValueString(), partnerIds[0].ValueString())
+					tmpProfile, err = r.client.AddChild(partnerIds[0].ValueString())
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
@@ -133,7 +133,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = geni.AddSibling(r.accessToken.ValueString(), childrenIds[i+1].ValueString())
+					tmpProfile, err = r.client.AddSibling(childrenIds[i+1].ValueString())
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
@@ -145,7 +145,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			}
 
 			// Merge the temporary profile with the child profile
-			if err := geni.MergeProfiles(r.accessToken.ValueString(), childId.ValueString(), tmpProfile.Id); err != nil {
+			if err := r.client.MergeProfiles(childId.ValueString(), tmpProfile.Id); err != nil {
 				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 				return
 			}
@@ -163,7 +163,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			return
 		}
 
-		unionResponse, err := geni.UpdateUnion(r.accessToken.ValueString(), plan.ID.ValueString(), unionRequest)
+		unionResponse, err := r.client.UpdateUnion(plan.ID.ValueString(), unionRequest)
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating union", err.Error())
 			return
@@ -224,7 +224,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	unionResponse, err := geni.GetUnion(r.accessToken.ValueString(), state.ID.ValueString())
+	unionResponse, err := r.client.GetUnion(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading union", err.Error())
 		return
@@ -285,14 +285,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
 
-				tmpProfile, err := geni.AddPartner(r.accessToken.ValueString(), plan.ID.ValueString())
+				tmpProfile, err := r.client.AddPartner(plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the second partner
-				if err := geni.MergeProfiles(r.accessToken.ValueString(), partnerId.ValueString(), tmpProfile.Id); err != nil {
+				if err := r.client.MergeProfiles(partnerId.ValueString(), tmpProfile.Id); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 					return
 				}
@@ -331,14 +331,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
 
-				tmpProfile, err := geni.AddChild(r.accessToken.ValueString(), plan.ID.ValueString())
+				tmpProfile, err := r.client.AddChild(plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the child profile
-				if err := geni.MergeProfiles(r.accessToken.ValueString(), childId.ValueString(), tmpProfile.Id); err != nil {
+				if err := r.client.MergeProfiles(childId.ValueString(), tmpProfile.Id); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 					return
 				}

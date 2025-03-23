@@ -16,7 +16,7 @@ import (
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	accessToken types.String
+	client *geni.Client
 }
 
 func NewProfileResource() resource.Resource {
@@ -35,17 +35,17 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 		return
 	}
 
-	cfg, ok := req.ProviderData.(*config.GeniProviderConfig)
+	cfg, ok := req.ProviderData.(*config.ClientData)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *config.GeniProviderConfig, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *config.ClientData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	r.accessToken = cfg.AccessToken
+	r.client = cfg.Client
 }
 
 // Create creates the resource
@@ -62,7 +62,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	profileResponse, err := geni.CreateProfile(r.accessToken.ValueString(), profileRequest)
+	profileResponse, err := r.client.CreateProfile(profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
 		return
@@ -123,7 +123,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	profileResponse, err := geni.GetProfile(r.accessToken.ValueString(), state.ID.ValueString())
+	profileResponse, err := r.client.GetProfile(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading profile", err.Error())
 		return
@@ -150,7 +150,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	response, err := geni.UpdateProfile(r.accessToken.ValueString(), plan.ID.ValueString(), &geni.ProfileRequest{
+	response, err := r.client.UpdateProfile(plan.ID.ValueString(), &geni.ProfileRequest{
 		FirstName: plan.FirstName.ValueString(),
 		LastName:  plan.LastName.ValueString(),
 		Gender:    plan.Gender.ValueString(),
@@ -172,7 +172,7 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 		return
 	}
 
-	err := geni.DeleteProfile(r.accessToken.ValueString(), state.ID.ValueString())
+	err := r.client.DeleteProfile(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting profile", err.Error())
 		return

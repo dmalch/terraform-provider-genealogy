@@ -34,17 +34,17 @@ type UnionResponse struct {
 	Status string `json:"status,omitempty"`
 }
 
-func GetUnion(accessToken, unionId string) (*UnionResponse, error) {
-	baseUrl := geniUrl + "api/" + unionId
-	req, err := http.NewRequest(http.MethodGet, baseUrl, nil)
+func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
+	url := c.getBaseUrl() + "api/" + unionId
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func GetUnion(accessToken, unionId string) (*UnionResponse, error) {
 	return &union, nil
 }
 
-func UpdateUnion(accessToken, unionId string, request *UnionRequest) (*UnionResponse, error) {
+func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -69,17 +69,17 @@ func UpdateUnion(accessToken, unionId string, request *UnionRequest) (*UnionResp
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	baseUrl := geniUrl + "api/" + unionId + "/update"
+	url := c.getBaseUrl() + "api/" + unionId + "/update"
 
-	req, err := http.NewRequest(http.MethodPost, baseUrl, bytes.NewBufferString(jsonStr))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	addStandardHeadersAndQueryParams(req, accessToken)
+	addStandardHeadersAndQueryParams(req, c.accessToken)
 
-	body, err := doRequest(req)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}

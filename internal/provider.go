@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
 )
@@ -45,7 +46,9 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	resp.ResourceData = &cfg
+	resp.ResourceData = &config.ClientData{
+		Client: geni.NewClient(cfg.AccessToken.ValueString()),
+	}
 }
 
 func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {

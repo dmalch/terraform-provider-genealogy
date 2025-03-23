@@ -29,7 +29,21 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 	}
 }
 
-func doRequest(req *http.Request) ([]byte, error) {
+type Client struct {
+	accessToken string
+}
+
+func NewClient(accessToken string) *Client {
+	return &Client{
+		accessToken: accessToken,
+	}
+}
+
+func (c *Client) getBaseUrl() string {
+	return geniUrl
+}
+
+func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	var body []byte
 	var err error
 
