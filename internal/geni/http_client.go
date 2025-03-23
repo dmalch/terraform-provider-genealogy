@@ -69,7 +69,9 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 				slog.Error("Error sending request", "error", err)
 				return err
 			}
-			defer res.Body.Close()
+			defer func(Body io.ReadCloser) {
+				_ = Body.Close()
+			}(res.Body)
 
 			body, err = io.ReadAll(res.Body)
 			if err != nil {
@@ -101,10 +103,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 		},
 		retry.RetryIf(func(err error) bool {
 			var errCode429WithRetry errCode429WithRetry
-			if errors.As(err, &errCode429WithRetry) {
-				return true
-			}
-			return false
+			return errors.As(err, &errCode429WithRetry)
 		}),
 		retry.Attempts(5),
 		retry.Delay(2*time.Second), // Wait 2 seconds between retries
