@@ -43,6 +43,10 @@ func (c *Client) getBaseUrl() string {
 	return geniUrl
 }
 
+func (c *Client) getApiUrl() string {
+	return geniApiUrl
+}
+
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	var body []byte
 	var err error

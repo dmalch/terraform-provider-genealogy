@@ -255,16 +255,16 @@ func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	fixResponse(&profile)
+	c.fixResponse(&profile)
 
 	return &profile, nil
 }
 
-func fixResponse(profile *ProfileResponse) {
+func (c *Client) fixResponse(profile *ProfileResponse) {
 	//The only_ids flag does not work for the profile endpoint, so we need to remove
 	//the geniUrl from the Unions field.
 	for i, union := range profile.Unions {
-		profile.Unions[i] = strings.Replace(union, geniApiUrl, "", 1)
+		profile.Unions[i] = strings.Replace(union, c.getApiUrl(), "", 1)
 	}
 }
 
@@ -355,7 +355,7 @@ func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	fixResponse(&profile)
+	c.fixResponse(&profile)
 
 	return &profile, nil
 }
@@ -382,7 +382,7 @@ func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	fixResponse(&profile)
+	c.fixResponse(&profile)
 
 	return &profile, nil
 }
@@ -409,7 +409,7 @@ func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	fixResponse(&profile)
+	c.fixResponse(&profile)
 
 	return &profile, nil
 }
