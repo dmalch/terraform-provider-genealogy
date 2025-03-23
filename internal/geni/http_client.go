@@ -30,21 +30,29 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 }
 
 type Client struct {
-	accessToken string
+	accessToken   string
+	useSandboxEnv bool
 }
 
-func NewClient(accessToken string) *Client {
+func NewClient(accessToken string, useSandboxEnv bool) *Client {
 	return &Client{
-		accessToken: accessToken,
+		accessToken:   accessToken,
+		useSandboxEnv: useSandboxEnv,
 	}
 }
 
 func (c *Client) getBaseUrl() string {
-	return geniUrl
+	if c.useSandboxEnv {
+		return geniSandboxUrl
+	}
+	return geniProdUrl
 }
 
 func (c *Client) getApiUrl() string {
-	return geniApiUrl
+	if c.useSandboxEnv {
+		return geniSandboxApiUrl
+	}
+	return geniProdApiUrl
 }
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {

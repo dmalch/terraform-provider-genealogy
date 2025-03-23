@@ -33,6 +33,10 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 				Sensitive:   true,
 				Description: "The Access Token for the Geni API",
 			},
+			"use_sandbox_env": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Whether to use the Geni Sandbox environment",
+			},
 		},
 		Description: "This provider enables managing data on Geni.com through Terraform. It exposes configuration and resources that help automate genealogical information. This application uses the Geni API but is not endorsed, operated, or sponsored by Geni.com.",
 	}
@@ -47,7 +51,7 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	resp.ResourceData = &config.ClientData{
-		Client: geni.NewClient(cfg.AccessToken.ValueString()),
+		Client: geni.NewClient(cfg.AccessToken.ValueString(), cfg.UseSandboxEnv.ValueBool()),
 	}
 }
 

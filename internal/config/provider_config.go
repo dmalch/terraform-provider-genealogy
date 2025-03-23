@@ -7,7 +7,8 @@ import (
 )
 
 type GeniProviderConfig struct {
-	AccessToken types.String `tfsdk:"access_token"`
+	AccessToken   types.String `tfsdk:"access_token"`
+	UseSandboxEnv types.Bool   `tfsdk:"use_sandbox_env"`
 }
 
 type ClientData struct {

@@ -262,7 +262,7 @@ func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
 
 func (c *Client) fixResponse(profile *ProfileResponse) {
 	//The only_ids flag does not work for the profile endpoint, so we need to remove
-	//the geniUrl from the Unions field.
+	//the url from the Unions field.
 	for i, union := range profile.Unions {
 		profile.Unions[i] = strings.Replace(union, c.getApiUrl(), "", 1)
 	}
