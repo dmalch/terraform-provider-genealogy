@@ -11,7 +11,9 @@ func TestGetUnion1(t *testing.T) {
 	RegisterTestingT(t)
 
 	unionId := "union-1838"
-	union, err := GetUnion(testAccessToken, unionId)
+
+	client := NewClient(testAccessToken, true)
+	union, err := client.GetUnion(unionId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(union.Id).To(BeEquivalentTo(unionId))

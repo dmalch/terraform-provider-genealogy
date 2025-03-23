@@ -47,8 +47,8 @@ func TestCreateProfile1(t *testing.T) {
 			},
 		},
 	}
-
-	profile, err := CreateProfile(testAccessToken, &profileRequest)
+	client := NewClient(testAccessToken, true)
+	profile, err := client.CreateProfile(&profileRequest)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -99,7 +99,8 @@ func TestCreateProfile2(t *testing.T) {
 		FirstName: "Иван",
 	}
 
-	profile, err := CreateProfile(testAccessToken, &profileRequest)
+	client := NewClient(testAccessToken, true)
+	profile, err := client.CreateProfile(&profileRequest)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -113,7 +114,9 @@ func TestGetProfile1(t *testing.T) {
 	RegisterTestingT(t)
 
 	profileId := "profile-5955"
-	profile, err := GetProfile(testAccessToken, profileId)
+
+	client := NewClient(testAccessToken, true)
+	profile, err := client.GetProfile(profileId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -138,7 +141,9 @@ func TestGetProfile2(t *testing.T) {
 	RegisterTestingT(t)
 
 	profileId := "profile-5957"
-	profile, err := GetProfile(testAccessToken, profileId)
+
+	client := NewClient(testAccessToken, true)
+	profile, err := client.GetProfile(profileId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -219,11 +224,12 @@ func TestUpdateProfile1(t *testing.T) {
 		},
 	}
 
-	profile, err := CreateProfile(testAccessToken, &profileRequest)
+	client := NewClient(testAccessToken, true)
+	profile, err := client.CreateProfile(&profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
 	profileRequest.FirstName = "2TestFirstName"
-	updatedProfile, err := UpdateProfile(testAccessToken, profile.Id, &profileRequest)
+	updatedProfile, err := client.UpdateProfile(profile.Id, &profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
 	Expect(updatedProfile).ToNot(BeNil())
@@ -270,7 +276,8 @@ func TestDeleteProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
 
-	err := DeleteProfile(testAccessToken, "profile-g599969")
+	client := NewClient(testAccessToken, true)
+	err := client.DeleteProfile("profile-g599969")
 
 	Expect(err).ToNot(HaveOccurred())
 }
