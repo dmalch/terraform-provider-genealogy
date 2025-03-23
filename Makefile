@@ -30,3 +30,10 @@ test:
 	@echo "${YELLOW}Testing...${NC}"
 	go test -v ./...
 	@echo "${YELLOW}Testing...${NC} ${GREEN}Done${NC}"
+
+.PHONY: docs
+docs:
+	@echo "${WHITE}=====================${NC}"
+	@echo "${YELLOW}Generating docs...${NC}"
+	tfplugindocs generate --provider-name geni
+	@echo "${YELLOW}Generating docs...${NC} ${GREEN}Done${NC}"
