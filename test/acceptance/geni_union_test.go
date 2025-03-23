@@ -42,6 +42,7 @@ func unionWithTwoPartners(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "husband" {
@@ -94,6 +95,7 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "husband" {
@@ -158,6 +160,7 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "husband" {
@@ -222,6 +225,7 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "mother" {
@@ -273,6 +277,7 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "sibling1" {
@@ -317,6 +322,7 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 				Config: `
 				provider "geni" {
 				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
 				}
 
 				resource "geni_profile" "sibling1" {
@@ -383,6 +389,7 @@ func unionWithOneParent(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "mother" {
@@ -417,6 +424,7 @@ func unionWithOneChild(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "child" {
@@ -451,6 +459,7 @@ func unionWithThreePartners(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "partner1" {
@@ -502,6 +511,7 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 				Config: `
 				provider "geni" {
 				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
 				}
 
 				resource "geni_profile" "husband" {
@@ -556,6 +566,7 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 				Config: `
 				provider "geni" {
 				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
 				}
 
 				resource "geni_profile" "husband" {
@@ -608,6 +619,7 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 				Config: `
 				provider "geni" {
 				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
 				}
 
 				resource "geni_profile" "husband" {
@@ -657,6 +669,7 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				Config: `
 				provider "geni" {
 				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
 				}
 
 				resource "geni_profile" "husband" {
@@ -727,6 +740,7 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "husband" {

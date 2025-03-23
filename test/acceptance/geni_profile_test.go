@@ -35,6 +35,7 @@ func profile(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "test" {
@@ -65,6 +66,7 @@ func profileWithDetails(testAccessToken string) string {
 	return `
 		provider "geni" {
 		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
 		}
 
 		resource "geni_profile" "test" {
