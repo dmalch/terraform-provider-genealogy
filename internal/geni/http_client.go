@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
+	"golang.org/x/oauth2"
 )
 
 type errCode429WithRetry struct {
@@ -32,12 +33,19 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 type Client struct {
 	accessToken   string
 	useSandboxEnv bool
+	tokenSource   oauth2.TokenSource
 }
 
 func NewClient(accessToken string, useSandboxEnv bool) *Client {
+	var tokenSource oauth2.TokenSource
+	if accessToken != "" {
+		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
+	}
+
 	return &Client{
 		accessToken:   accessToken,
 		useSandboxEnv: useSandboxEnv,
+		tokenSource:   tokenSource,
 	}
 }
 
@@ -94,6 +102,17 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
 					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
 					return newErrWithRetry(res.StatusCode, 1)
+				}
+
+				if res.StatusCode == http.StatusUnauthorized {
+					// Get an OAuth2 token
+					token, err := c.tokenSource.Token()
+					if err != nil {
+						return fmt.Errorf("error getting token: %w", err)
+					}
+
+					// Update the request with the new token
+					c.accessToken = token.AccessToken
 				}
 
 				return fmt.Errorf("non-OK HTTP status: %s", res.Status)
