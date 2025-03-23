@@ -18,3 +18,7 @@ This provider enables managing data on Geni.com through Terraform. It exposes co
 ### Required
 
 - `access_token` (String, Sensitive) The Access Token for the Geni API
+
+### Optional
+
+- `use_sandbox_env` (Boolean) Whether to use the Geni Sandbox environment
