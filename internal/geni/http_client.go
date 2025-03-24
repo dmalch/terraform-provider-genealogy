@@ -6,16 +6,12 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/avast/retry-go/v4"
 	"golang.org/x/oauth2"
-
-	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
 )
 
 type errCode429WithRetry struct {
@@ -35,64 +31,18 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 }
 
 type Client struct {
-	accessToken   string
 	useSandboxEnv bool
 	tokenSource   oauth2.TokenSource
 }
 
-func NewClient(accessToken string, useSandboxEnv bool) (*Client, error) {
-	cacheFilePath, err := tokenCacheFilePath()
-	if err != nil {
-		return nil, fmt.Errorf("error getting token cache file path: %w", err)
-	}
-
-	var tokenSource = oauth2.ReuseTokenSource(nil,
-		authn.NewCachingTokenSource(
-			cacheFilePath,
-			authn.NewAuthTokenSource(&oauth2.Config{
-				ClientID: clientId(useSandboxEnv),
-				Endpoint: oauth2.Endpoint{
-					AuthURL: baseUrl(useSandboxEnv) + "platform/oauth/authorize",
-				},
-			})))
-
-	if accessToken != "" {
-		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
-	}
-
-	token, err := tokenSource.Token()
-	if err != nil {
-		return nil, fmt.Errorf("error getting token: %w", err)
-	}
-
+func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
 	return &Client{
-		accessToken:   token.AccessToken,
 		useSandboxEnv: useSandboxEnv,
 		tokenSource:   tokenSource,
-	}, nil
-}
-
-func clientId(useSandboxEnv bool) string {
-	if useSandboxEnv {
-		// Sandbox client ID
-		return "8"
 	}
-
-	// Production client ID
-	return "1855"
 }
 
-func tokenCacheFilePath() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("error getting user home directory: %w", err)
-	}
-
-	cacheFilePath := path.Join(homeDir, ".genealogy", "geni_token.json")
-	return cacheFilePath, nil
-}
-
-func baseUrl(useSandboxEnv bool) string {
+func BaseUrl(useSandboxEnv bool) string {
 	if useSandboxEnv {
 		return geniSandboxUrl
 	}
@@ -148,14 +98,8 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 				}
 
 				if res.StatusCode == http.StatusUnauthorized {
-					// Get an OAuth2 token
-					token, err := c.tokenSource.Token()
-					if err != nil {
-						return fmt.Errorf("error getting token: %w", err)
-					}
-
-					// Update the request with the new token
-					c.accessToken = token.AccessToken
+					slog.Warn("Received 401 Unauthorized, retrying.")
+					return newErrWithRetry(res.StatusCode, 1)
 				}
 
 				return fmt.Errorf("non-OK HTTP status: %s", res.Status)
@@ -190,9 +134,15 @@ func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
 	return retry.FixedDelay(n, err, config)
 }
 
-func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) {
+func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) error {
 	query := req.URL.Query()
-	query.Add("access_token", c.accessToken)
+
+	token, err := c.tokenSource.Token()
+	if err != nil {
+		return fmt.Errorf("error getting token: %w", err)
+	}
+
+	query.Add("access_token", token.AccessToken)
 	query.Add("api_version", apiVersion)
 	// The returned data structures will contain urls to other objects by default,
 	// unless the request includes 'only_ids=true.' Passing only_ids will force the
@@ -202,4 +152,5 @@ func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) {
 	req.URL.RawQuery = query.Encode()
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"golang.org/x/oauth2"
 )
 
 func TestGetUnion1(t *testing.T) {
@@ -12,8 +13,7 @@ func TestGetUnion1(t *testing.T) {
 
 	unionId := "union-1838"
 
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
 	union, err := client.GetUnion(unionId)
 

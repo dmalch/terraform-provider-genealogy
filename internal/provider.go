@@ -2,12 +2,17 @@ package internal
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"golang.org/x/oauth2"
 
+	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
@@ -50,15 +55,49 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	client, err := geni.NewClient(cfg.AccessToken.ValueString(), cfg.UseSandboxEnv.ValueBool())
+	cacheFilePath, err := tokenCacheFilePath()
 	if err != nil {
-		resp.Diagnostics.AddError("error creating Geni client", err.Error())
+		resp.Diagnostics.AddError("error getting token cache file path", err.Error())
 		return
 	}
 
-	resp.ResourceData = &config.ClientData{
-		Client: client,
+	var tokenSource = oauth2.ReuseTokenSource(nil,
+		authn.NewCachingTokenSource(
+			cacheFilePath,
+			authn.NewAuthTokenSource(&oauth2.Config{
+				ClientID: clientId(cfg.UseSandboxEnv.ValueBool()),
+				Endpoint: oauth2.Endpoint{
+					AuthURL: geni.BaseUrl(cfg.UseSandboxEnv.ValueBool()) + "platform/oauth/authorize",
+				},
+			})))
+
+	if cfg.AccessToken.ValueString() != "" {
+		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: cfg.AccessToken.ValueString()})
 	}
+
+	resp.ResourceData = &config.ClientData{
+		Client: geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool()),
+	}
+}
+
+func tokenCacheFilePath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("error getting user home directory: %w", err)
+	}
+
+	cacheFilePath := path.Join(homeDir, ".genealogy", "geni_token.json")
+	return cacheFilePath, nil
+}
+
+func clientId(useSandboxEnv bool) string {
+	if useSandboxEnv {
+		// Sandbox client ID
+		return "8"
+	}
+
+	// Production client ID
+	return "1855"
 }
 
 func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {

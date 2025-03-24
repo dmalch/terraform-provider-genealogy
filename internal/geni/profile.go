@@ -192,7 +192,7 @@ func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := baseUrl(c.useSandboxEnv) + "api/profile/add"
+	url := BaseUrl(c.useSandboxEnv) + "api/profile/add"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
@@ -200,7 +200,9 @@ func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -234,14 +236,16 @@ func escapeStringToUTF(s string) string {
 }
 
 func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
-	url := baseUrl(c.useSandboxEnv) + "api/" + profileId
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -278,7 +282,7 @@ func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*Prof
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/update"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/update"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
@@ -286,7 +290,9 @@ func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*Prof
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -308,7 +314,7 @@ type ResultResponse struct {
 }
 
 func (c *Client) DeleteProfile(profileId string) error {
-	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/delete"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/delete"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 
 	if err != nil {
@@ -316,7 +322,9 @@ func (c *Client) DeleteProfile(profileId string) error {
 		return err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -334,14 +342,16 @@ func (c *Client) DeleteProfile(profileId string) error {
 }
 
 func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
-	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-partner"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-partner"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -361,14 +371,16 @@ func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
 }
 
 func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
-	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-child"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-child"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -388,14 +400,16 @@ func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
 }
 
 func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
-	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-sibling"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-sibling"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -415,14 +429,16 @@ func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
 }
 
 func (c *Client) MergeProfiles(profile1Id, profile2Id string) error {
-	url := baseUrl(c.useSandboxEnv) + "api/" + profile1Id + "/merge/" + profile2Id
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profile1Id + "/merge/" + profile2Id
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {

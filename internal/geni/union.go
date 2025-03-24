@@ -35,14 +35,16 @@ type UnionResponse struct {
 }
 
 func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
-	url := baseUrl(c.useSandboxEnv) + "api/" + unionId
+	url := BaseUrl(c.useSandboxEnv) + "api/" + unionId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {
@@ -69,7 +71,7 @@ func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionRespo
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := baseUrl(c.useSandboxEnv) + "api/" + unionId + "/update"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + unionId + "/update"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
@@ -77,7 +79,9 @@ func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionRespo
 		return nil, err
 	}
 
-	c.addStandardHeadersAndQueryParams(req)
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
 
 	body, err := c.doRequest(req)
 	if err != nil {

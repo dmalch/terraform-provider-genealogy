@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"golang.org/x/oauth2"
 )
 
 func ptr[T any](s T) *T {
@@ -47,8 +48,7 @@ func TestCreateProfile1(t *testing.T) {
 			},
 		},
 	}
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
 	profile, err := client.CreateProfile(&profileRequest)
 
@@ -101,8 +101,7 @@ func TestCreateProfile2(t *testing.T) {
 		FirstName: "Иван",
 	}
 
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
 	profile, err := client.CreateProfile(&profileRequest)
 
@@ -119,8 +118,7 @@ func TestGetProfile1(t *testing.T) {
 
 	profileId := "profile-5955"
 
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
 	profile, err := client.GetProfile(profileId)
 
@@ -148,8 +146,7 @@ func TestGetProfile2(t *testing.T) {
 
 	profileId := "profile-5957"
 
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
 	profile, err := client.GetProfile(profileId)
 
@@ -232,8 +229,7 @@ func TestUpdateProfile1(t *testing.T) {
 		},
 	}
 
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
 	profile, err := client.CreateProfile(&profileRequest)
 	Expect(err).ToNot(HaveOccurred())
@@ -286,10 +282,9 @@ func TestDeleteProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
 
-	client, err := NewClient(testAccessToken, true)
-	Expect(err).ToNot(HaveOccurred())
+	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	err = client.DeleteProfile("profile-g599969")
+	err := client.DeleteProfile("profile-g599969")
 
 	Expect(err).ToNot(HaveOccurred())
 }
