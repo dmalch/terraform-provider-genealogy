@@ -168,3 +168,52 @@ func profileWithDetails(testAccessToken string) string {
 		}
 		`
 }
+
+func TestAccProfile_createProfileWithFixedBithDate(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: profileWithFixedBirthDate(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+				},
+			},
+		},
+	})
+}
+
+func profileWithFixedBirthDate(testAccessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
+		}
+
+		resource "geni_profile" "test" {
+		  first_name = "John"
+		  last_name  = "Doe"
+		  gender     = "male"
+		  birth      = {
+			name = "Birth of John Doe"
+			date = {
+			  year = 1980
+			  month = 1
+			  day = 1
+			}
+			location = {
+			  city = "New York"
+			  country = "USA"
+			  place_name = "Hospital"
+			  state = "New York"
+			  street_address1 = "123 Main St"
+			  street_address2 = "Apt 1"
+			  street_address3 = "Floor 2"
+			}
+		  }
+		}
+	`
+}

@@ -128,7 +128,7 @@ type NameElement struct {
 	MiddleName string `json:"middle_name,omitempty"`
 }
 
-// EventElement is the response for an event
+// EventElement is the response for an event.
 type EventElement struct {
 	Date        *DateElement     `json:"date,omitempty"`
 	Description string           `json:"description,omitempty"`
@@ -136,29 +136,29 @@ type EventElement struct {
 	Name        string           `json:"name,omitempty"`
 }
 
-// DateElement is the response for a date
+// DateElement is the response for a date.
 type DateElement struct {
 	// Circa is a boolean that indicates whether the date is approximate
-	Circa bool `json:"circa,omitempty"`
+	Circa *bool `json:"circa,omitempty"`
 	// Day is the day of the month
-	Day int `json:"day,omitempty"`
-	// EndCirca is a boolean that indicates whether the end date is approximate
-	EndCirca bool `json:"end_circa,omitempty"`
-	// EndDay is the end day of the month (only valid if range is between)
-	EndDay int `json:"end_day,omitempty"`
-	// EndMonth is the end month of the year (only valid if range is between)
-	EndMonth int `json:"end_month,omitempty"`
-	// EndYear is the end year (only valid if range is between)
-	EndYear int `json:"end_year,omitempty"`
+	Day *int32 `json:"day,omitempty"`
 	// Month is the month of the year
-	Month int `json:"month,omitempty"`
-	// Range is the range (before, after, or between)
-	Range string `json:"range,omitempty"`
+	Month *int32 `json:"month,omitempty"`
 	// Year is the year
-	Year int `json:"year,omitempty"`
+	Year *int32 `json:"year,omitempty"`
+	// EndCirca is a boolean that indicates whether the end date is approximate
+	EndCirca *bool `json:"end_circa,omitempty"`
+	// EndDay is the end day of the month (only valid if range is between)
+	EndDay *int32 `json:"end_day,omitempty"`
+	// EndMonth is the end month of the year (only valid if range is between)
+	EndMonth *int32 `json:"end_month,omitempty"`
+	// EndYear is the end year (only valid if range is between)
+	EndYear *int32 `json:"end_year,omitempty"`
+	// Range is the range (before, after, or between)
+	Range *string `json:"range,omitempty"`
 }
 
-// LocationElement is the response for a location
+// LocationElement is the response for a location.
 type LocationElement struct {
 	// City is the city name
 	City *string `json:"city,omitempty"`

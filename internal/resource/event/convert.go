@@ -70,15 +70,15 @@ func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateEl
 		d.Append(dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})...)
 
 		return &geni.DateElement{
-			Range:    dateModel.Range.ValueString(),
-			Circa:    dateModel.Circa.ValueBool(),
-			Day:      int(dateModel.Day.ValueInt32()),
-			Month:    int(dateModel.Month.ValueInt32()),
-			Year:     int(dateModel.Year.ValueInt32()),
-			EndCirca: dateModel.EndCirca.ValueBool(),
-			EndDay:   int(dateModel.EndDay.ValueInt32()),
-			EndMonth: int(dateModel.EndMonth.ValueInt32()),
-			EndYear:  int(dateModel.EndYear.ValueInt32()),
+			Range:    dateModel.Range.ValueStringPointer(),
+			Circa:    dateModel.Circa.ValueBoolPointer(),
+			Day:      dateModel.Day.ValueInt32Pointer(),
+			Month:    dateModel.Month.ValueInt32Pointer(),
+			Year:     dateModel.Year.ValueInt32Pointer(),
+			EndCirca: dateModel.EndCirca.ValueBoolPointer(),
+			EndDay:   dateModel.EndDay.ValueInt32Pointer(),
+			EndMonth: dateModel.EndMonth.ValueInt32Pointer(),
+			EndYear:  dateModel.EndYear.ValueInt32Pointer(),
 		}, d
 	}
 
@@ -114,15 +114,15 @@ func ValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.
 func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
 	if dateElement != nil {
 		dateModel := DateModel{
-			Range:    types.StringValue(dateElement.Range),
-			Circa:    types.BoolValue(dateElement.Circa),
-			Day:      types.Int32Value(int32(dateElement.Day)),
-			Month:    types.Int32Value(int32(dateElement.Month)),
-			Year:     types.Int32Value(int32(dateElement.Year)),
-			EndCirca: types.BoolValue(dateElement.EndCirca),
-			EndDay:   types.Int32Value(int32(dateElement.EndDay)),
-			EndMonth: types.Int32Value(int32(dateElement.EndMonth)),
-			EndYear:  types.Int32Value(int32(dateElement.EndYear)),
+			Range:    types.StringPointerValue(dateElement.Range),
+			Circa:    types.BoolPointerValue(dateElement.Circa),
+			Day:      types.Int32PointerValue(dateElement.Day),
+			Month:    types.Int32PointerValue(dateElement.Month),
+			Year:     types.Int32PointerValue(dateElement.Year),
+			EndCirca: types.BoolPointerValue(dateElement.EndCirca),
+			EndDay:   types.Int32PointerValue(dateElement.EndDay),
+			EndMonth: types.Int32PointerValue(dateElement.EndMonth),
+			EndYear:  types.Int32PointerValue(dateElement.EndYear),
 		}
 
 		return types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
