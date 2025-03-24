@@ -35,7 +35,7 @@ type UnionResponse struct {
 }
 
 func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
-	url := c.getBaseUrl() + "api/" + unionId
+	url := baseUrl(c.useSandboxEnv) + "api/" + unionId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -69,7 +69,7 @@ func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionRespo
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := c.getBaseUrl() + "api/" + unionId + "/update"
+	url := baseUrl(c.useSandboxEnv) + "api/" + unionId + "/update"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {

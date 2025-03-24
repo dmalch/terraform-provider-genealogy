@@ -192,7 +192,7 @@ func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := c.getBaseUrl() + "api/profile/add"
+	url := baseUrl(c.useSandboxEnv) + "api/profile/add"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
@@ -234,7 +234,7 @@ func escapeStringToUTF(s string) string {
 }
 
 func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
-	url := c.getBaseUrl() + "api/" + profileId
+	url := baseUrl(c.useSandboxEnv) + "api/" + profileId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -264,7 +264,7 @@ func (c *Client) fixResponse(profile *ProfileResponse) {
 	//The only_ids flag does not work for the profile endpoint, so we need to remove
 	//the url from the Unions field.
 	for i, union := range profile.Unions {
-		profile.Unions[i] = strings.Replace(union, c.getApiUrl(), "", 1)
+		profile.Unions[i] = strings.Replace(union, apiUrl(c.useSandboxEnv), "", 1)
 	}
 }
 
@@ -278,7 +278,7 @@ func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*Prof
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := c.getBaseUrl() + "api/" + profileId + "/update"
+	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/update"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
@@ -308,7 +308,7 @@ type ResultResponse struct {
 }
 
 func (c *Client) DeleteProfile(profileId string) error {
-	url := c.getBaseUrl() + "api/" + profileId + "/delete"
+	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/delete"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 
 	if err != nil {
@@ -334,7 +334,7 @@ func (c *Client) DeleteProfile(profileId string) error {
 }
 
 func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
-	url := c.getBaseUrl() + "api/" + profileId + "/add-partner"
+	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-partner"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -361,7 +361,7 @@ func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
 }
 
 func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
-	url := c.getBaseUrl() + "api/" + profileId + "/add-child"
+	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-child"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -388,7 +388,7 @@ func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
 }
 
 func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
-	url := c.getBaseUrl() + "api/" + profileId + "/add-sibling"
+	url := baseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-sibling"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -415,7 +415,7 @@ func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
 }
 
 func (c *Client) MergeProfiles(profile1Id, profile2Id string) error {
-	url := c.getBaseUrl() + "api/" + profile1Id + "/merge/" + profile2Id
+	url := baseUrl(c.useSandboxEnv) + "api/" + profile1Id + "/merge/" + profile2Id
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)

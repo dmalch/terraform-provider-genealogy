@@ -48,9 +48,9 @@ func NewClient(accessToken string, useSandboxEnv bool) (*Client, error) {
 		NewCachingTokenSource(
 			cacheFilePath,
 			NewAuthTokenSource(&oauth2.Config{
-				ClientID: "8",
+				ClientID: clientId(useSandboxEnv),
 				Endpoint: oauth2.Endpoint{
-					AuthURL: getBaseUrlFrom(useSandboxEnv) + "platform/oauth/authorize",
+					AuthURL: baseUrl(useSandboxEnv) + "platform/oauth/authorize",
 				},
 			})))
 
@@ -70,6 +70,16 @@ func NewClient(accessToken string, useSandboxEnv bool) (*Client, error) {
 	}, nil
 }
 
+func clientId(useSandboxEnv bool) string {
+	if useSandboxEnv {
+		// Sandbox client ID
+		return "8"
+	}
+
+	// Production client ID
+	return "1855"
+}
+
 func tokenCacheFilePath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -80,19 +90,15 @@ func tokenCacheFilePath() (string, error) {
 	return cacheFilePath, nil
 }
 
-func (c *Client) getBaseUrl() string {
-	return getBaseUrlFrom(c.useSandboxEnv)
-}
-
-func getBaseUrlFrom(useSandboxEnv bool) string {
+func baseUrl(useSandboxEnv bool) string {
 	if useSandboxEnv {
 		return geniSandboxUrl
 	}
 	return geniProdUrl
 }
 
-func (c *Client) getApiUrl() string {
-	if c.useSandboxEnv {
+func apiUrl(useSandboxEnv bool) string {
+	if useSandboxEnv {
 		return geniSandboxApiUrl
 	}
 	return geniProdApiUrl
