@@ -14,6 +14,8 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"golang.org/x/oauth2"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
 )
 
 type errCode429WithRetry struct {
@@ -45,9 +47,9 @@ func NewClient(accessToken string, useSandboxEnv bool) (*Client, error) {
 	}
 
 	var tokenSource = oauth2.ReuseTokenSource(nil,
-		NewCachingTokenSource(
+		authn.NewCachingTokenSource(
 			cacheFilePath,
-			NewAuthTokenSource(&oauth2.Config{
+			authn.NewAuthTokenSource(&oauth2.Config{
 				ClientID: clientId(useSandboxEnv),
 				Endpoint: oauth2.Endpoint{
 					AuthURL: baseUrl(useSandboxEnv) + "platform/oauth/authorize",

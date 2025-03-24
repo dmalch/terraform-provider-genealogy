@@ -1,4 +1,4 @@
-package geni
+package authn
 
 import (
 	"encoding/json"
