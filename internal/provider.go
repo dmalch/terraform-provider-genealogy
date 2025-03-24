@@ -36,7 +36,7 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 			"access_token": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The Access Token for the Geni API",
+				Description: "The Access Token for the Geni API, if not provided the provider will attempt to do a browser-based OAuth login flow",
 			},
 			"use_sandbox_env": schema.BoolAttribute{
 				Optional:    true,
