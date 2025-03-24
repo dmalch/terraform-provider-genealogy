@@ -50,8 +50,7 @@ func NewClient(accessToken string, useSandboxEnv bool) (*Client, error) {
 			NewAuthTokenSource(&oauth2.Config{
 				ClientID: "8",
 				Endpoint: oauth2.Endpoint{
-					//AuthURL:  "https://www.geni.com/platform/oauth/authorize",
-					AuthURL: "https://sandbox.geni.com/platform/oauth/authorize",
+					AuthURL: getBaseUrlFrom(useSandboxEnv) + "platform/oauth/authorize",
 				},
 			})))
 
@@ -82,7 +81,11 @@ func tokenCacheFilePath() (string, error) {
 }
 
 func (c *Client) getBaseUrl() string {
-	if c.useSandboxEnv {
+	return getBaseUrlFrom(c.useSandboxEnv)
+}
+
+func getBaseUrlFrom(useSandboxEnv bool) string {
+	if useSandboxEnv {
 		return geniSandboxUrl
 	}
 	return geniProdUrl
