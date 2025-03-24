@@ -29,9 +29,9 @@ func TestCreateProfile1(t *testing.T) {
 		},
 		Birth: &EventElement{
 			Date: &DateElement{
-				Day:   19,
-				Month: 8,
-				Year:  1922,
+				Day:   ptr[int32](19),
+				Month: ptr[int32](8),
+				Year:  ptr[int32](1922),
 			},
 			Location: &LocationElement{
 				Country:   ptr("РСФСР"),
@@ -42,9 +42,9 @@ func TestCreateProfile1(t *testing.T) {
 		},
 		Death: &EventElement{
 			Date: &DateElement{
-				Day:   25,
-				Month: 9,
-				Year:  1993,
+				Day:   ptr[int32](25),
+				Month: ptr[int32](9),
+				Year:  ptr[int32](1993),
 			},
 		},
 	}
@@ -70,9 +70,9 @@ func TestCreateProfile1(t *testing.T) {
 	}))
 	Expect(profile.Birth).To(Equal(&EventElement{
 		Date: &DateElement{
-			Day:   19,
-			Month: 8,
-			Year:  1922,
+			Day:   ptr[int32](19),
+			Month: ptr[int32](8),
+			Year:  ptr[int32](1922),
 		},
 		Location: &LocationElement{
 			Country:   ptr("РСФСР"),
@@ -84,9 +84,9 @@ func TestCreateProfile1(t *testing.T) {
 	}))
 	Expect(profile.Death).To(Equal(&EventElement{
 		Date: &DateElement{
-			Day:   25,
-			Month: 9,
-			Year:  1993,
+			Day:   ptr[int32](25),
+			Month: ptr[int32](9),
+			Year:  ptr[int32](1993),
 		},
 		Name: "Death of 1TestFirstName 1TestLastName",
 	}))
@@ -168,9 +168,9 @@ func TestGetProfile2(t *testing.T) {
 	}))
 	Expect(profile.Birth).To(Equal(&EventElement{
 		Date: &DateElement{
-			Day:   19,
-			Month: 8,
-			Year:  1922,
+			Day:   ptr[int32](19),
+			Month: ptr[int32](8),
+			Year:  ptr[int32](1922),
 		},
 		Location: &LocationElement{
 			Country:   ptr("РСФСР"),
@@ -182,9 +182,9 @@ func TestGetProfile2(t *testing.T) {
 	}))
 	Expect(profile.Death).To(Equal(&EventElement{
 		Date: &DateElement{
-			Day:   25,
-			Month: 9,
-			Year:  1993,
+			Day:   ptr[int32](25),
+			Month: ptr[int32](9),
+			Year:  ptr[int32](1993),
 		},
 		Name: "Death of F M",
 	}))
@@ -209,9 +209,9 @@ func TestUpdateProfile1(t *testing.T) {
 		},
 		Birth: &EventElement{
 			Date: &DateElement{
-				Day:   19,
-				Month: 8,
-				Year:  1922,
+				Day:   ptr[int32](19),
+				Month: ptr[int32](8),
+				Year:  ptr[int32](1922),
 			},
 			Location: &LocationElement{
 				Country:   ptr("РСФСР"),
@@ -222,9 +222,9 @@ func TestUpdateProfile1(t *testing.T) {
 		},
 		Death: &EventElement{
 			Date: &DateElement{
-				Day:   25,
-				Month: 9,
-				Year:  1993,
+				Day:   ptr[int32](25),
+				Month: ptr[int32](9),
+				Year:  ptr[int32](1993),
 			},
 		},
 	}
@@ -255,9 +255,9 @@ func TestUpdateProfile1(t *testing.T) {
 	}))
 	Expect(updatedProfile.Birth).To(Equal(&EventElement{
 		Date: &DateElement{
-			Day:   19,
-			Month: 8,
-			Year:  1922,
+			Day:   ptr[int32](19),
+			Month: ptr[int32](8),
+			Year:  ptr[int32](1922),
 		},
 		Location: &LocationElement{
 			Country:   ptr("РСФСР"),
@@ -269,9 +269,9 @@ func TestUpdateProfile1(t *testing.T) {
 	}))
 	Expect(updatedProfile.Death).To(Equal(&EventElement{
 		Date: &DateElement{
-			Day:   25,
-			Month: 9,
-			Year:  1993,
+			Day:   ptr[int32](25),
+			Month: ptr[int32](9),
+			Year:  ptr[int32](1993),
 		},
 		Name: "Death of 2TestFirstName 1TestLastName",
 	}))
