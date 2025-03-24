@@ -29,7 +29,7 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"access_token": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "The Access Token for the Geni API",
 			},
@@ -50,8 +50,14 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
+	client, err := geni.NewClient(cfg.AccessToken.ValueString(), cfg.UseSandboxEnv.ValueBool())
+	if err != nil {
+		resp.Diagnostics.AddError("error creating Geni client", err.Error())
+		return
+	}
+
 	resp.ResourceData = &config.ClientData{
-		Client: geni.NewClient(cfg.AccessToken.ValueString(), cfg.UseSandboxEnv.ValueBool()),
+		Client: client,
 	}
 }
 

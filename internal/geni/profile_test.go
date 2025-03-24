@@ -47,7 +47,9 @@ func TestCreateProfile1(t *testing.T) {
 			},
 		},
 	}
-	client := NewClient(testAccessToken, true)
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
 	profile, err := client.CreateProfile(&profileRequest)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -99,7 +101,9 @@ func TestCreateProfile2(t *testing.T) {
 		FirstName: "Иван",
 	}
 
-	client := NewClient(testAccessToken, true)
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
 	profile, err := client.CreateProfile(&profileRequest)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -115,7 +119,9 @@ func TestGetProfile1(t *testing.T) {
 
 	profileId := "profile-5955"
 
-	client := NewClient(testAccessToken, true)
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
 	profile, err := client.GetProfile(profileId)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -142,7 +148,9 @@ func TestGetProfile2(t *testing.T) {
 
 	profileId := "profile-5957"
 
-	client := NewClient(testAccessToken, true)
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
 	profile, err := client.GetProfile(profileId)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -224,7 +232,9 @@ func TestUpdateProfile1(t *testing.T) {
 		},
 	}
 
-	client := NewClient(testAccessToken, true)
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
 	profile, err := client.CreateProfile(&profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -276,8 +286,10 @@ func TestDeleteProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
 
-	client := NewClient(testAccessToken, true)
-	err := client.DeleteProfile("profile-g599969")
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = client.DeleteProfile("profile-g599969")
 
 	Expect(err).ToNot(HaveOccurred())
 }

@@ -6,6 +6,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -36,17 +38,47 @@ type Client struct {
 	tokenSource   oauth2.TokenSource
 }
 
-func NewClient(accessToken string, useSandboxEnv bool) *Client {
-	var tokenSource oauth2.TokenSource
+func NewClient(accessToken string, useSandboxEnv bool) (*Client, error) {
+	cacheFilePath, err := tokenCacheFilePath()
+	if err != nil {
+		return nil, fmt.Errorf("error getting token cache file path: %w", err)
+	}
+
+	var tokenSource = oauth2.ReuseTokenSource(nil,
+		NewCachingTokenSource(
+			cacheFilePath,
+			NewAuthTokenSource(&oauth2.Config{
+				ClientID: "8",
+				Endpoint: oauth2.Endpoint{
+					//AuthURL:  "https://www.geni.com/platform/oauth/authorize",
+					AuthURL: "https://sandbox.geni.com/platform/oauth/authorize",
+				},
+			})))
+
 	if accessToken != "" {
 		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
 	}
 
+	token, err := tokenSource.Token()
+	if err != nil {
+		return nil, fmt.Errorf("error getting token: %w", err)
+	}
+
 	return &Client{
-		accessToken:   accessToken,
+		accessToken:   token.AccessToken,
 		useSandboxEnv: useSandboxEnv,
 		tokenSource:   tokenSource,
+	}, nil
+}
+
+func tokenCacheFilePath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("error getting user home directory: %w", err)
 	}
+
+	cacheFilePath := path.Join(homeDir, ".genealogy", "geni_token.json")
+	return cacheFilePath, nil
 }
 
 func (c *Client) getBaseUrl() string {

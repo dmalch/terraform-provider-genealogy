@@ -12,7 +12,9 @@ func TestGetUnion1(t *testing.T) {
 
 	unionId := "union-1838"
 
-	client := NewClient(testAccessToken, true)
+	client, err := NewClient(testAccessToken, true)
+	Expect(err).ToNot(HaveOccurred())
+
 	union, err := client.GetUnion(unionId)
 
 	Expect(err).ToNot(HaveOccurred())
