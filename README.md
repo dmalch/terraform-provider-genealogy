@@ -9,11 +9,6 @@ This provider enables managing data on Geni.com through Terraform. It exposes co
 ## Disclaimer
 This application uses the Geni API but is not endorsed, operated, or sponsored by Geni.com.
 
-## Installation
-1. Clone or download this repository.  
-2. Run `go build` or `go install` inside the repository directory to build the provider binary.  
-3. Move the binary into your Terraform plugins directory.  
-
 ## Usage
 ```hcl
 terraform {
@@ -31,7 +26,8 @@ provider "geni" {
 ```
 
 ## Configuration
-* `access_token`: The access token used to authenticate against Geni.com.
+* `access_token`: (Optional) The access token used to authenticate against Geni.com. If not provided, the provider will attempt to do a client-side OAuth flow to obtain one.
+* `use_sandbox_env`: (Optional) Use the Geni sandbox environment. Default is `false`.
 
 ## Resources
 
