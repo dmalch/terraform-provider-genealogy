@@ -20,7 +20,7 @@ type errCode429WithRetry struct {
 }
 
 func (e errCode429WithRetry) Error() string {
-	return fmt.Sprintf("received %d status, window is %d seconds", e.statusCode, e.secondsUntilRetry)
+	return fmt.Sprintf("received %d status, retry in %d seconds", e.statusCode, e.secondsUntilRetry)
 }
 
 func newErrWithRetry(statusCode int, secondsUntilRetry int) error {

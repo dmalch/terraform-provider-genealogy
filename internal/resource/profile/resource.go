@@ -150,17 +150,24 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	response, err := r.client.UpdateProfile(plan.ID.ValueString(), &geni.ProfileRequest{
-		FirstName: plan.FirstName.ValueString(),
-		LastName:  plan.LastName.ValueString(),
-		Gender:    plan.Gender.ValueString(),
-	})
+	profileRequest, diags := RequestFrom(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	profileResponse, err := r.client.UpdateProfile(plan.ID.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating profile", err.Error())
 		return
 	}
 
-	plan.CreatedAt = types.StringValue(response.CreatedAt)
+	diags = updateComputedFields(ctx, &plan, profileResponse)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
