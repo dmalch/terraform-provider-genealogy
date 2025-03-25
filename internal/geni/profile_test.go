@@ -18,13 +18,13 @@ func TestCreateProfile1(t *testing.T) {
 		Gender: "male",
 		Names: map[string]NameElement{
 			"en-US": {
-				FirstName: "1TestFirstName",
-				LastName:  "1TestLastName",
+				FirstName: ptr("1TestFirstName"),
+				LastName:  ptr("1TestLastName"),
 			},
 			"ru": {
-				FirstName:  "Ф",
-				LastName:   "М",
-				MiddleName: "Н",
+				FirstName:  ptr("Ф"),
+				LastName:   ptr("М"),
+				MiddleName: ptr("Н"),
 			},
 		},
 		Birth: &EventElement{
@@ -60,13 +60,13 @@ func TestCreateProfile1(t *testing.T) {
 	Expect(profile.LastName).To(BeEquivalentTo("1TestLastName"))
 	Expect(profile.Gender).To(BeEquivalentTo("male"))
 	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameElement{
-		FirstName: "1TestFirstName",
-		LastName:  "1TestLastName",
+		FirstName: ptr("1TestFirstName"),
+		LastName:  ptr("1TestLastName"),
 	}))
 	Expect(profile.Names).To(HaveKeyWithValue("ru", NameElement{
-		FirstName:  "Ф",
-		LastName:   "М",
-		MiddleName: "Н",
+		FirstName:  ptr("Ф"),
+		LastName:   ptr("М"),
+		MiddleName: ptr("Н"),
 	}))
 	Expect(profile.Birth).To(Equal(&EventElement{
 		Date: &DateElement{
@@ -129,13 +129,13 @@ func TestGetProfile1(t *testing.T) {
 	Expect(profile.LastName).To(BeEquivalentTo("M"))
 	Expect(profile.Gender).To(BeEquivalentTo("male"))
 	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameElement{
-		FirstName: "D",
-		LastName:  "M",
+		FirstName: ptr("D"),
+		LastName:  ptr("M"),
 	}))
 	Expect(profile.Names).To(HaveKeyWithValue("ru", NameElement{
-		FirstName:  "Д",
-		LastName:   "М",
-		MiddleName: "В",
+		FirstName:  ptr("Д"),
+		LastName:   ptr("М"),
+		MiddleName: ptr("В"),
 	}))
 	Expect(profile.Unions).To(ContainElement("union-1837"))
 }
@@ -158,13 +158,13 @@ func TestGetProfile2(t *testing.T) {
 	Expect(profile.LastName).To(BeEquivalentTo("M"))
 	Expect(profile.Gender).To(BeEquivalentTo("male"))
 	Expect(profile.Names).To(HaveKeyWithValue("en-US", NameElement{
-		FirstName: "F",
-		LastName:  "M",
+		FirstName: ptr("F"),
+		LastName:  ptr("M"),
 	}))
 	Expect(profile.Names).To(HaveKeyWithValue("ru", NameElement{
-		FirstName:  "Ф",
-		LastName:   "М",
-		MiddleName: "Н",
+		FirstName:  ptr("Ф"),
+		LastName:   ptr("М"),
+		MiddleName: ptr("Н"),
 	}))
 	Expect(profile.Birth).To(Equal(&EventElement{
 		Date: &DateElement{
@@ -198,13 +198,13 @@ func TestUpdateProfile1(t *testing.T) {
 		Gender: "male",
 		Names: map[string]NameElement{
 			"en-US": {
-				FirstName: "1TestFirstName",
-				LastName:  "1TestLastName",
+				FirstName: ptr("1TestFirstName"),
+				LastName:  ptr("1TestLastName"),
 			},
 			"ru": {
-				FirstName:  "Ф",
-				LastName:   "М",
-				MiddleName: "Н",
+				FirstName:  ptr("Ф"),
+				LastName:   ptr("М"),
+				MiddleName: ptr("Н"),
 			},
 		},
 		Birth: &EventElement{
@@ -245,13 +245,13 @@ func TestUpdateProfile1(t *testing.T) {
 	Expect(updatedProfile.LastName).To(BeEquivalentTo("1TestLastName"))
 	Expect(updatedProfile.Gender).To(BeEquivalentTo("male"))
 	Expect(updatedProfile.Names).To(HaveKeyWithValue("en-US", NameElement{
-		FirstName: "2TestFirstName",
-		LastName:  "1TestLastName",
+		FirstName: ptr("2TestFirstName"),
+		LastName:  ptr("1TestLastName"),
 	}))
 	Expect(updatedProfile.Names).To(HaveKeyWithValue("ru", NameElement{
-		FirstName:  "Ф",
-		LastName:   "М",
-		MiddleName: "Н",
+		FirstName:  ptr("Ф"),
+		LastName:   ptr("М"),
+		MiddleName: ptr("Н"),
 	}))
 	Expect(updatedProfile.Birth).To(Equal(&EventElement{
 		Date: &DateElement{

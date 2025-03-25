@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
@@ -28,6 +29,10 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	if profile.Gender != "" {
 		profileModel.Gender = types.StringValue(profile.Gender)
 	}
+
+	names, diags := NameValueFrom(ctx, profile.Names)
+	d.Append(diags...)
+	profileModel.Names = names
 
 	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
@@ -56,6 +61,20 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	return d
 }
 
+func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement) (basetypes.MapValue, diag.Diagnostics) {
+	nameModels := make(map[string]NameModel, len(profileNames))
+
+	for locale, name := range profileNames {
+		nameModels[locale] = NameModel{
+			FistName:   types.StringPointerValue(name.FirstName),
+			MiddleName: types.StringPointerValue(name.MiddleName),
+			LastName:   types.StringPointerValue(name.LastName),
+		}
+	}
+
+	return types.MapValueFrom(ctx, types.ObjectType{AttrTypes: NameAttributeTypes()}, nameModels)
+}
+
 func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
 	var d diag.Diagnostics
 
@@ -71,9 +90,13 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 	burial, diags := event.ElementFrom(ctx, plan.Burial)
 	d.Append(diags...)
 
+	convertedNames, diags := NameElementFrom(ctx, plan)
+	d.Append(diags...)
+
 	profileRequest := &geni.ProfileRequest{
 		FirstName: plan.FirstName.ValueString(),
 		LastName:  plan.LastName.ValueString(),
+		Names:     convertedNames,
 		Gender:    plan.Gender.ValueString(),
 		Birth:     birth,
 		Baptism:   baptism,
@@ -82,4 +105,21 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 	}
 
 	return profileRequest, d
+}
+
+func NameElementFrom(ctx context.Context, plan ResourceModel) (map[string]geni.NameElement, diag.Diagnostics) {
+	var nameModels = make(map[string]NameModel)
+	diags := plan.Names.ElementsAs(ctx, &nameModels, false)
+
+	var profileNames = make(map[string]geni.NameElement, len(nameModels))
+
+	for locale, nameModel := range nameModels {
+		profileNames[locale] = geni.NameElement{
+			FirstName:  nameModel.FistName.ValueStringPointer(),
+			MiddleName: nameModel.MiddleName.ValueStringPointer(),
+			LastName:   nameModel.LastName.ValueStringPointer(),
+		}
+	}
+
+	return profileNames, diags
 }

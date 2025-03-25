@@ -20,7 +20,7 @@ var (
 	createdAtFormat = regexp.MustCompile(`^\d+$`)
 )
 
-// Schema defines the schema for the resource
+// Schema defines the schema for the resource.
 func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -43,6 +43,26 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:    true,
 				Validators:  []validator.String{stringvalidator.OneOf("female", "male")},
 				Description: "Profile's gender.",
+			},
+			"names": schema.MapNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"first_name": schema.StringAttribute{
+							Optional:    true,
+							Description: "The first name of the person.",
+						},
+						"middle_name": schema.StringAttribute{
+							Optional:    true,
+							Description: "The middle name of the person.",
+						},
+						"last_name": schema.StringAttribute{
+							Optional:    true,
+							Description: "The last name of the person.",
+						},
+					},
+				},
+				Description: "Nested maps of locales to name fields to values.",
 			},
 			"unions": schema.ListAttribute{
 				ElementType: types.StringType,

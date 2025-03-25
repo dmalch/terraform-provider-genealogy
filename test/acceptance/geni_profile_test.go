@@ -217,3 +217,51 @@ func profileWithFixedBirthDate(testAccessToken string) string {
 		}
 	`
 }
+
+func TestAccProfile_createProfileWithNamesInOtherLanguages(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: profileWithNamesInOtherLanguages(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+				},
+			},
+		},
+	})
+}
+
+func profileWithNamesInOtherLanguages(accessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + accessToken + `"
+		  use_sandbox_env = true
+		}
+
+		resource "geni_profile" "test" {
+		  first_name = "John"
+		  last_name  = "Doe"
+		  gender     = "male"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+			"ru" = {
+				first_name = "Иван"
+			}
+			"he" = {
+				first_name = "יוחנן"
+			}
+			"ar" = {
+				first_name = "يوحنا"
+			}
+		  }
+		}
+	`
+}

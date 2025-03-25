@@ -23,7 +23,7 @@ func NewProfileResource() resource.Resource {
 	return &Resource{}
 }
 
-// Metadata provides the resource type name
+// Metadata provides the resource type name.
 func (r *Resource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "geni_profile"
 }
@@ -48,7 +48,7 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	r.client = cfg.Client
 }
 
-// Create creates the resource
+// Create creates the resource.
 func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -115,7 +115,7 @@ func updateComputedFields(ctx context.Context, profileModel *ResourceModel, prof
 	return d
 }
 
-// Read reads the resource
+// Read reads the resource.
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -142,7 +142,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// Update updates the resource
+// Update updates the resource.
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -164,7 +164,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-// Delete deletes the resource
+// Delete deletes the resource.
 func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)

@@ -122,10 +122,14 @@ type ProfileResponse struct {
 	CreatedAt string `json:"created_at,omitempty"`
 }
 
+// NameElement is the response for a name.
 type NameElement struct {
-	FirstName  string `json:"first_name,omitempty"`
-	LastName   string `json:"last_name,omitempty"`
-	MiddleName string `json:"middle_name,omitempty"`
+	// FirstName is the profile's first name
+	FirstName *string `json:"first_name,omitempty"`
+	// LastName is the profile's last name
+	LastName *string `json:"last_name,omitempty"`
+	// MiddleName is the profile's middle name
+	MiddleName *string `json:"middle_name,omitempty"`
 }
 
 // EventElement is the response for an event.
