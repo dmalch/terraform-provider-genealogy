@@ -62,6 +62,10 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 }
 
 func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement) (basetypes.MapValue, diag.Diagnostics) {
+	if len(profileNames) == 0 {
+		return basetypes.NewMapNull(types.ObjectType{AttrTypes: NameAttributeTypes()}), diag.Diagnostics{}
+	}
+
 	nameModels := make(map[string]NameModel, len(profileNames))
 
 	for locale, name := range profileNames {
@@ -108,6 +112,10 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 }
 
 func NameElementFrom(ctx context.Context, plan ResourceModel) (map[string]geni.NameElement, diag.Diagnostics) {
+	if len(plan.Names.Elements()) == 0 {
+		return nil, nil
+	}
+
 	var nameModels = make(map[string]NameModel)
 	diags := plan.Names.ElementsAs(ctx, &nameModels, false)
 
