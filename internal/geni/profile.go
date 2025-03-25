@@ -220,6 +220,8 @@ func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error
 		return nil, err
 	}
 
+	c.fixResponse(&profile)
+
 	return &profile, nil
 }
 
@@ -309,6 +311,8 @@ func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*Prof
 		slog.Error("Error unmarshaling response", "error", err)
 		return nil, err
 	}
+
+	c.fixResponse(&profile)
 
 	return &profile, nil
 }
