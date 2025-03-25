@@ -26,6 +26,7 @@ description: |-
 - `gender` (String) Profile's gender.
 - `id` (String) The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.
 - `last_name` (String) The last name of the person.
+- `names` (Attributes Map) Nested maps of locales to name fields to values. (see [below for nested schema](#nestedatt--names))
 - `unions` (List of String) List of union IDs.
 
 <a id="nestedatt--baptism"></a>
@@ -201,3 +202,14 @@ Optional:
 - `street_address1` (String) First line of the street address.
 - `street_address2` (String) Second line of the street address.
 - `street_address3` (String) Third line of the street address.
+
+
+
+<a id="nestedatt--names"></a>
+### Nested Schema for `names`
+
+Optional:
+
+- `first_name` (String) The first name of the person.
+- `last_name` (String) The last name of the person.
+- `middle_name` (String) The middle name of the person.
