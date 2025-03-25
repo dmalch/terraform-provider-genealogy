@@ -94,7 +94,7 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 	burial, diags := event.ElementFrom(ctx, plan.Burial)
 	d.Append(diags...)
 
-	convertedNames, diags := NameElementFrom(ctx, plan)
+	convertedNames, diags := NameElementFrom(ctx, plan.Names)
 	d.Append(diags...)
 
 	profileRequest := &geni.ProfileRequest{
@@ -111,13 +111,13 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 	return profileRequest, d
 }
 
-func NameElementFrom(ctx context.Context, plan ResourceModel) (map[string]geni.NameElement, diag.Diagnostics) {
-	if len(plan.Names.Elements()) == 0 {
+func NameElementFrom(ctx context.Context, names types.Map) (map[string]geni.NameElement, diag.Diagnostics) {
+	if len(names.Elements()) == 0 {
 		return nil, nil
 	}
 
-	var nameModels = make(map[string]NameModel)
-	diags := plan.Names.ElementsAs(ctx, &nameModels, false)
+	var nameModels = make(map[string]NameModel, len(names.Elements()))
+	diags := names.ElementsAs(ctx, &nameModels, false)
 
 	var profileNames = make(map[string]geni.NameElement, len(nameModels))
 
