@@ -89,17 +89,17 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 					return nil, newErrWithRetry(res.StatusCode, secondsUntilRetry)
 				}
 
-				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
-					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-					return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
-				}
-
 				if res.StatusCode == http.StatusUnauthorized {
 					slog.Warn("Received 401 Unauthorized, retrying.")
 					return nil, newErrWithRetry(res.StatusCode, 1)
 				}
 
-				return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
+					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+					return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+				}
+
+				return nil, fmt.Errorf("non-OK HTTP status: %s, body: %s", res.Status, string(body))
 			}
 
 			return body, nil
