@@ -57,27 +57,24 @@ func apiUrl(useSandboxEnv bool) string {
 }
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
-	var body []byte
-	var err error
-
 	client := &http.Client{}
 
 	// Retry logic using retry-go
-	err = retry.Do(
-		func() error {
+	return retry.DoWithData(
+		func() ([]byte, error) {
 			res, err := client.Do(req)
 			if err != nil {
 				slog.Error("Error sending request", "error", err)
-				return err
+				return nil, err
 			}
 			defer func(Body io.ReadCloser) {
 				_ = Body.Close()
 			}(res.Body)
 
-			body, err = io.ReadAll(res.Body)
+			body, err := io.ReadAll(res.Body)
 			if err != nil {
 				slog.Error("Error reading response", "error", err)
-				return err
+				return nil, err
 			}
 
 			if res.StatusCode != http.StatusOK {
@@ -86,26 +83,26 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 					apiRateWindow := res.Header.Get("X-API-Rate-Window")
 					secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 					if err != nil {
-						return fmt.Errorf("invalid value for X-API-Rate-Window: %d", secondsUntilRetry)
+						return nil, fmt.Errorf("invalid value for X-API-Rate-Window: %d", secondsUntilRetry)
 					}
 
-					return newErrWithRetry(res.StatusCode, secondsUntilRetry)
+					return nil, newErrWithRetry(res.StatusCode, secondsUntilRetry)
 				}
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
 					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-					return fmt.Errorf("non-OK HTTP status: %s", res.Status)
+					return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 				}
 
 				if res.StatusCode == http.StatusUnauthorized {
 					slog.Warn("Received 401 Unauthorized, retrying.")
-					return newErrWithRetry(res.StatusCode, 1)
+					return nil, newErrWithRetry(res.StatusCode, 1)
 				}
 
-				return fmt.Errorf("non-OK HTTP status: %s", res.Status)
+				return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 			}
 
-			return nil
+			return body, nil
 		},
 		retry.RetryIf(func(err error) bool {
 			var errCode429WithRetry errCode429WithRetry
@@ -118,12 +115,6 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 			slog.Info("Retrying request", "attempt", n+1, "error", err)
 		}),
 	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
 }
 
 func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
