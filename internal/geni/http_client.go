@@ -94,7 +94,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
 					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
-					return newErrWithRetry(res.StatusCode, 1)
+					return fmt.Errorf("non-OK HTTP status: %s", res.Status)
 				}
 
 				if res.StatusCode == http.StatusUnauthorized {
