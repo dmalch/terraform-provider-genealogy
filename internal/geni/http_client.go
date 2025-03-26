@@ -114,9 +114,11 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 			var errCode429WithRetry errCode429WithRetry
 			return errors.As(err, &errCode429WithRetry)
 		}),
+		retry.Context(ctx),
 		retry.Attempts(5),
-		retry.Delay(2*time.Second), // Wait 2 seconds between retries
-		retry.DelayType(rateLimitingDelay),
+		retry.Delay(2*time.Second),     // Wait 2 seconds between retries
+		retry.MaxJitter(2*time.Second), // Add up to 2 seconds of jitter to each retry
+		retry.DelayType(retry.CombineDelay(rateLimitingDelay, retry.RandomDelay)),
 		retry.OnRetry(func(n uint, err error) {
 			tflog.Debug(ctx, "Retrying request", map[string]interface{}{"attempt": n + 1, "error": err})
 		}),
