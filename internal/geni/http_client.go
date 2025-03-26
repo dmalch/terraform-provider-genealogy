@@ -64,6 +64,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 	// Retry logic using retry-go
 	return retry.DoWithData(
 		func() ([]byte, error) {
+			tflog.Debug(ctx, "Sending request", map[string]interface{}{"method": req.Method, "url": req.URL.String()})
 			res, err := client.Do(req)
 			if err != nil {
 				slog.Error("Error sending request", "error", err)
@@ -81,13 +82,13 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 
 			if res.StatusCode != http.StatusOK {
 				if res.StatusCode == http.StatusTooManyRequests {
-					tflog.Warn(ctx, "Received 429 Too Many Requests, retrying...")
 					apiRateWindow := res.Header.Get("X-API-Rate-Window")
 					secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 					if err != nil {
 						return nil, fmt.Errorf("invalid value for X-API-Rate-Window: %d", secondsUntilRetry)
 					}
 
+					tflog.Warn(ctx, "Received 429 Too Many Requests, retrying...", map[string]interface{}{"X-API-Rate-Window": secondsUntilRetry})
 					return nil, newErrWithRetry(res.StatusCode, secondsUntilRetry)
 				}
 
@@ -97,13 +98,16 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 				}
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
-					tflog.Warn(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
+					tflog.Error(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
 					return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 				}
 
+				tflog.Error(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
 				return nil, fmt.Errorf("non-OK HTTP status: %s, body: %s", res.Status, string(body))
 			}
 
+			tflog.Debug(ctx, "Received response", map[string]interface{}{"status": res.StatusCode})
+			tflog.Trace(ctx, "Received response", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
 			return body, nil
 		},
 		retry.RetryIf(func(err error) bool {
@@ -114,7 +118,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 		retry.Delay(2*time.Second), // Wait 2 seconds between retries
 		retry.DelayType(rateLimitingDelay),
 		retry.OnRetry(func(n uint, err error) {
-			tflog.Info(ctx, "Retrying request", map[string]interface{}{"attempt": n + 1, "error": err})
+			tflog.Debug(ctx, "Retrying request", map[string]interface{}{"attempt": n + 1, "error": err})
 		}),
 	)
 }
