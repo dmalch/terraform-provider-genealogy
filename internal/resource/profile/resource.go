@@ -62,7 +62,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	profileResponse, err := r.client.CreateProfile(profileRequest)
+	profileResponse, err := r.client.CreateProfile(ctx, profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
 		return
@@ -123,7 +123,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	profileResponse, err := r.client.GetProfile(state.ID.ValueString())
+	profileResponse, err := r.client.GetProfile(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading profile", err.Error())
 		return
@@ -156,7 +156,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	profileResponse, err := r.client.UpdateProfile(plan.ID.ValueString(), profileRequest)
+	profileResponse, err := r.client.UpdateProfile(ctx, plan.ID.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating profile", err.Error())
 		return
@@ -179,7 +179,7 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 		return
 	}
 
-	err := r.client.DeleteProfile(state.ID.ValueString())
+	err := r.client.DeleteProfile(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting profile", err.Error())
 		return

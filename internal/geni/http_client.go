@@ -1,6 +1,7 @@
 package geni
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"golang.org/x/oauth2"
 )
 
@@ -56,7 +58,7 @@ func apiUrl(useSandboxEnv bool) string {
 	return geniProdApiUrl
 }
 
-func (c *Client) doRequest(req *http.Request) ([]byte, error) {
+func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, error) {
 	client := &http.Client{}
 
 	// Retry logic using retry-go
@@ -73,13 +75,13 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 
 			body, err := io.ReadAll(res.Body)
 			if err != nil {
-				slog.Error("Error reading response", "error", err)
+				tflog.Error(ctx, "Error reading response", map[string]interface{}{"error": err})
 				return nil, err
 			}
 
 			if res.StatusCode != http.StatusOK {
 				if res.StatusCode == http.StatusTooManyRequests {
-					slog.Warn("Received 429 Too Many Requests, retrying...")
+					tflog.Warn(ctx, "Received 429 Too Many Requests, retrying...")
 					apiRateWindow := res.Header.Get("X-API-Rate-Window")
 					secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 					if err != nil {
@@ -90,12 +92,12 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 				}
 
 				if res.StatusCode == http.StatusUnauthorized {
-					slog.Warn("Received 401 Unauthorized, retrying.")
+					tflog.Warn(ctx, "Received 401 Unauthorized, retrying.")
 					return nil, newErrWithRetry(res.StatusCode, 1)
 				}
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
-					slog.Warn("Non-OK HTTP status", "status", res.StatusCode, "body", string(body))
+					tflog.Warn(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
 					return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
 				}
 
@@ -112,7 +114,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 		retry.Delay(2*time.Second), // Wait 2 seconds between retries
 		retry.DelayType(rateLimitingDelay),
 		retry.OnRetry(func(n uint, err error) {
-			slog.Info("Retrying request", "attempt", n+1, "error", err)
+			tflog.Info(ctx, "Retrying request", map[string]interface{}{"attempt": n + 1, "error": err})
 		}),
 	)
 }

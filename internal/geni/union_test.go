@@ -15,7 +15,7 @@ func TestGetUnion1(t *testing.T) {
 
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	union, err := client.GetUnion(unionId)
+	union, err := client.GetUnion(t.Context(), unionId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(union.Id).To(BeEquivalentTo(unionId))

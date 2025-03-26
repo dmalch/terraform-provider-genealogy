@@ -2,6 +2,7 @@ package geni
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -186,7 +187,7 @@ type LocationElement struct {
 	StreetAddress3 *string `json:"street_address3,omitempty"`
 }
 
-func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error) {
+func (c *Client) CreateProfile(ctx context.Context, request *ProfileRequest) (*ProfileResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -208,7 +209,7 @@ func (c *Client) CreateProfile(request *ProfileRequest) (*ProfileResponse, error
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +242,7 @@ func escapeStringToUTF(s string) string {
 	return sb.String()
 }
 
-func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
+func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -253,7 +254,7 @@ func (c *Client) GetProfile(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +279,7 @@ func (c *Client) fixResponse(profile *ProfileResponse) {
 	}
 }
 
-func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*ProfileResponse, error) {
+func (c *Client) UpdateProfile(ctx context.Context, profileId string, request *ProfileRequest) (*ProfileResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -300,7 +301,7 @@ func (c *Client) UpdateProfile(profileId string, request *ProfileRequest) (*Prof
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +322,7 @@ type ResultResponse struct {
 	Result string `json:"result,omitempty"`
 }
 
-func (c *Client) DeleteProfile(profileId string) error {
+func (c *Client) DeleteProfile(ctx context.Context, profileId string) error {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/delete"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 
@@ -334,7 +335,7 @@ func (c *Client) DeleteProfile(profileId string) error {
 		return err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -349,7 +350,7 @@ func (c *Client) DeleteProfile(profileId string) error {
 	return nil
 }
 
-func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
+func (c *Client) AddPartner(ctx context.Context, profileId string) (*ProfileResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-partner"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -361,7 +362,7 @@ func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +379,7 @@ func (c *Client) AddPartner(profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
+func (c *Client) AddChild(ctx context.Context, profileId string) (*ProfileResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-child"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -390,7 +391,7 @@ func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +408,7 @@ func (c *Client) AddChild(profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
+func (c *Client) AddSibling(ctx context.Context, profileId string) (*ProfileResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-sibling"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -419,7 +420,7 @@ func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +437,7 @@ func (c *Client) AddSibling(profileId string) (*ProfileResponse, error) {
 	return &profile, nil
 }
 
-func (c *Client) MergeProfiles(profile1Id, profile2Id string) error {
+func (c *Client) MergeProfiles(ctx context.Context, profile1Id, profile2Id string) error {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profile1Id + "/merge/" + profile2Id
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -448,7 +449,7 @@ func (c *Client) MergeProfiles(profile1Id, profile2Id string) error {
 		return err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return err
 	}

@@ -50,7 +50,7 @@ func TestCreateProfile1(t *testing.T) {
 	}
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	profile, err := client.CreateProfile(&profileRequest)
+	profile, err := client.CreateProfile(t.Context(), &profileRequest)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -103,7 +103,7 @@ func TestCreateProfile2(t *testing.T) {
 
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	profile, err := client.CreateProfile(&profileRequest)
+	profile, err := client.CreateProfile(t.Context(), &profileRequest)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -120,7 +120,7 @@ func TestGetProfile1(t *testing.T) {
 
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	profile, err := client.GetProfile(profileId)
+	profile, err := client.GetProfile(t.Context(), profileId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -148,7 +148,7 @@ func TestGetProfile2(t *testing.T) {
 
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	profile, err := client.GetProfile(profileId)
+	profile, err := client.GetProfile(t.Context(), profileId)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(profile).ToNot(BeNil())
@@ -231,11 +231,11 @@ func TestUpdateProfile1(t *testing.T) {
 
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	profile, err := client.CreateProfile(&profileRequest)
+	profile, err := client.CreateProfile(t.Context(), &profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
 	profileRequest.FirstName = "2TestFirstName"
-	updatedProfile, err := client.UpdateProfile(profile.Id, &profileRequest)
+	updatedProfile, err := client.UpdateProfile(t.Context(), profile.Id, &profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
 	Expect(updatedProfile).ToNot(BeNil())
@@ -284,7 +284,7 @@ func TestDeleteProfile1(t *testing.T) {
 
 	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
 
-	err := client.DeleteProfile("profile-g599969")
+	err := client.DeleteProfile(t.Context(), "profile-g599969")
 
 	Expect(err).ToNot(HaveOccurred())
 }

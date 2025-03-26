@@ -23,7 +23,7 @@ func NewUnionResource() resource.Resource {
 	return &Resource{}
 }
 
-// Metadata provides the resource type name
+// Metadata provides the resource type name.
 func (r *Resource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "geni_union"
 }
@@ -48,7 +48,7 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	r.client = cfg.Client
 }
 
-// Create creates the resource
+// Create creates the resource.
 func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -68,14 +68,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		// so we need to create a temporary partner profile and then merge it with the
 		// existing second partner profile.
 
-		tmpProfile, err := r.client.AddPartner(partnerIds[0].ValueString())
+		tmpProfile, err := r.client.AddPartner(ctx, partnerIds[0].ValueString())
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 			return
 		}
 
 		// Merge the temporary profile with the second partner
-		if err := r.client.MergeProfiles(partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
+		if err := r.client.MergeProfiles(ctx, partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 			return
 		}
@@ -109,7 +109,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				// we need to create a temporary child profile and then merge it with the
 				// existing child profile.
 				var err error
-				tmpProfile, err = r.client.AddChild(plan.ID.ValueString())
+				tmpProfile, err = r.client.AddChild(ctx, plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 					return
@@ -121,7 +121,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddChild(partnerIds[0].ValueString())
+					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0].ValueString())
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
@@ -133,7 +133,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddSibling(childrenIds[i+1].ValueString())
+					tmpProfile, err = r.client.AddSibling(ctx, childrenIds[i+1].ValueString())
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
@@ -145,7 +145,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			}
 
 			// Merge the temporary profile with the child profile
-			if err := r.client.MergeProfiles(childId.ValueString(), tmpProfile.Id); err != nil {
+			if err := r.client.MergeProfiles(ctx, childId.ValueString(), tmpProfile.Id); err != nil {
 				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 				return
 			}
@@ -163,7 +163,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			return
 		}
 
-		unionResponse, err := r.client.UpdateUnion(plan.ID.ValueString(), unionRequest)
+		unionResponse, err := r.client.UpdateUnion(ctx, plan.ID.ValueString(), unionRequest)
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating union", err.Error())
 			return
@@ -216,7 +216,7 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, d
 	return &unionRequest, d
 }
 
-// Read reads the resource
+// Read reads the resource.
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -224,7 +224,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	unionResponse, err := r.client.GetUnion(state.ID.ValueString())
+	unionResponse, err := r.client.GetUnion(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading union", err.Error())
 		return
@@ -243,7 +243,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// Update updates the resource
+// Update updates the resource.
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state ResourceModel
 
@@ -285,14 +285,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
 
-				tmpProfile, err := r.client.AddPartner(plan.ID.ValueString())
+				tmpProfile, err := r.client.AddPartner(ctx, plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the second partner
-				if err := r.client.MergeProfiles(partnerId.ValueString(), tmpProfile.Id); err != nil {
+				if err := r.client.MergeProfiles(ctx, partnerId.ValueString(), tmpProfile.Id); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 					return
 				}
@@ -331,14 +331,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
 
-				tmpProfile, err := r.client.AddChild(plan.ID.ValueString())
+				tmpProfile, err := r.client.AddChild(ctx, plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the child profile
-				if err := r.client.MergeProfiles(childId.ValueString(), tmpProfile.Id); err != nil {
+				if err := r.client.MergeProfiles(ctx, childId.ValueString(), tmpProfile.Id); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 					return
 				}
@@ -363,7 +363,7 @@ func convertToSlice(ctx context.Context, set types.Set) ([]types.String, diag.Di
 	return slice, diags
 }
 
-// Delete deletes the resource
+// Delete deletes the resource.
 func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)

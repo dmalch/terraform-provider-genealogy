@@ -2,6 +2,7 @@ package geni
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -34,7 +35,7 @@ type UnionResponse struct {
 	Status string `json:"status,omitempty"`
 }
 
-func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
+func (c *Client) GetUnion(ctx context.Context, unionId string) (*UnionResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + unionId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -46,7 +47,7 @@ func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (c *Client) GetUnion(unionId string) (*UnionResponse, error) {
 	return &union, nil
 }
 
-func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionResponse, error) {
+func (c *Client) UpdateUnion(ctx context.Context, unionId string, request *UnionRequest) (*UnionResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -83,7 +84,7 @@ func (c *Client) UpdateUnion(unionId string, request *UnionRequest) (*UnionRespo
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
