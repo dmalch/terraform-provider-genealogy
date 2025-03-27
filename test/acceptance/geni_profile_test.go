@@ -371,7 +371,7 @@ func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) stri
 
 func TestAccProfile_updateProfileWithDifferentSetOfNamesInDifferentLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		IsUnitTest: true,
+		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"geni": providerserver.NewProtocol6WithError(internal.New()),
 		},
