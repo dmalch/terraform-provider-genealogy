@@ -324,3 +324,94 @@ func profileWithFirstLastNameAndNames(accessToken string) string {
 		}
 		`
 }
+
+func TestAccProfile_createProfileWithDifferentSetOfNamesInDifferentLanguages(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: profileWithDifferentSetOfNamesInDifferentLanguages(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("first_name"), knownvalue.StringExact("Иван")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("middle_name"), knownvalue.StringExact("Иванович")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("last_name"), knownvalue.StringExact("Иванов")),
+				},
+			},
+		},
+	})
+}
+
+func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + accessToken + `"
+		  use_sandbox_env = true
+		}
+
+		resource "geni_profile" "test" {
+		  names = {
+			"en-US" = {
+				first_name = "John"
+			}
+			"ru" = {
+				first_name = "Иван"
+				middle_name = "Иванович"
+				last_name = "Иванов"
+			}
+		  }
+		}
+		`
+}
+
+func TestAccProfile_updateProfileWithDifferentSetOfNamesInDifferentLanguages(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: profileWithOneName(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.Null()),
+				},
+			},
+			{
+				Config: profileWithDifferentSetOfNamesInDifferentLanguages(testAccessToken),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("first_name"), knownvalue.StringExact("Иван")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("middle_name"), knownvalue.StringExact("Иванович")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("last_name"), knownvalue.StringExact("Иванов")),
+				},
+			},
+		},
+	})
+}
+
+func profileWithOneName(accessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + accessToken + `"
+		  use_sandbox_env = true
+		}
+
+		resource "geni_profile" "test" {
+		  names = {
+			"en-US" = {
+				first_name = "John"
+			}
+		  }
+		}
+		`
+}

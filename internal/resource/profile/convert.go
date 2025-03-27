@@ -79,29 +79,29 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 	return types.MapValueFrom(ctx, types.ObjectType{AttrTypes: NameAttributeTypes()}, nameModels)
 }
 
-func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
+func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	birth, diags := event.ElementFrom(ctx, plan.Birth)
+	birth, diags := event.ElementFrom(ctx, resourceModel.Birth)
 	d.Append(diags...)
 
-	baptism, diags := event.ElementFrom(ctx, plan.Baptism)
+	baptism, diags := event.ElementFrom(ctx, resourceModel.Baptism)
 	d.Append(diags...)
 
-	death, diags := event.ElementFrom(ctx, plan.Death)
+	death, diags := event.ElementFrom(ctx, resourceModel.Death)
 	d.Append(diags...)
 
-	burial, diags := event.ElementFrom(ctx, plan.Burial)
+	burial, diags := event.ElementFrom(ctx, resourceModel.Burial)
 	d.Append(diags...)
 
-	convertedNames, diags := NameElementFrom(ctx, plan.Names)
+	convertedNames, diags := NameElementsFrom(ctx, resourceModel.Names)
 	d.Append(diags...)
 
 	profileRequest := &geni.ProfileRequest{
-		FirstName: plan.FirstName.ValueString(),
-		LastName:  plan.LastName.ValueString(),
+		FirstName: resourceModel.FirstName.ValueString(),
+		LastName:  resourceModel.LastName.ValueString(),
 		Names:     convertedNames,
-		Gender:    plan.Gender.ValueString(),
+		Gender:    resourceModel.Gender.ValueString(),
 		Birth:     birth,
 		Baptism:   baptism,
 		Death:     death,
@@ -111,13 +111,8 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.ProfileRequest,
 	return profileRequest, d
 }
 
-func NameElementFrom(ctx context.Context, names types.Map) (map[string]geni.NameElement, diag.Diagnostics) {
-	if len(names.Elements()) == 0 {
-		return nil, nil
-	}
-
-	var nameModels = make(map[string]NameModel, len(names.Elements()))
-	diags := names.ElementsAs(ctx, &nameModels, false)
+func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.NameElement, diag.Diagnostics) {
+	nameModels, diags := NameModelsFrom(ctx, names)
 
 	var profileNames = make(map[string]geni.NameElement, len(nameModels))
 
@@ -130,4 +125,15 @@ func NameElementFrom(ctx context.Context, names types.Map) (map[string]geni.Name
 	}
 
 	return profileNames, diags
+}
+
+func NameModelsFrom(ctx context.Context, names types.Map) (map[string]NameModel, diag.Diagnostics) {
+	if len(names.Elements()) == 0 {
+		return nil, diag.Diagnostics{}
+	}
+
+	var nameModels = make(map[string]NameModel, len(names.Elements()))
+	diags := names.ElementsAs(ctx, &nameModels, false)
+
+	return nameModels, diags
 }
