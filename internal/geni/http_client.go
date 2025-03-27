@@ -102,7 +102,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 					// with this message, it means that the request was blocked by Incapsula.
 					// Try again after a longer delay.
 					tflog.Warn(ctx, "Incapsula blocked request, retrying.")
-					return nil, newErrWithRetry(res.StatusCode, 10)
+					return nil, newErrWithRetry(res.StatusCode, 15)
 				}
 
 				tflog.Error(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
