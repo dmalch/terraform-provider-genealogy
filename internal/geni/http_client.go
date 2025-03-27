@@ -100,9 +100,8 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
 					// Incapsula is a DDoS protection service that Geni uses. If we get a response
 					// with this message, it means that the request was blocked by Incapsula.
-					// Try again after a longer delay.
-					tflog.Warn(ctx, "Incapsula blocked request, retrying.")
-					return nil, newErrWithRetry(res.StatusCode, 15)
+					tflog.Warn(ctx, "Incapsula blocked request")
+					return nil, fmt.Errorf("incapsula blocked request")
 				}
 
 				tflog.Error(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
@@ -118,7 +117,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 			return errors.As(err, &errCode429WithRetry)
 		}),
 		retry.Context(ctx),
-		retry.Attempts(5),
+		retry.Attempts(3),
 		retry.Delay(2*time.Second),     // Wait 2 seconds between retries
 		retry.MaxJitter(2*time.Second), // Add up to 2 seconds of jitter to each retry
 		retry.DelayType(retry.CombineDelay(rateLimitingDelay, retry.RandomDelay)),
