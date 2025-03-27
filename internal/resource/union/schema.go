@@ -20,7 +20,7 @@ const fieldChildren = "children"
 
 var unionIdFormat = regexp.MustCompile(`^union-(g)?\d+$`)
 
-// Schema defines the schema for the resource
+// Schema defines the schema for the resource.
 func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{

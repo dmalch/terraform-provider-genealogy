@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -32,11 +33,21 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Description:   "The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.",
 			},
 			"first_name": schema.StringAttribute{
-				Optional:    true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					// This validator ensures that the first_name field is not set if the names field is set.
+					stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("names").AtAnyMapKey()),
+				},
 				Description: "The first name of the person.",
 			},
 			"last_name": schema.StringAttribute{
-				Optional:    true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					// This validator ensures that the last_name field is not set if the names field is set.
+					stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("names").AtAnyMapKey()),
+				},
 				Description: "The last name of the person.",
 			},
 			"gender": schema.StringAttribute{

@@ -98,8 +98,11 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 				}
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
-					tflog.Error(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
-					return nil, fmt.Errorf("non-OK HTTP status: %s", res.Status)
+					// Incapsula is a DDoS protection service that Geni uses. If we get a response
+					// with this message, it means that the request was blocked by Incapsula.
+					// Try again after a longer delay.
+					tflog.Warn(ctx, "Incapsula blocked request, retrying.")
+					return nil, newErrWithRetry(res.StatusCode, 10)
 				}
 
 				tflog.Error(ctx, "Non-OK HTTP status", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
@@ -151,5 +154,7 @@ func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) error {
 	req.URL.RawQuery = query.Encode()
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", "terraform-provider-genealogy/0.1")
+
 	return nil
 }

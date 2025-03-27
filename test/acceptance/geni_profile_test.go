@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -228,8 +229,8 @@ func TestAccProfile_createProfileWithNamesInOtherLanguages(t *testing.T) {
 			{
 				Config: profileWithNamesInOtherLanguages(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
 				},
 			},
 		},
@@ -244,8 +245,6 @@ func profileWithNamesInOtherLanguages(accessToken string) string {
 		}
 
 		resource "geni_profile" "test" {
-		  first_name = "John"
-		  last_name  = "Doe"
 		  gender     = "male"
 		  names = {
 			"en-US" = {
@@ -289,4 +288,39 @@ func TestAccProfile_createProfileAndAddNamesInOtherLanguages(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccProfile_failToCreateProfileWithBothFirstLastNameAndNames(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config:      profileWithFirstLastNameAndNames(testAccessToken),
+				ExpectError: regexp.MustCompile(`Attribute "names\[\\"en-US\\"]" cannot be specified when "first_name" is\s*specified`),
+			},
+		},
+	})
+}
+
+func profileWithFirstLastNameAndNames(accessToken string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + accessToken + `"
+		  use_sandbox_env = true
+		}
+
+		resource "geni_profile" "test" {
+		  first_name = "John"
+		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
+		}
+		`
 }
