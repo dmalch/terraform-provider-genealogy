@@ -26,6 +26,14 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 		profileModel.LastName = types.StringValue(profile.LastName)
 	}
 
+	if profile.MiddleName != "" {
+		profileModel.MiddleName = types.StringValue(profile.MiddleName)
+	}
+
+	if profile.MaidenName != "" {
+		profileModel.MaidenName = types.StringValue(profile.MaidenName)
+	}
+
 	if profile.Gender != "" {
 		profileModel.Gender = types.StringValue(profile.Gender)
 	}
@@ -73,6 +81,7 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 			FistName:   types.StringPointerValue(name.FirstName),
 			MiddleName: types.StringPointerValue(name.MiddleName),
 			LastName:   types.StringPointerValue(name.LastName),
+			MaidenName: types.StringPointerValue(name.MaidenName),
 		}
 	}
 
@@ -98,14 +107,16 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	d.Append(diags...)
 
 	profileRequest := &geni.ProfileRequest{
-		FirstName: resourceModel.FirstName.ValueString(),
-		LastName:  resourceModel.LastName.ValueString(),
-		Names:     convertedNames,
-		Gender:    resourceModel.Gender.ValueString(),
-		Birth:     birth,
-		Baptism:   baptism,
-		Death:     death,
-		Burial:    burial,
+		FirstName:  resourceModel.FirstName.ValueString(),
+		LastName:   resourceModel.LastName.ValueString(),
+		MiddleName: resourceModel.MiddleName.ValueString(),
+		MaidenName: resourceModel.MaidenName.ValueString(),
+		Names:      convertedNames,
+		Gender:     resourceModel.Gender.ValueString(),
+		Birth:      birth,
+		Baptism:    baptism,
+		Death:      death,
+		Burial:     burial,
 	}
 
 	return profileRequest, d
@@ -121,6 +132,7 @@ func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.Nam
 			FirstName:  nameModel.FistName.ValueStringPointer(),
 			MiddleName: nameModel.MiddleName.ValueStringPointer(),
 			LastName:   nameModel.LastName.ValueStringPointer(),
+			MaidenName: nameModel.MaidenName.ValueStringPointer(),
 		}
 	}
 

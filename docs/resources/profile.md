@@ -26,6 +26,8 @@ description: |-
 - `gender` (String) Profile's gender.
 - `id` (String) The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.
 - `last_name` (String) The last name of the person.
+- `maiden_name` (String) The maiden name of the person.
+- `middle_name` (String) The middle name of the person.
 - `names` (Attributes Map) Nested maps of locales to name fields to values. (see [below for nested schema](#nestedatt--names))
 - `unions` (List of String) List of union IDs.
 
@@ -212,4 +214,5 @@ Optional:
 
 - `first_name` (String) The first name of the person.
 - `last_name` (String) The last name of the person.
+- `maiden_name` (String) The maiden name of the person.
 - `middle_name` (String) The middle name of the person.

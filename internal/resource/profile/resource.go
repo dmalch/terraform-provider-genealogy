@@ -84,6 +84,8 @@ func updateComputedFields(ctx context.Context, profileModel *ResourceModel, prof
 
 	profileModel.FirstName = types.StringValue(profile.FirstName)
 	profileModel.LastName = types.StringValue(profile.LastName)
+	profileModel.MiddleName = types.StringValue(profile.MiddleName)
+	profileModel.MaidenName = types.StringValue(profile.MaidenName)
 
 	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
