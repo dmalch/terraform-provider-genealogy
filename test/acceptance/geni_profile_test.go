@@ -517,3 +517,52 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  first_name = "John"
+				  middle_name = "Johnson"
+				  last_name = "Doe"
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.StringExact("Johnson")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+				},
+			},
+			{
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  first_name = "John"
+				  middle_name = null
+				  last_name = "Doee"
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doee")),
+				},
+			},
+		},
+	})
+}
