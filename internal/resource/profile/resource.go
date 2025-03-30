@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
-	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 type Resource struct {
@@ -68,56 +65,13 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	diags = updateComputedFields(ctx, profileResponse, &plan)
+	diags = UpdateComputedFields(ctx, profileResponse, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-}
-
-func updateComputedFields(ctx context.Context, profile *geni.ProfileResponse, profileModel *ResourceModel) diag.Diagnostics {
-	var d diag.Diagnostics
-
-	profileModel.ID = types.StringValue(profile.Id)
-
-	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
-	profileModel.LastName = types.StringPointerValue(profile.LastName)
-	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
-	profileModel.MaidenName = types.StringPointerValue(profile.MaidenName)
-
-	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
-	d.Append(diags...)
-	profileModel.Unions = unions
-
-	if profile.Birth != nil {
-		birth, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Birth, profile.Birth)
-		d.Append(diags...)
-		profileModel.Birth = birth
-	}
-
-	if profile.Baptism != nil {
-		baptism, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Baptism, profile.Baptism)
-		d.Append(diags...)
-		profileModel.Baptism = baptism
-	}
-
-	if profile.Death != nil {
-		death, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Death, profile.Death)
-		d.Append(diags...)
-		profileModel.Death = death
-	}
-
-	if profile.Burial != nil {
-		burial, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Burial, profile.Burial)
-		d.Append(diags...)
-		profileModel.Burial = burial
-	}
-
-	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
-
-	return d
 }
 
 // Read reads the resource.
@@ -183,7 +137,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	diags = updateComputedFields(ctx, profileResponse, &plan)
+	diags = UpdateComputedFields(ctx, profileResponse, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
