@@ -18,9 +18,9 @@ func TestValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		givenProfile := &geni.ProfileResponse{
 			Id:        "123",
-			FirstName: "John",
-			LastName:  "Doe",
-			Gender:    "male",
+			FirstName: ptr("John"),
+			LastName:  ptr("Doe"),
+			Gender:    ptr("male"),
 			Names: map[string]geni.NameElement{
 				"en": {
 					FirstName:  ptr("John"),
