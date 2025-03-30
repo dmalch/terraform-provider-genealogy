@@ -15,7 +15,7 @@ func TestCreateProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
 	profileRequest := ProfileRequest{
-		Gender: "male",
+		Gender: ptr("male"),
 		Names: map[string]NameElement{
 			"en-US": {
 				FirstName: ptr("1TestFirstName"),
@@ -91,25 +91,6 @@ func TestCreateProfile1(t *testing.T) {
 		Name: "Death of 1TestFirstName 1TestLastName",
 	}))
 	Expect(profile.CreatedAt).ToNot(BeEmpty())
-}
-
-func TestCreateProfile2(t *testing.T) {
-	t.Skip()
-	RegisterTestingT(t)
-	profileRequest := ProfileRequest{
-		//FirstName: `\u0418\u0432\u0430\u043D`,
-		FirstName: "Иван",
-	}
-
-	client := NewClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testAccessToken}), true)
-
-	profile, err := client.CreateProfile(t.Context(), &profileRequest)
-
-	Expect(err).ToNot(HaveOccurred())
-	Expect(profile).ToNot(BeNil())
-	Expect(profile.Id).ToNot(BeEmpty())
-	Expect(profile.Guid).ToNot(BeEmpty())
-	Expect(profile.FirstName).To(BeEquivalentTo("Иван"))
 }
 
 func TestGetProfile1(t *testing.T) {
@@ -195,7 +176,7 @@ func TestUpdateProfile1(t *testing.T) {
 	t.Skip()
 	RegisterTestingT(t)
 	profileRequest := ProfileRequest{
-		Gender: "male",
+		Gender: ptr("male"),
 		Names: map[string]NameElement{
 			"en-US": {
 				FirstName: ptr("1TestFirstName"),
@@ -234,7 +215,7 @@ func TestUpdateProfile1(t *testing.T) {
 	profile, err := client.CreateProfile(t.Context(), &profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
-	profileRequest.FirstName = "2TestFirstName"
+	profileRequest.Title = "2TestFirstName"
 	updatedProfile, err := client.UpdateProfile(t.Context(), profile.Id, &profileRequest)
 	Expect(err).ToNot(HaveOccurred())
 
