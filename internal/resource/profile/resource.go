@@ -68,7 +68,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	diags = updateComputedFields(ctx, &plan, profileResponse)
+	diags = updateComputedFields(ctx, profileResponse, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -77,15 +77,15 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func updateComputedFields(ctx context.Context, profileModel *ResourceModel, profile *geni.ProfileResponse) diag.Diagnostics {
+func updateComputedFields(ctx context.Context, profile *geni.ProfileResponse, profileModel *ResourceModel) diag.Diagnostics {
 	var d diag.Diagnostics
 
 	profileModel.ID = types.StringValue(profile.Id)
 
-	profileModel.FirstName = types.StringValue(profile.FirstName)
-	profileModel.LastName = types.StringValue(profile.LastName)
-	profileModel.MiddleName = types.StringValue(profile.MiddleName)
-	profileModel.MaidenName = types.StringValue(profile.MaidenName)
+	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
+	profileModel.LastName = types.StringPointerValue(profile.LastName)
+	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
+	profileModel.MaidenName = types.StringPointerValue(profile.MaidenName)
 
 	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
@@ -183,7 +183,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	diags = updateComputedFields(ctx, &plan, profileResponse)
+	diags = updateComputedFields(ctx, profileResponse, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

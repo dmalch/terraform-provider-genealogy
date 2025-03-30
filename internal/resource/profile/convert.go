@@ -18,25 +18,11 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 		profileModel.ID = types.StringValue(profile.Id)
 	}
 
-	if profile.FirstName != "" {
-		profileModel.FirstName = types.StringValue(profile.FirstName)
-	}
-
-	if profile.LastName != "" {
-		profileModel.LastName = types.StringValue(profile.LastName)
-	}
-
-	if profile.MiddleName != "" {
-		profileModel.MiddleName = types.StringValue(profile.MiddleName)
-	}
-
-	if profile.MaidenName != "" {
-		profileModel.MaidenName = types.StringValue(profile.MaidenName)
-	}
-
-	if profile.Gender != "" {
-		profileModel.Gender = types.StringValue(profile.Gender)
-	}
+	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
+	profileModel.LastName = types.StringPointerValue(profile.LastName)
+	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
+	profileModel.MaidenName = types.StringPointerValue(profile.MaidenName)
+	profileModel.Gender = types.StringPointerValue(profile.Gender)
 
 	names, diags := NameValueFrom(ctx, profile.Names)
 	d.Append(diags...)
@@ -103,20 +89,28 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	burial, diags := event.ElementFrom(ctx, resourceModel.Burial)
 	d.Append(diags...)
 
-	convertedNames, diags := NameElementsFrom(ctx, resourceModel.Names)
-	d.Append(diags...)
+	var convertedNames map[string]geni.NameElement
+	if len(resourceModel.Names.Elements()) > 0 {
+		convertedNames, diags = NameElementsFrom(ctx, resourceModel.Names)
+		d.Append(diags...)
+	} else {
+		convertedNames = map[string]geni.NameElement{
+			"en-US": {
+				FirstName:  resourceModel.FirstName.ValueStringPointer(),
+				LastName:   resourceModel.LastName.ValueStringPointer(),
+				MiddleName: resourceModel.MiddleName.ValueStringPointer(),
+				MaidenName: resourceModel.MaidenName.ValueStringPointer(),
+			},
+		}
+	}
 
 	profileRequest := &geni.ProfileRequest{
-		FirstName:  resourceModel.FirstName.ValueString(),
-		LastName:   resourceModel.LastName.ValueString(),
-		MiddleName: resourceModel.MiddleName.ValueString(),
-		MaidenName: resourceModel.MaidenName.ValueString(),
-		Names:      convertedNames,
-		Gender:     resourceModel.Gender.ValueString(),
-		Birth:      birth,
-		Baptism:    baptism,
-		Death:      death,
-		Burial:     burial,
+		Names:   convertedNames,
+		Gender:  resourceModel.Gender.ValueStringPointer(),
+		Birth:   birth,
+		Baptism: baptism,
+		Death:   death,
+		Burial:  burial,
 	}
 
 	return profileRequest, d

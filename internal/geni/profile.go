@@ -12,20 +12,12 @@ import (
 )
 
 type ProfileRequest struct {
-	// FirstName is the profile's first name
-	FirstName string `json:"first_name,omitempty"`
-	// LastName is the profile's last name
-	LastName string `json:"last_name,omitempty"`
-	// MiddleName is the profile's middle name
-	MiddleName string `json:"middle_name,omitempty"`
-	// MaidenName is the profile's maiden name
-	MaidenName string `json:"maiden_name,omitempty"`
 	// DisplayName is the profile's display name
-	DisplayName string `json:"display_name,omitempty"`
+	DisplayName *string `json:"display_name,omitempty"`
 	// Nicknames is the profile's nicknames
 	Nicknames []string `json:"nicknames,omitempty"`
 	// Gender is the profile's gender
-	Gender string `json:"gender,omitempty"`
+	Gender *string `json:"gender,omitempty"`
 	// Names is the name info
 	Names map[string]NameElement `json:"names,omitempty"`
 	// Birth is the birth event info
@@ -62,19 +54,19 @@ type ProfileResponse struct {
 	// Guid is the profile's globally unique identifier
 	Guid string `json:"guid,omitempty"`
 	// FirstName is the profile's first name
-	FirstName string `json:"first_name,omitempty"`
+	FirstName *string `json:"first_name,omitempty"`
 	// LastName is the profile's last name
-	LastName string `json:"last_name,omitempty"`
+	LastName *string `json:"last_name,omitempty"`
 	// MiddleName is the profile's middle name
-	MiddleName string `json:"middle_name,omitempty"`
+	MiddleName *string `json:"middle_name,omitempty"`
 	// MaidenName is the profile's maiden name
-	MaidenName string `json:"maiden_name,omitempty"`
+	MaidenName *string `json:"maiden_name,omitempty"`
 	// DisplayName is the profile's display name
-	DisplayName string `json:"display_name,omitempty"`
+	DisplayName *string `json:"display_name,omitempty"`
 	// Nicknames is the profile's nicknames
 	Nicknames []string `json:"nicknames,omitempty"`
 	// Gender is the profile's gender
-	Gender string `json:"gender,omitempty"`
+	Gender *string `json:"gender,omitempty"`
 	// Names is the name info
 	Names map[string]NameElement `json:"names,omitempty"`
 	// Birth is the birth event info
@@ -126,13 +118,13 @@ type ProfileResponse struct {
 // NameElement is the response for a name.
 type NameElement struct {
 	// FirstName is the profile's first name
-	FirstName *string `json:"first_name,omitempty"`
+	FirstName *string `json:"first_name"`
 	// LastName is the profile's last name
-	LastName *string `json:"last_name,omitempty"`
+	LastName *string `json:"last_name"`
 	// MiddleName is the profile's middle name
-	MiddleName *string `json:"middle_name,omitempty"`
+	MiddleName *string `json:"middle_name"`
 	// MaidenName is the profile's maiden name
-	MaidenName *string `json:"maiden_name,omitempty"`
+	MaidenName *string `json:"maiden_name"`
 }
 
 // EventElement is the response for an event.
