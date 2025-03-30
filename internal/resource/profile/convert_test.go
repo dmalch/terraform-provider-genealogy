@@ -65,9 +65,9 @@ func TestValueFrom(t *testing.T) {
 
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.Id))
-		Expect(actualValue.FirstName.ValueString()).To(Equal(givenProfile.FirstName))
-		Expect(actualValue.LastName.ValueString()).To(Equal(givenProfile.LastName))
-		Expect(actualValue.Gender.ValueString()).To(Equal(givenProfile.Gender))
+		Expect(actualValue.FirstName.ValueString()).To(Equal(*givenProfile.FirstName))
+		Expect(actualValue.LastName.ValueString()).To(Equal(*givenProfile.LastName))
+		Expect(actualValue.Gender.ValueString()).To(Equal(*givenProfile.Gender))
 		var actualNames = make(map[string]NameModel)
 		Expect(actualValue.Names.ElementsAs(t.Context(), &actualNames, false).HasError()).To(BeFalse())
 		Expect(actualNames).To(HaveKeyWithValue("en", NameModel{
