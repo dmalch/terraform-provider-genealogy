@@ -39,3 +39,40 @@ func ValueFrom(ctx context.Context, union *geni.UnionResponse, unionModel *Resou
 
 	return d
 }
+
+func UpdateComputedFields(ctx context.Context, union *geni.UnionResponse, unionModel *ResourceModel) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	unionModel.ID = types.StringValue(union.Id)
+
+	if union.Marriage != nil {
+		marriage, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Marriage, union.Marriage)
+		d.Append(diags...)
+		unionModel.Marriage = marriage
+	}
+
+	if union.Divorce != nil {
+		divorce, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Divorce, union.Divorce)
+		d.Append(diags...)
+		unionModel.Divorce = divorce
+	}
+
+	return d
+}
+
+func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	marriage, diags := event.ElementFrom(ctx, plan.Marriage)
+	d.Append(diags...)
+
+	divorce, diags := event.ElementFrom(ctx, plan.Divorce)
+	d.Append(diags...)
+
+	unionRequest := geni.UnionRequest{
+		Marriage: marriage,
+		Divorce:  divorce,
+	}
+
+	return &unionRequest, d
+}

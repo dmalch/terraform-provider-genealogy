@@ -11,7 +11,6 @@ import (
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
-	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 type Resource struct {
@@ -169,7 +168,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			return
 		}
 
-		diags = updateComputedFields(ctx, &plan, unionResponse)
+		diags = UpdateComputedFields(ctx, unionResponse, &plan)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -177,43 +176,6 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-}
-
-func updateComputedFields(ctx context.Context, unionModel *ResourceModel, union *geni.UnionResponse) diag.Diagnostics {
-	var d diag.Diagnostics
-
-	unionModel.ID = types.StringValue(union.Id)
-
-	if union.Marriage != nil {
-		marriage, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Marriage, union.Marriage)
-		d.Append(diags...)
-		unionModel.Marriage = marriage
-	}
-
-	if union.Divorce != nil {
-		divorce, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Divorce, union.Divorce)
-		d.Append(diags...)
-		unionModel.Divorce = divorce
-	}
-
-	return d
-}
-
-func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	marriage, diags := event.ElementFrom(ctx, plan.Marriage)
-	d.Append(diags...)
-
-	divorce, diags := event.ElementFrom(ctx, plan.Divorce)
-	d.Append(diags...)
-
-	unionRequest := geni.UnionRequest{
-		Marriage: marriage,
-		Divorce:  divorce,
-	}
-
-	return &unionRequest, d
 }
 
 // Read reads the resource.
