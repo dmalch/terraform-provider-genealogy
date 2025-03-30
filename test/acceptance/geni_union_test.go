@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"math/big"
 	"regexp"
 	"testing"
 
@@ -804,6 +805,79 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 			  street_address1 = "123 Main St"
 			  street_address2 = "Apt 1"
 			  street_address3 = "Floor 2"
+			}
+		  }
+		}
+		`
+}
+
+func TestAccUnion_updateUnionDetails(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithTwoPartnersAndMarriageDetails(testAccessToken, "1980"),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("year"),
+						knownvalue.NumberExact(big.NewFloat(1980))),
+				},
+			},
+			{
+				Config: unionWithTwoPartnersAndMarriageDetails(testAccessToken, "1981"),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
+						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("year"),
+						knownvalue.NumberExact(big.NewFloat(1981))),
+				},
+			},
+		},
+	})
+}
+
+func unionWithTwoPartnersAndMarriageDetails(testAccessToken string, year string) string {
+	return `
+		provider "geni" {
+		  access_token = "` + testAccessToken + `"
+		  use_sandbox_env = true
+		}
+
+		resource "geni_profile" "husband" {
+		  first_name = "John"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_profile" "wife" {
+		  first_name = "Jane"
+		  last_name  = "Doe"
+		}
+		
+		resource "geni_union" "doe_family" {
+		  partners = [
+			geni_profile.husband.id,
+			geni_profile.wife.id,
+		  ]
+
+		  marriage = {
+			date = {
+			  year = ` + year + `
+			  month = 1
+			  day = 1
 			}
 		  }
 		}

@@ -308,6 +308,27 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		}
 	}
 
+	// Check if marriage or divorce were updated
+	if !plan.Marriage.Equal(state.Marriage) || !plan.Divorce.Equal(state.Divorce) {
+		unionRequest, diags := RequestFrom(ctx, plan)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		unionResponse, err := r.client.UpdateUnion(ctx, plan.ID.ValueString(), unionRequest)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating union", err.Error())
+			return
+		}
+
+		diags = UpdateComputedFields(ctx, unionResponse, &plan)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
