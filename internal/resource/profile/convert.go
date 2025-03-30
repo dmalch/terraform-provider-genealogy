@@ -21,7 +21,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
 	profileModel.LastName = types.StringPointerValue(profile.LastName)
 	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
-	profileModel.MaidenName = types.StringPointerValue(profile.MaidenName)
+	profileModel.BirthLastName = types.StringPointerValue(profile.BirthLastName)
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 
 	names, diags := NameValueFrom(ctx, profile.Names)
@@ -64,10 +64,10 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 
 	for locale, name := range profileNames {
 		nameModels[locale] = NameModel{
-			FistName:   types.StringPointerValue(name.FirstName),
-			MiddleName: types.StringPointerValue(name.MiddleName),
-			LastName:   types.StringPointerValue(name.LastName),
-			MaidenName: types.StringPointerValue(name.MaidenName),
+			FistName:      types.StringPointerValue(name.FirstName),
+			MiddleName:    types.StringPointerValue(name.MiddleName),
+			LastName:      types.StringPointerValue(name.LastName),
+			BirthLastName: types.StringPointerValue(name.MaidenName),
 		}
 	}
 
@@ -99,7 +99,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 				FirstName:  resourceModel.FirstName.ValueStringPointer(),
 				LastName:   resourceModel.LastName.ValueStringPointer(),
 				MiddleName: resourceModel.MiddleName.ValueStringPointer(),
-				MaidenName: resourceModel.MaidenName.ValueStringPointer(),
+				MaidenName: resourceModel.BirthLastName.ValueStringPointer(),
 			},
 		}
 	}
@@ -126,7 +126,7 @@ func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.Nam
 			FirstName:  nameModel.FistName.ValueStringPointer(),
 			MiddleName: nameModel.MiddleName.ValueStringPointer(),
 			LastName:   nameModel.LastName.ValueStringPointer(),
-			MaidenName: nameModel.MaidenName.ValueStringPointer(),
+			MaidenName: nameModel.BirthLastName.ValueStringPointer(),
 		}
 	}
 
@@ -152,7 +152,7 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
 	profileModel.LastName = types.StringPointerValue(profile.LastName)
 	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
-	profileModel.MaidenName = types.StringPointerValue(profile.MaidenName)
+	profileModel.BirthLastName = types.StringPointerValue(profile.BirthLastName)
 
 	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)

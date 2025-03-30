@@ -59,14 +59,14 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				},
 				Description: "The middle name of the person.",
 			},
-			"maiden_name": schema.StringAttribute{
+			"birth_last_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
 					// This validator ensures that the maiden_name field is not set if the names field is set.
 					stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("names").AtAnyMapKey()),
 				},
-				Description: "The maiden name of the person.",
+				Description: "The birth last name of the person.",
 			},
 			"gender": schema.StringAttribute{
 				Optional:    true,
@@ -89,9 +89,9 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 							Optional:    true,
 							Description: "The last name of the person.",
 						},
-						"maiden_name": schema.StringAttribute{
+						"birth_last_name": schema.StringAttribute{
 							Optional:    true,
-							Description: "The maiden name of the person.",
+							Description: "The birth last name of the person.",
 						},
 					},
 				},
