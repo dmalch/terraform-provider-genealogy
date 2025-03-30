@@ -134,16 +134,16 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	plan := state
-	diags := ValueFrom(ctx, profileResponse, &plan)
+	newState := state
+	diags := ValueFrom(ctx, profileResponse, &newState)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If names in the plan are empty, and the names in the state contain one element
-	// for en-US, then use the state names.
-	if len(plan.Names.Elements()) == 0 {
+	// If names in the new state are empty, and the names in the state contain one
+	// element for en-US, then use the state names.
+	if len(newState.Names.Elements()) == 0 {
 		// Get names from the current state
 		names, diags := NameModelsFrom(ctx, state.Names)
 		resp.Diagnostics.Append(diags...)
@@ -152,11 +152,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		}
 
 		if _, ok := names["en-US"]; ok && len(names) == 1 {
-			plan.Names = state.Names
+			newState.Names = state.Names
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
