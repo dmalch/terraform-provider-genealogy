@@ -13,76 +13,98 @@ import (
 func ElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElement, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	if !eventObject.IsNull() && !eventObject.IsUnknown() {
-		var eventModel Model
+	eventModel, diags := ObjectValueFrom(ctx, eventObject)
+	d.Append(diags...)
 
-		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
-		d.Append(diags...)
-
-		date, diags := DateElementFrom(ctx, eventModel.Date)
-		d.Append(diags...)
-
-		location, diags := LocationElementFrom(ctx, eventModel.Location)
-		d.Append(diags...)
-
-		return &geni.EventElement{
-			Name:        eventModel.Name.ValueString(),
-			Description: eventModel.Description.ValueString(),
-			Date:        date,
-			Location:    location,
-		}, d
+	if eventModel == nil {
+		return nil, d
 	}
 
-	return nil, d
+	dateModel, diags := DateObjectValueFrom(ctx, eventModel.Date)
+	d.Append(diags...)
+
+	locationModel, diags := LocationObjectValueFrom(ctx, eventModel.Location)
+	d.Append(diags...)
+
+	return &geni.EventElement{
+		Name:        eventModel.Name.ValueString(),
+		Description: eventModel.Description.ValueString(),
+		Date:        DateElementFrom(dateModel),
+		Location:    LocationElementFrom(locationModel),
+	}, d
 }
 
-func LocationElementFrom(ctx context.Context, locationObject types.Object) (*geni.LocationElement, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	if !locationObject.IsNull() && !locationObject.IsUnknown() {
-		var locationModel LocationModel
-
-		d.Append(locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})...)
-
-		return &geni.LocationElement{
-			City:           locationModel.City.ValueStringPointer(),
-			Country:        locationModel.Country.ValueStringPointer(),
-			County:         locationModel.County.ValueStringPointer(),
-			Latitude:       locationModel.Latitude.ValueBigFloat(),
-			Longitude:      locationModel.Longitude.ValueBigFloat(),
-			PlaceName:      locationModel.PlaceName.ValueStringPointer(),
-			State:          locationModel.State.ValueStringPointer(),
-			StreetAddress1: locationModel.StreetAddress1.ValueStringPointer(),
-			StreetAddress2: locationModel.StreetAddress2.ValueStringPointer(),
-			StreetAddress3: locationModel.StreetAddress3.ValueStringPointer(),
-		}, d
+func ObjectValueFrom(ctx context.Context, eventObject types.Object) (*Model, diag.Diagnostics) {
+	if eventObject.IsNull() || eventObject.IsUnknown() {
+		return nil, diag.Diagnostics{}
 	}
 
-	return nil, d
+	var eventModel Model
+
+	diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
+
+	return &eventModel, diags
 }
 
-func DateElementFrom(ctx context.Context, dateObject types.Object) (*geni.DateElement, diag.Diagnostics) {
-	var d diag.Diagnostics
-
-	if !dateObject.IsNull() && !dateObject.IsUnknown() {
-		var dateModel DateModel
-
-		d.Append(dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})...)
-
-		return &geni.DateElement{
-			Range:    dateModel.Range.ValueStringPointer(),
-			Circa:    dateModel.Circa.ValueBoolPointer(),
-			Day:      dateModel.Day.ValueInt32Pointer(),
-			Month:    dateModel.Month.ValueInt32Pointer(),
-			Year:     dateModel.Year.ValueInt32Pointer(),
-			EndCirca: dateModel.EndCirca.ValueBoolPointer(),
-			EndDay:   dateModel.EndDay.ValueInt32Pointer(),
-			EndMonth: dateModel.EndMonth.ValueInt32Pointer(),
-			EndYear:  dateModel.EndYear.ValueInt32Pointer(),
-		}, d
+func LocationElementFrom(locationModel *LocationModel) *geni.LocationElement {
+	if locationModel == nil {
+		return nil
 	}
 
-	return nil, d
+	return &geni.LocationElement{
+		City:           locationModel.City.ValueStringPointer(),
+		Country:        locationModel.Country.ValueStringPointer(),
+		County:         locationModel.County.ValueStringPointer(),
+		Latitude:       locationModel.Latitude.ValueBigFloat(),
+		Longitude:      locationModel.Longitude.ValueBigFloat(),
+		PlaceName:      locationModel.PlaceName.ValueStringPointer(),
+		State:          locationModel.State.ValueStringPointer(),
+		StreetAddress1: locationModel.StreetAddress1.ValueStringPointer(),
+		StreetAddress2: locationModel.StreetAddress2.ValueStringPointer(),
+		StreetAddress3: locationModel.StreetAddress3.ValueStringPointer(),
+	}
+}
+
+func LocationObjectValueFrom(ctx context.Context, locationObject types.Object) (*LocationModel, diag.Diagnostics) {
+	if locationObject.IsNull() || locationObject.IsUnknown() {
+		return nil, diag.Diagnostics{}
+	}
+
+	var locationModel LocationModel
+
+	diags := locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})
+
+	return &locationModel, diags
+}
+
+func DateElementFrom(model *DateModel) *geni.DateElement {
+	if model == nil {
+		return nil
+	}
+
+	return &geni.DateElement{
+		Range:    model.Range.ValueStringPointer(),
+		Circa:    model.Circa.ValueBoolPointer(),
+		Day:      model.Day.ValueInt32Pointer(),
+		Month:    model.Month.ValueInt32Pointer(),
+		Year:     model.Year.ValueInt32Pointer(),
+		EndCirca: model.EndCirca.ValueBoolPointer(),
+		EndDay:   model.EndDay.ValueInt32Pointer(),
+		EndMonth: model.EndMonth.ValueInt32Pointer(),
+		EndYear:  model.EndYear.ValueInt32Pointer(),
+	}
+}
+
+func DateObjectValueFrom(ctx context.Context, dateObject types.Object) (*DateModel, diag.Diagnostics) {
+	if dateObject.IsNull() || dateObject.IsUnknown() {
+		return nil, diag.Diagnostics{}
+	}
+
+	var dateModel DateModel
+
+	diags := dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})
+
+	return &dateModel, diags
 }
 
 func ValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
