@@ -60,8 +60,10 @@ func (c *Client) GetUnion(ctx context.Context, unionId string) (*UnionResponse, 
 			ids = append(ids, unionId)
 
 			urlMap.Range(func(key, value interface{}) bool {
-				if value == nil {
-					ids = append(ids, key.(string))
+				if _, ok := value.(context.CancelFunc); ok {
+					if keyString, ok := key.(string); ok {
+						ids = append(ids, keyString)
+					}
 				}
 				return true
 			})

@@ -259,8 +259,10 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 			ids = append(ids, profileId)
 
 			urlMap.Range(func(key, value interface{}) bool {
-				if value == nil {
-					ids = append(ids, key.(string))
+				if _, ok := value.(context.CancelFunc); ok {
+					if keyString, ok := key.(string); ok {
+						ids = append(ids, keyString)
+					}
 				}
 				return true
 			})

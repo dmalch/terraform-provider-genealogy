@@ -117,8 +117,11 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			}
 
 			if err := c.limiter.Wait(limiterCtx); err != nil {
-				tflog.Error(ctx, "Error waiting for rate limiter", map[string]interface{}{"error": err})
-				return nil, err
+				// If the context is canceled, we should not return an error
+				if !errors.Is(err, context.Canceled) {
+					tflog.Error(ctx, "Error waiting for rate limiter", map[string]interface{}{"error": err})
+					return nil, err
+				}
 			}
 
 			// Check if the response is already cached
