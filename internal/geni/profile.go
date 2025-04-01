@@ -301,7 +301,13 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 					continue
 				}
 
-				urlMap.CompareAndSwap(profile.Id, nil, jsonBody)
+				previous, loaded := urlMap.Swap(profile.Id, jsonBody)
+				if loaded {
+					// If the previous value is context cancel function, cancel it
+					if cancelFunc, ok := previous.(context.CancelFunc); ok {
+						cancelFunc()
+					}
+				}
 			}
 
 			return requestedProfileRes, nil

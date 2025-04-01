@@ -102,7 +102,13 @@ func (c *Client) GetUnion(ctx context.Context, unionId string) (*UnionResponse, 
 					continue
 				}
 
-				urlMap.CompareAndSwap(union.Id, nil, jsonBody)
+				previous, loaded := urlMap.Swap(union.Id, jsonBody)
+				if loaded {
+					// If the previous value is context cancel function, cancel it
+					if cancelFunc, ok := previous.(context.CancelFunc); ok {
+						cancelFunc()
+					}
+				}
 			}
 
 			return requestedUnionRes, nil

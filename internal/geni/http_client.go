@@ -108,12 +108,15 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 	// Retry logic using retry-go
 	return retry.DoWithData(
 		func() ([]byte, error) {
+			limiterCtx, limiterCtxCancelFunc := context.WithCancel(ctx)
+			defer limiterCtxCancelFunc()
+
 			if options.getRequestKey != nil {
-				// Store the URL in the map
-				c.urlMap.Store(options.getRequestKey(), nil)
+				// Store the key in the map
+				c.urlMap.Store(options.getRequestKey(), limiterCtxCancelFunc)
 			}
 
-			if err := c.limiter.Wait(ctx); err != nil {
+			if err := c.limiter.Wait(limiterCtx); err != nil {
 				tflog.Error(ctx, "Error waiting for rate limiter", map[string]interface{}{"error": err})
 				return nil, err
 			}
@@ -121,8 +124,10 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			// Check if the response is already cached
 			if options.getRequestKey != nil {
 				if cachedRes, ok := c.urlMap.LoadAndDelete(options.getRequestKey()); ok && cachedRes != nil {
-					tflog.Debug(ctx, "Using cached response")
-					return cachedRes.([]byte), nil
+					if res, ok := cachedRes.([]byte); ok {
+						tflog.Debug(ctx, "Using cached response")
+						return res, nil
+					}
 				}
 
 				options.prepareBulkRequestFrom(req, c.urlMap)
