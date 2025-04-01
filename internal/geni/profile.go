@@ -130,6 +130,8 @@ type NameElement struct {
 	MiddleName *string `json:"middle_name"`
 	// MaidenName is the profile's maiden name
 	MaidenName *string `json:"maiden_name"`
+	// DisplayName is the profile's display name
+	DisplayName *string `json:"display_name"`
 }
 
 // EventElement is the response for an event.

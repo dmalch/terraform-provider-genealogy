@@ -11,6 +11,7 @@ type ResourceModel struct {
 	LastName      types.String `tfsdk:"last_name"`
 	MiddleName    types.String `tfsdk:"middle_name"`
 	BirthLastName types.String `tfsdk:"birth_last_name"`
+	DisplayName   types.String `tfsdk:"display_name"`
 	Names         types.Map    `tfsdk:"names"`
 	Gender        types.String `tfsdk:"gender"`
 	Birth         types.Object `tfsdk:"birth"`
@@ -26,6 +27,7 @@ type NameModel struct {
 	MiddleName    types.String `tfsdk:"middle_name"`
 	LastName      types.String `tfsdk:"last_name"`
 	BirthLastName types.String `tfsdk:"birth_last_name"`
+	DisplayName   types.String `tfsdk:"display_name"`
 }
 
 func (m NameModel) AttributeTypes() map[string]attr.Type {
@@ -38,5 +40,6 @@ func NameAttributeTypes() map[string]attr.Type {
 		"middle_name":     types.StringType,
 		"last_name":       types.StringType,
 		"birth_last_name": types.StringType,
+		"display_name":    types.StringType,
 	}
 }

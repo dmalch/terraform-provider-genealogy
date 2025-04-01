@@ -22,6 +22,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	profileModel.LastName = types.StringPointerValue(profile.LastName)
 	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
 	profileModel.BirthLastName = types.StringPointerValue(profile.BirthLastName)
+	profileModel.DisplayName = types.StringPointerValue(profile.DisplayName)
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 
 	names, diags := NameValueFrom(ctx, profile.Names)
@@ -68,6 +69,7 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 			MiddleName:    types.StringPointerValue(name.MiddleName),
 			LastName:      types.StringPointerValue(name.LastName),
 			BirthLastName: types.StringPointerValue(name.MaidenName),
+			DisplayName:   types.StringPointerValue(name.DisplayName),
 		}
 	}
 
@@ -96,10 +98,11 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	} else {
 		convertedNames = map[string]geni.NameElement{
 			"en-US": {
-				FirstName:  resourceModel.FirstName.ValueStringPointer(),
-				LastName:   resourceModel.LastName.ValueStringPointer(),
-				MiddleName: resourceModel.MiddleName.ValueStringPointer(),
-				MaidenName: resourceModel.BirthLastName.ValueStringPointer(),
+				FirstName:   resourceModel.FirstName.ValueStringPointer(),
+				LastName:    resourceModel.LastName.ValueStringPointer(),
+				MiddleName:  resourceModel.MiddleName.ValueStringPointer(),
+				MaidenName:  resourceModel.BirthLastName.ValueStringPointer(),
+				DisplayName: resourceModel.DisplayName.ValueStringPointer(),
 			},
 		}
 	}
@@ -153,6 +156,7 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	profileModel.LastName = types.StringPointerValue(profile.LastName)
 	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
 	profileModel.BirthLastName = types.StringPointerValue(profile.BirthLastName)
+	profileModel.DisplayName = types.StringPointerValue(profile.DisplayName)
 
 	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)

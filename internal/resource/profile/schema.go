@@ -68,6 +68,16 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				},
 				Description: "The birth last name of the person.",
 			},
+			"display_name": schema.StringAttribute{
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Validators: []validator.String{
+					// This validator ensures that the display_name field is not set if the names field is set.
+					stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("names").AtAnyMapKey()),
+				},
+				Description: "The display name of the person.",
+			},
 			"gender": schema.StringAttribute{
 				Optional:    true,
 				Validators:  []validator.String{stringvalidator.OneOf("female", "male")},
@@ -92,6 +102,10 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						"birth_last_name": schema.StringAttribute{
 							Optional:    true,
 							Description: "The birth last name of the person.",
+						},
+						"display_name": schema.StringAttribute{
+							Optional:    true,
+							Description: "The display name of the person.",
 						},
 					},
 				},

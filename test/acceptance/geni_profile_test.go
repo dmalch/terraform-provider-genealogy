@@ -75,6 +75,9 @@ func profileWithDetails(testAccessToken string) string {
 		resource "geni_profile" "test" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  middle_name = "Johnson"
+		  birth_last_name = "Smith"
+		  display_name = "John Doe"
 		  gender     = "male"
 		  birth      = {
 			name = "Birth of John Doe"
@@ -365,6 +368,8 @@ func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) stri
 				first_name = "Иван"
 				middle_name = "Иванович"
 				last_name = "Иванов"
+				birth_last_name = "Петров"
+				display_name = "Иван Иванович Иванов"
 			}
 		  }
 		}
