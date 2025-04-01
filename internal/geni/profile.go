@@ -199,10 +199,6 @@ func (c *Client) CreateProfile(ctx context.Context, request *ProfileRequest) (*P
 		return nil, err
 	}
 
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
-		return nil, err
-	}
-
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -241,10 +237,6 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
-		return nil, err
-	}
-
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
 		return nil, err
 	}
 
@@ -291,10 +283,6 @@ func (c *Client) UpdateProfile(ctx context.Context, profileId string, request *P
 		return nil, err
 	}
 
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
-		return nil, err
-	}
-
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -325,10 +313,6 @@ func (c *Client) DeleteProfile(ctx context.Context, profileId string) error {
 		return err
 	}
 
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
-		return err
-	}
-
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return err
@@ -349,10 +333,6 @@ func (c *Client) AddPartner(ctx context.Context, profileId string) (*ProfileResp
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
-		return nil, err
-	}
-
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
 		return nil, err
 	}
 
@@ -381,10 +361,6 @@ func (c *Client) AddChild(ctx context.Context, profileId string) (*ProfileRespon
 		return nil, err
 	}
 
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
-		return nil, err
-	}
-
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -410,10 +386,6 @@ func (c *Client) AddSibling(ctx context.Context, profileId string) (*ProfileResp
 		return nil, err
 	}
 
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
-		return nil, err
-	}
-
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -436,10 +408,6 @@ func (c *Client) MergeProfiles(ctx context.Context, profile1Id, profile2Id strin
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
-		return err
-	}
-
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
 		return err
 	}
 

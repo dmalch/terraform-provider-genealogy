@@ -61,6 +61,10 @@ func apiUrl(useSandboxEnv bool) string {
 func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, error) {
 	client := &http.Client{}
 
+	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
+		return nil, err
+	}
+
 	// Retry logic using retry-go
 	return retry.DoWithData(
 		func() ([]byte, error) {

@@ -43,10 +43,6 @@ func (c *Client) GetUnion(ctx context.Context, unionId string) (*UnionResponse, 
 		return nil, err
 	}
 
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
-		return nil, err
-	}
-
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -77,10 +73,6 @@ func (c *Client) UpdateUnion(ctx context.Context, unionId string, request *Union
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
-		return nil, err
-	}
-
-	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
 		return nil, err
 	}
 
