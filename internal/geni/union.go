@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type UnionRequest struct {
@@ -14,6 +15,10 @@ type UnionRequest struct {
 	Marriage *EventElement `json:"marriage,omitempty"`
 	// Divorce date and location
 	Divorce *EventElement `json:"divorce,omitempty"`
+}
+
+type UnionBulkResponse struct {
+	Results []UnionResponse `json:"results,omitempty"`
 }
 
 type UnionResponse struct {
@@ -43,7 +48,65 @@ func (c *Client) GetUnion(ctx context.Context, unionId string) (*UnionResponse, 
 		return nil, err
 	}
 
-	body, err := c.doRequest(ctx, req)
+	body, err := c.doRequest(ctx, req,
+		WithRequestKey(func() string {
+			return unionId
+		}),
+		WithPrepareBulkRequest(func(req *http.Request, urlMap *sync.Map) {
+			// Add a new ids parameter containing IDs of all unions to be fetched in
+			// addition to the current one. First, we need to get the IDs from the map.
+			ids := make([]string, 0)
+
+			ids = append(ids, unionId)
+
+			urlMap.Range(func(key, value interface{}) bool {
+				if value == nil {
+					ids = append(ids, key.(string))
+				}
+				return true
+			})
+
+			if len(ids) > 1 {
+				query := req.URL.Query()
+				query.Add("ids", strings.Join(ids, ","))
+				req.URL.RawQuery = query.Encode()
+			}
+		}),
+		WithParseBulkResponse(func(req *http.Request, body []byte, urlMap *sync.Map) ([]byte, error) {
+			// If only one union is requested, we can skip the bulk response parsing
+			if !req.URL.Query().Has("ids") {
+				return body, nil
+			}
+
+			// Parse the response to get the union ID
+			var response UnionBulkResponse
+			err := json.Unmarshal(body, &response)
+			if err != nil {
+				slog.Error("Error unmarshaling bulk response", "error", err)
+				return nil, err
+			}
+
+			var requestedUnionRes []byte
+
+			// Store the response in the map using the union ID as the key
+			for _, union := range response.Results {
+
+				jsonBody, err := json.Marshal(&union)
+				if err != nil {
+					slog.Error("Error marshaling request", "error", err)
+					return nil, err
+				}
+
+				if union.Id == unionId {
+					requestedUnionRes = jsonBody
+					continue
+				}
+
+				urlMap.CompareAndSwap(union.Id, nil, jsonBody)
+			}
+
+			return requestedUnionRes, nil
+		}))
 	if err != nil {
 		return nil, err
 	}
