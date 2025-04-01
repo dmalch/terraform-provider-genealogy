@@ -126,10 +126,11 @@ func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.Nam
 
 	for locale, nameModel := range nameModels {
 		profileNames[locale] = geni.NameElement{
-			FirstName:  nameModel.FistName.ValueStringPointer(),
-			MiddleName: nameModel.MiddleName.ValueStringPointer(),
-			LastName:   nameModel.LastName.ValueStringPointer(),
-			MaidenName: nameModel.BirthLastName.ValueStringPointer(),
+			FirstName:   nameModel.FistName.ValueStringPointer(),
+			MiddleName:  nameModel.MiddleName.ValueStringPointer(),
+			LastName:    nameModel.LastName.ValueStringPointer(),
+			MaidenName:  nameModel.BirthLastName.ValueStringPointer(),
+			DisplayName: nameModel.DisplayName.ValueStringPointer(),
 		}
 	}
 
