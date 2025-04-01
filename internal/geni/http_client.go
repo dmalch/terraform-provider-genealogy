@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/avast/retry-go/v4"
@@ -38,6 +39,7 @@ type Client struct {
 	tokenSource   oauth2.TokenSource
 	client        *http.Client
 	limiter       *rate.Limiter
+	urlMap        *sync.Map
 }
 
 func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
@@ -46,6 +48,7 @@ func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
 		tokenSource:   tokenSource,
 		client:        &http.Client{},
 		limiter:       rate.NewLimiter(rate.Every(1*time.Second), 1),
+		urlMap:        &sync.Map{},
 	}
 }
 
@@ -63,7 +66,40 @@ func apiUrl(useSandboxEnv bool) string {
 	return geniProdApiUrl
 }
 
-func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, error) {
+type opt struct {
+	getRequestKey          func() string
+	prepareBulkRequestFrom func(*http.Request, *sync.Map)
+	parseBulkResponse      func(*http.Request, []byte, *sync.Map) ([]byte, error)
+}
+
+func WithRequestKey(fn func() string) func(*opt) {
+	return func(o *opt) {
+		o.getRequestKey = fn
+	}
+}
+
+func WithPrepareBulkRequest(fn func(*http.Request, *sync.Map)) func(*opt) {
+	return func(o *opt) {
+		o.prepareBulkRequestFrom = fn
+	}
+}
+
+func WithParseBulkResponse(fn func(*http.Request, []byte, *sync.Map) ([]byte, error)) func(*opt) {
+	return func(o *opt) {
+		o.parseBulkResponse = fn
+	}
+}
+
+func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(*opt)) ([]byte, error) {
+	// Initialize the opt struct with default no-op functions
+	options := opt{
+		prepareBulkRequestFrom: func(*http.Request, *sync.Map) {},
+	}
+
+	// Apply the provided opts to the options struct
+	for _, o := range opts {
+		o(&options)
+	}
 
 	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
 		return nil, err
@@ -72,9 +108,24 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 	// Retry logic using retry-go
 	return retry.DoWithData(
 		func() ([]byte, error) {
+			if options.getRequestKey != nil {
+				// Store the URL in the map
+				c.urlMap.Store(options.getRequestKey(), nil)
+			}
+
 			if err := c.limiter.Wait(ctx); err != nil {
 				tflog.Error(ctx, "Error waiting for rate limiter", map[string]interface{}{"error": err})
 				return nil, err
+			}
+
+			// Check if the response is already cached
+			if options.getRequestKey != nil {
+				if cachedRes, ok := c.urlMap.LoadAndDelete(options.getRequestKey()); ok && cachedRes != nil {
+					tflog.Debug(ctx, "Using cached response")
+					return cachedRes.([]byte), nil
+				}
+
+				options.prepareBulkRequestFrom(req, c.urlMap)
 			}
 
 			tflog.Debug(ctx, "Sending request", map[string]interface{}{"method": req.Method, "url": req.URL.String()})
@@ -133,6 +184,11 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 
 			tflog.Debug(ctx, "Received response", map[string]interface{}{"status": res.StatusCode})
 			tflog.Trace(ctx, "Received response", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
+
+			if options.parseBulkResponse != nil {
+				return options.parseBulkResponse(req, body, c.urlMap)
+			}
+
 			return body, nil
 		},
 		retry.RetryIf(func(err error) bool {

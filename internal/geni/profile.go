@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type ProfileRequest struct {
@@ -46,6 +47,10 @@ type ProfileRequest struct {
 	Locked bool `json:"locked,omitempty"`
 	// MergeNote is the note explaining the profile's merge status
 	MergeNote []string `json:"merge_note,omitempty"`
+}
+
+type ProfileBulkResponse struct {
+	Results []ProfileResponse `json:"results,omitempty"`
 }
 
 type ProfileResponse struct {
@@ -240,7 +245,65 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 		return nil, err
 	}
 
-	body, err := c.doRequest(ctx, req)
+	body, err := c.doRequest(ctx, req,
+		WithRequestKey(func() string {
+			return profileId
+		}),
+		WithPrepareBulkRequest(func(req *http.Request, urlMap *sync.Map) {
+			// Add a new ids parameter containing IDs of all profiles to be fetched in
+			// addition to the current one. First, we need to get the IDs from the map.
+			ids := make([]string, 0)
+
+			ids = append(ids, profileId)
+
+			urlMap.Range(func(key, value interface{}) bool {
+				if value == nil {
+					ids = append(ids, key.(string))
+				}
+				return true
+			})
+
+			if len(ids) > 1 {
+				query := req.URL.Query()
+				query.Add("ids", strings.Join(ids, ","))
+				req.URL.RawQuery = query.Encode()
+			}
+		}),
+		WithParseBulkResponse(func(req *http.Request, body []byte, urlMap *sync.Map) ([]byte, error) {
+			// If only one profile is requested, we can skip the bulk response parsing
+			if !req.URL.Query().Has("ids") {
+				return body, nil
+			}
+
+			// Parse the response to get the profile ID
+			var response ProfileBulkResponse
+			err := json.Unmarshal(body, &response)
+			if err != nil {
+				slog.Error("Error unmarshaling bulk response", "error", err)
+				return nil, err
+			}
+
+			var requestedProfileRes []byte
+
+			// Store the response in the map using the profile ID as the key
+			for _, profile := range response.Results {
+
+				jsonBody, err := json.Marshal(&profile)
+				if err != nil {
+					slog.Error("Error marshaling request", "error", err)
+					return nil, err
+				}
+
+				if profile.Id == profileId {
+					requestedProfileRes = jsonBody
+					continue
+				}
+
+				urlMap.CompareAndSwap(profile.Id, nil, jsonBody)
+			}
+
+			return requestedProfileRes, nil
+		}))
 	if err != nil {
 		return nil, err
 	}
