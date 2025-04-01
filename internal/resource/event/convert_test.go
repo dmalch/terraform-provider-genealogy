@@ -71,4 +71,33 @@ func TestElementFrom(t *testing.T) {
 		Expect(element.Location.StreetAddress2).To(HaveValue(Equal("Street Address 2")))
 		Expect(element.Location.StreetAddress3).To(HaveValue(Equal("Street Address 3")))
 	})
+
+	t.Run("when date and location are nulls", func(t *testing.T) {
+		RegisterTestingT(t)
+		eventObject := types.ObjectValueMust(Model{}.AttributeTypes(),
+			map[string]attr.Value{
+				"name":        types.StringValue("Event Name"),
+				"description": types.StringValue("Event Description"),
+				"date":        types.ObjectNull(DateModel{}.AttributeTypes()),
+				"location":    types.ObjectNull(LocationModel{}.AttributeTypes()),
+			})
+
+		element, diags := ElementFrom(t.Context(), eventObject)
+
+		Expect(diags).To(BeEmpty())
+		Expect(element.Name).To(Equal("Event Name"))
+		Expect(element.Description).To(Equal("Event Description"))
+		Expect(element.Date).To(BeNil())
+		Expect(element.Location).To(BeNil())
+	})
+
+	t.Run("when event is null", func(t *testing.T) {
+		RegisterTestingT(t)
+		eventObject := types.ObjectNull(Model{}.AttributeTypes())
+
+		element, diags := ElementFrom(t.Context(), eventObject)
+
+		Expect(diags).To(BeEmpty())
+		Expect(element).To(BeNil())
+	})
 }
