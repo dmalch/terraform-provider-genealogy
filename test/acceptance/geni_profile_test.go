@@ -27,7 +27,7 @@ func TestAccProfile_createProfile(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.Null()),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("maiden_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.Null()),
 				},
 			},
 		},

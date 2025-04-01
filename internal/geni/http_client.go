@@ -14,6 +14,7 @@ import (
 	"github.com/avast/retry-go/v4"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"golang.org/x/oauth2"
+	"golang.org/x/time/rate"
 )
 
 type errCode429WithRetry struct {
@@ -35,12 +36,16 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 type Client struct {
 	useSandboxEnv bool
 	tokenSource   oauth2.TokenSource
+	client        *http.Client
+	limiter       *rate.Limiter
 }
 
 func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
 	return &Client{
 		useSandboxEnv: useSandboxEnv,
 		tokenSource:   tokenSource,
+		client:        &http.Client{},
+		limiter:       rate.NewLimiter(rate.Every(1*time.Second), 1),
 	}
 }
 
@@ -59,7 +64,6 @@ func apiUrl(useSandboxEnv bool) string {
 }
 
 func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, error) {
-	client := &http.Client{}
 
 	if err := c.addStandardHeadersAndQueryParams(req); err != nil {
 		return nil, err
@@ -68,8 +72,13 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 	// Retry logic using retry-go
 	return retry.DoWithData(
 		func() ([]byte, error) {
+			if err := c.limiter.Wait(ctx); err != nil {
+				tflog.Error(ctx, "Error waiting for rate limiter", map[string]interface{}{"error": err})
+				return nil, err
+			}
+
 			tflog.Debug(ctx, "Sending request", map[string]interface{}{"method": req.Method, "url": req.URL.String()})
-			res, err := client.Do(req)
+			res, err := c.client.Do(req)
 			if err != nil {
 				slog.Error("Error sending request", "error", err)
 				return nil, err
@@ -84,14 +93,24 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request) ([]byte, erro
 				return nil, err
 			}
 
+			apiRateLimit := res.Header.Get("X-API-Rate-Limit")
+			if apiRateLimitNumber, err := strconv.Atoi(apiRateLimit); err == nil {
+				if c.limiter.Burst() != apiRateLimitNumber {
+					c.limiter.SetBurst(apiRateLimitNumber)
+				}
+			}
+
+			apiRateWindow := res.Header.Get("X-API-Rate-Window")
+			secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
+			if err == nil {
+				newLimit := rate.Every(time.Duration(secondsUntilRetry) * time.Second)
+				if c.limiter.Limit() != newLimit {
+					c.limiter.SetLimit(newLimit)
+				}
+			}
+
 			if res.StatusCode != http.StatusOK {
 				if res.StatusCode == http.StatusTooManyRequests {
-					apiRateWindow := res.Header.Get("X-API-Rate-Window")
-					secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
-					if err != nil {
-						return nil, fmt.Errorf("invalid value for X-API-Rate-Window: %d", secondsUntilRetry)
-					}
-
 					tflog.Warn(ctx, "Received 429 Too Many Requests, retrying...", map[string]interface{}{"X-API-Rate-Window": secondsUntilRetry})
 					return nil, newErrWithRetry(res.StatusCode, secondsUntilRetry)
 				}
