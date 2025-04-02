@@ -461,7 +461,7 @@ func profileWithEmptyMiddleName(accessToken string) string {
 		`
 }
 
-func TestAccProfile_createProfileWithMiddleNameAndRemoveIt(t *testing.T) {
+func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -478,9 +478,11 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt(t *testing.T) {
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
-						first_name = "John"
-						middle_name = "Johnson"
-						last_name = "Doe"
+					  first_name = "John"
+					  middle_name = "Johnson"
+					  last_name = "Doe"
+					  birth_last_name = "Smith"
+					  display_name = "John Doe"
 					}
 				  }
 				}
@@ -489,9 +491,13 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.StringExact("Johnson")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.StringExact("John Doe")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.StringExact("Johnson")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("birth_last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("display_name"), knownvalue.StringExact("John Doe")),
 				},
 			},
 			{
@@ -504,8 +510,8 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt(t *testing.T) {
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
-						first_name = "John"
-						last_name = "Doe"
+					  first_name = "John"
+					  last_name = "Doe"
 					}
 				  }
 				}
@@ -514,9 +520,13 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("birth_last_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("display_name"), knownvalue.Null()),
 				},
 			},
 		},
@@ -541,12 +551,16 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 				  first_name = "John"
 				  middle_name = "Johnson"
 				  last_name = "Doe"
+				  birth_last_name = "Smith"
+				  display_name = "John Doe"
 				}
 				`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.StringExact("Johnson")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.StringExact("John Doe")),
 				},
 			},
 			{
@@ -558,7 +572,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 		
 				resource "geni_profile" "test" {
 				  first_name = "John"
-				  middle_name = null
 				  last_name = "Doee"
 				}
 				`,
@@ -566,6 +579,8 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doee")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.Null()),
 				},
 			},
 		},
