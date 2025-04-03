@@ -136,7 +136,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				DescriptionComputed: true,
 				Description:         "Burial event information.",
 			}),
-			"about_me": schema.StringAttribute{
+			"about": schema.StringAttribute{
 				Optional:    true,
 				Description: "Profile's about me section.",
 			},

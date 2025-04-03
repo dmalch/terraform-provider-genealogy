@@ -59,6 +59,13 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 				Config: profileWithDetails(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.StringExact("Johnson")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.StringExact("John Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.StringExact("This is a test profile")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("name"), knownvalue.StringExact("Birth of John Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1980)),
 				},
 			},
 		},
@@ -78,6 +85,7 @@ func profileWithDetails(testAccessToken string) string {
 		  middle_name = "Johnson"
 		  birth_last_name = "Smith"
 		  display_name = "John Doe"
+		  about = "This is a test profile"
 		  gender     = "male"
 		  birth      = {
 			name = "Birth of John Doe"

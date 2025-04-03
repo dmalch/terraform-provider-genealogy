@@ -206,6 +206,8 @@ func (c *Client) CreateProfile(ctx context.Context, request *ProfileRequest) (*P
 		return nil, err
 	}
 
+	c.addProfileFieldsQueryParams(req)
+
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -246,6 +248,8 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
+
+	c.addProfileFieldsQueryParams(req)
 
 	body, err := c.doRequest(ctx, req,
 		WithRequestKey(func() string {
@@ -330,6 +334,12 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 	return &profile, nil
 }
 
+func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
+	query := req.URL.Query()
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,about_me,unions,updated_at,created_at")
+	req.URL.RawQuery = query.Encode()
+}
+
 func (c *Client) fixResponse(profile *ProfileResponse) {
 	//The only_ids flag does not work for the profile endpoint, so we need to remove
 	//the url from the Unions field.
@@ -355,6 +365,8 @@ func (c *Client) UpdateProfile(ctx context.Context, profileId string, request *P
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
+
+	c.addProfileFieldsQueryParams(req)
 
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
@@ -409,6 +421,8 @@ func (c *Client) AddPartner(ctx context.Context, profileId string) (*ProfileResp
 		return nil, err
 	}
 
+	c.addProfileFieldsQueryParams(req)
+
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -434,6 +448,8 @@ func (c *Client) AddChild(ctx context.Context, profileId string) (*ProfileRespon
 		return nil, err
 	}
 
+	c.addProfileFieldsQueryParams(req)
+
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
@@ -458,6 +474,8 @@ func (c *Client) AddSibling(ctx context.Context, profileId string) (*ProfileResp
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
+
+	c.addProfileFieldsQueryParams(req)
 
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
