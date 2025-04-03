@@ -17,10 +17,14 @@ func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined object is passed", func(t *testing.T) {
 		RegisterTestingT(t)
 		givenProfile := &geni.ProfileResponse{
-			Id:        "123",
-			FirstName: ptr("John"),
-			LastName:  ptr("Doe"),
-			Gender:    ptr("male"),
+			Id:            "123",
+			FirstName:     ptr("John"),
+			LastName:      ptr("Doe"),
+			MiddleName:    ptr("A"),
+			BirthLastName: ptr("Smith"),
+			DisplayName:   ptr("John A Doe"),
+			Gender:        ptr("male"),
+			AboutMe:       ptr("This is a test profile"),
 			Names: map[string]geni.NameElement{
 				"en": {
 					FirstName:  ptr("John"),
@@ -67,7 +71,11 @@ func TestValueFrom(t *testing.T) {
 		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.Id))
 		Expect(actualValue.FirstName.ValueString()).To(Equal(*givenProfile.FirstName))
 		Expect(actualValue.LastName.ValueString()).To(Equal(*givenProfile.LastName))
+		Expect(actualValue.MiddleName.ValueString()).To(Equal(*givenProfile.MiddleName))
+		Expect(actualValue.BirthLastName.ValueString()).To(Equal(*givenProfile.BirthLastName))
+		Expect(actualValue.DisplayName.ValueString()).To(Equal(*givenProfile.DisplayName))
 		Expect(actualValue.Gender.ValueString()).To(Equal(*givenProfile.Gender))
+		Expect(actualValue.About.ValueString()).To(Equal(*givenProfile.AboutMe))
 		var actualNames = make(map[string]NameModel)
 		Expect(actualValue.Names.ElementsAs(t.Context(), &actualNames, false).HasError()).To(BeFalse())
 		Expect(actualNames).To(HaveKeyWithValue("en", NameModel{
@@ -84,27 +92,35 @@ func TestNameValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		givenNames := map[string]geni.NameElement{
 			"en": {
-				FirstName:  ptr("John"),
-				MiddleName: ptr("A"),
-				LastName:   ptr("Doe"),
+				FirstName:   ptr("John"),
+				MiddleName:  ptr("A"),
+				LastName:    ptr("Doe"),
+				MaidenName:  ptr("Smith"),
+				DisplayName: ptr("John A Doe"),
 			},
 			"fr": {
-				FirstName:  ptr("Jean"),
-				MiddleName: ptr("B"),
-				LastName:   ptr("Dupont"),
+				FirstName:   ptr("Jean"),
+				MiddleName:  ptr("B"),
+				LastName:    ptr("Dupont"),
+				MaidenName:  ptr("Bernard"),
+				DisplayName: ptr("Jean B Bernard"),
 			},
 		}
 
 		expectedNames := map[string]NameModel{
 			"en": {
-				FistName:   types.StringPointerValue(ptr("John")),
-				MiddleName: types.StringPointerValue(ptr("A")),
-				LastName:   types.StringPointerValue(ptr("Doe")),
+				FistName:      types.StringPointerValue(ptr("John")),
+				MiddleName:    types.StringPointerValue(ptr("A")),
+				LastName:      types.StringPointerValue(ptr("Doe")),
+				BirthLastName: types.StringPointerValue(ptr("Smith")),
+				DisplayName:   types.StringPointerValue(ptr("John A Doe")),
 			},
 			"fr": {
-				FistName:   types.StringPointerValue(ptr("Jean")),
-				MiddleName: types.StringPointerValue(ptr("B")),
-				LastName:   types.StringPointerValue(ptr("Dupont")),
+				FistName:      types.StringPointerValue(ptr("Jean")),
+				MiddleName:    types.StringPointerValue(ptr("B")),
+				LastName:      types.StringPointerValue(ptr("Dupont")),
+				BirthLastName: types.StringPointerValue(ptr("Bernard")),
+				DisplayName:   types.StringPointerValue(ptr("Jean B Bernard")),
 			},
 		}
 
