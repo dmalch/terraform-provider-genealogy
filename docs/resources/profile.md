@@ -17,7 +17,7 @@ description: |-
 
 ### Optional
 
-- `about_me` (String) Profile's about me section.
+- `about` (String) Profile's about me section.
 - `baptism` (Attributes) Baptism event information. (see [below for nested schema](#nestedatt--baptism))
 - `birth` (Attributes) Birth event information. (see [below for nested schema](#nestedatt--birth))
 - `birth_last_name` (String) The birth last name of the person.
