@@ -36,8 +36,8 @@ func Schema(opts ...SchemaOptions) schema.SingleNestedAttribute {
 				Computed:    opt.DescriptionComputed,
 				Description: "Event's description.",
 			},
-			"date":     DateSchema(""),
-			"location": LocationSchema(""),
+			"date":     DateSchema("Event's date."),
+			"location": LocationSchema("Event's location."),
 		},
 		Description: opt.Description,
 	}
