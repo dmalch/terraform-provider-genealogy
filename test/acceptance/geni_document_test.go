@@ -15,7 +15,7 @@ import (
 
 func TestAccProfile_createDocument(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		IsUnitTest: true,
+		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"geni": providerserver.NewProtocol6WithError(internal.New()),
 		},
@@ -29,13 +29,12 @@ func TestAccProfile_createDocument(t *testing.T) {
 			
 					resource "geni_document" "test" {
 					  title = "Test Document"
-					  //content_type = "text/plain"
 					  text = "This is a test document."
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
-					//statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is a test document.")),
 				},
 			},
