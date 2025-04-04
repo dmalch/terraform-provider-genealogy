@@ -1,6 +1,7 @@
 package geni
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"log/slog"
@@ -9,10 +10,32 @@ import (
 	"sync"
 )
 
+type DocumentRequest struct {
+	// Title is the document's title
+	Title string `json:"title,omitempty"`
+	// Description is the document's description
+	Description *string `json:"description,omitempty"`
+	// ContentType is the document's content type
+	ContentType *string `json:"content_type,omitempty"`
+	// Date is the document's date
+	Date *DateElement `json:"date,omitempty"`
+	// Location is the document's location
+	Location *LocationElement `json:"location,omitempty"`
+	// Labels is the document's comma separated labels
+	Labels *string `json:"labels,omitempty"`
+	// File is the Base64 encoded file to create a document from
+	File *string `json:"file,omitempty"`
+	// FileName is the name of the file, required if the file is provided
+	FileName *string `json:"file_name,omitempty"`
+	// SourceUrl is the source URL for the document
+	SourceUrl *string `json:"source_url,omitempty"`
+	// Text is the text to create a document from
+	Text *string `json:"text,omitempty"`
+}
+
 type DocumentBulkResponse struct {
 	Results []DocumentResponse `json:"results,omitempty"`
 }
-
 type DocumentResponse struct {
 	// Id is the document's id
 	Id string `json:"id,omitempty"`
@@ -34,6 +57,39 @@ type DocumentResponse struct {
 	UpdatedAt string `json:"updated_at"`
 	// CreatedAt is the timestamp of when the document was created
 	CreatedAt string `json:"created_at"`
+}
+
+func (c *Client) CreateDocument(ctx context.Context, request *DocumentRequest) (*DocumentResponse, error) {
+	jsonBody, err := json.Marshal(request)
+	if err != nil {
+		slog.Error("Error marshaling request", "error", err)
+		return nil, err
+	}
+
+	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
+	jsonStr = escapeString(jsonStr)
+
+	url := BaseUrl(c.useSandboxEnv) + "api/document/add"
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var document DocumentResponse
+	err = json.Unmarshal(body, &document)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &document, nil
 }
 
 func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentResponse, error) {

@@ -17,7 +17,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 	documentResponse, err := r.client.GetDocument(ctx, state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading union", err.Error())
+		resp.Diagnostics.AddError("Error reading document", err.Error())
 		return
 	}
 
