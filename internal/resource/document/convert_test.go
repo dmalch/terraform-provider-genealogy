@@ -22,8 +22,8 @@ func TestValueFrom(t *testing.T) {
 		givenResponse := geni.DocumentResponse{
 			Id:          "123",
 			Title:       "Test Document",
-			Description: "This is a test document",
-			ContentType: "application/pdf",
+			Description: ptr("This is a test document"),
+			ContentType: ptr("text/plain"),
 			Date: &geni.DateElement{
 				Day:   ptr[int32](1),
 				Month: ptr[int32](1),
@@ -53,8 +53,8 @@ func TestValueFrom(t *testing.T) {
 		Expect(diags).To(BeEmpty())
 		Expect(convertedModel.ID.ValueString()).To(Equal(givenResponse.Id))
 		Expect(convertedModel.Title.ValueString()).To(Equal(givenResponse.Title))
-		Expect(convertedModel.Description.ValueString()).To(Equal(givenResponse.Description))
-		Expect(convertedModel.ContentType.ValueString()).To(Equal(givenResponse.ContentType))
+		Expect(convertedModel.Description.ValueString()).To(Equal(*givenResponse.Description))
+		Expect(convertedModel.ContentType.ValueString()).To(Equal(*givenResponse.ContentType))
 		Expect(convertedModel.Date.IsNull()).ToNot(BeTrue())
 		Expect(convertedModel.Date.IsUnknown()).ToNot(BeTrue())
 		Expect(convertedModel.Location.IsNull()).ToNot(BeTrue())
@@ -74,7 +74,8 @@ func TestRequestFrom(t *testing.T) {
 		givenResourceModel := ResourceModel{
 			Title:       types.StringValue("Test Document"),
 			Description: types.StringValue("This is a test document"),
-			ContentType: types.StringValue("application/pdf"),
+			ContentType: types.StringValue("text/plain"),
+			Text:        types.StringValue("This is the text content of the document"),
 			Date: types.ObjectValueMust(event.DateModel{}.AttributeTypes(),
 				map[string]attr.Value{
 					"range":     types.StringValue("between"),
@@ -110,6 +111,7 @@ func TestRequestFrom(t *testing.T) {
 		Expect(documentRequest.Title).To(Equal(givenResourceModel.Title.ValueString()))
 		Expect(documentRequest.Description).To(HaveValue(Equal(givenResourceModel.Description.ValueString())))
 		Expect(documentRequest.ContentType).To(HaveValue(Equal(givenResourceModel.ContentType.ValueString())))
+		Expect(documentRequest.Text).To(HaveValue(Equal(givenResourceModel.Text.ValueString())))
 		Expect(documentRequest.Date).ToNot(BeNil())
 		Expect(documentRequest.Date.Range).To(HaveValue(Equal("between")))
 		Expect(documentRequest.Date.Circa).To(HaveValue(BeTrue()))

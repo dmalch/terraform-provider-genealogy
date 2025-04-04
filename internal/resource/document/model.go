@@ -9,6 +9,7 @@ type ResourceModel struct {
 	Title       types.String `tfsdk:"title"`
 	Description types.String `tfsdk:"description"`
 	ContentType types.String `tfsdk:"content_type"`
+	Text        types.String `tfsdk:"text"`
 	Date        types.Object `tfsdk:"date"`
 	Location    types.Object `tfsdk:"location"`
 	Profiles    types.Set    `tfsdk:"profiles"`

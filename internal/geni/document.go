@@ -42,9 +42,9 @@ type DocumentResponse struct {
 	// Title is the document's title
 	Title string `json:"title,omitempty"`
 	// Description is the document's description
-	Description string `json:"description"`
+	Description *string `json:"description"`
 	// ContentType is the document's content type
-	ContentType string `json:"content_type"`
+	ContentType *string `json:"content_type"`
 	// Date is the document's date
 	Date *DateElement `json:"date"`
 	// Location is the document's location
@@ -179,4 +179,28 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 	}
 
 	return &document, nil
+}
+
+func (c *Client) DeleteDocument(ctx context.Context, documentId string) error {
+	url := BaseUrl(c.useSandboxEnv) + "api/" + documentId + "/delete"
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return err
+	}
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	var result ResultResponse
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return err
+	}
+
+	return nil
 }

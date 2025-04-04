@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -41,9 +42,15 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Description: "The document's description.",
 			},
 			"content_type": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Validators:  []validator.String{stringvalidator.RegexMatches(documentMimeType, "must be a valid mime type")},
 				Description: "The document's original content type.",
+			},
+			"text": schema.StringAttribute{
+				Optional:    true,
+				Validators:  []validator.String{stringvalidator.ExactlyOneOf(path.MatchRelative())},
+				Description: "The document's text content.",
 			},
 			"date":     event.DateSchema("Document's date."),
 			"location": event.LocationSchema("Document's location."),

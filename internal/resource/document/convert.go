@@ -16,8 +16,8 @@ func ValueFrom(ctx context.Context, response *geni.DocumentResponse, model *Reso
 
 	model.ID = types.StringValue(response.Id)
 	model.Title = types.StringValue(response.Title)
-	model.Description = types.StringValue(response.Description)
-	model.ContentType = types.StringValue(response.ContentType)
+	model.Description = types.StringPointerValue(response.Description)
+	model.ContentType = types.StringPointerValue(response.ContentType)
 
 	dateObjectValue, diags := event.DateValueFrom(ctx, response.Date)
 	d.Append(diags...)
@@ -63,6 +63,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 		Title:       resourceModel.Title.ValueString(),
 		Description: resourceModel.Description.ValueStringPointer(),
 		ContentType: resourceModel.ContentType.ValueStringPointer(),
+		Text:        resourceModel.Text.ValueStringPointer(),
 		Date:        event.DateElementFrom(dateModel),
 		Location:    event.LocationElementFrom(locationModel),
 		Labels:      labels,
@@ -86,6 +87,7 @@ func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, 
 	d := diag.Diagnostics{}
 
 	resourceModel.ID = types.StringValue(response.Id)
+	resourceModel.ContentType = types.StringPointerValue(response.ContentType)
 
 	tags, diags := types.SetValueFrom(ctx, types.StringType, response.Tags)
 	d.Append(diags...)

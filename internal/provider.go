@@ -15,6 +15,7 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
 )
@@ -104,6 +105,7 @@ func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		profile.NewProfileResource,
 		union.NewUnionResource,
+		document.NewResource,
 	}
 }
 
