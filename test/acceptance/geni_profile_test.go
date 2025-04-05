@@ -477,6 +477,90 @@ func profileWithEmptyMiddleName(accessToken string) string {
 		`
 }
 
+func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+						access_token = "` + testAccessToken + `"
+						use_sandbox_env = true
+					}
+					resource "geni_profile" "test" {
+						first_name = "John"
+						last_name  = "Doe"
+						alive = true
+					}`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(true)),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+						access_token = "` + testAccessToken + `"
+						use_sandbox_env = true
+					}
+					resource "geni_profile" "test" {
+						first_name = "John"
+						last_name  = "Doe"
+						alive = false
+					}`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
+				},
+			},
+		},
+	})
+}
+
+func TestAccProfile_updateProfilePublicStatus(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+						access_token = "` + testAccessToken + `"
+						use_sandbox_env = true
+					}
+					resource "geni_profile" "test" {
+						first_name = "John"
+						last_name  = "Doe"
+						alive = false
+						public = true
+					}`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+						access_token = "` + testAccessToken + `"
+						use_sandbox_env = true
+					}
+					resource "geni_profile" "test" {
+						first_name = "John"
+						last_name  = "Doe"
+						alive = false
+						public = false
+					}`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(false)),
+				},
+			},
+		},
+	})
+}
+
 func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,

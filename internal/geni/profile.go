@@ -32,7 +32,7 @@ type ProfileRequest struct {
 	// Burial is the burial event info
 	Burial *EventElement `json:"burial,omitempty"`
 	// IsAlive is a boolean that indicates whether the profile is living
-	IsAlive bool `json:"is_alive,omitempty"`
+	IsAlive bool `json:"is_alive"`
 	// Title is the profile's name title
 	Title string `json:"title,omitempty"`
 	// AboutMe is the profile's about me section
@@ -42,9 +42,9 @@ type ProfileRequest struct {
 	// Suffix is the profile's suffix
 	Suffix string `json:"suffix,omitempty"`
 	// Public is a boolean that indicates whether the profile is public
-	Public bool `json:"public,omitempty"`
+	Public bool `json:"public"`
 	// Locked is a boolean that indicates whether the profile is locked down by a curator
-	Locked bool `json:"locked,omitempty"`
+	Locked bool `json:"locked"`
 	// MergeNote is the note explaining the profile's merge status
 	MergeNote []string `json:"merge_note,omitempty"`
 }
@@ -87,7 +87,7 @@ type ProfileResponse struct {
 	// Events is the events associated with this profile
 	Events []EventElement `json:"events,omitempty"`
 	// IsAlive is a boolean that indicates whether the profile is living
-	IsAlive bool `json:"is_alive,omitempty"`
+	IsAlive bool `json:"is_alive"`
 	// Title is the profile's name title
 	Title string `json:"title,omitempty"`
 	// AboutMe is the profile's about me section
@@ -97,9 +97,9 @@ type ProfileResponse struct {
 	// Suffix is the profile's suffix
 	Suffix string `json:"suffix,omitempty"`
 	// Public is a boolean that indicates whether the profile is public
-	Public bool `json:"public,omitempty"`
+	Public bool `json:"public"`
 	// Locked is a boolean that indicates whether the profile is locked down by a curator
-	Locked bool `json:"locked,omitempty"`
+	Locked bool `json:"locked"`
 	// Language is the profile's language
 	Language string `json:"language,omitempty"`
 	// ProfileUrl is the URL to access profile in a browser
