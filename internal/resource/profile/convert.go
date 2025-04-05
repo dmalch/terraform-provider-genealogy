@@ -25,6 +25,8 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	profileModel.DisplayName = types.StringPointerValue(profile.DisplayName)
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 	profileModel.About = types.StringPointerValue(profile.AboutMe)
+	profileModel.Public = types.BoolValue(profile.Public)
+	profileModel.Alive = types.BoolValue(profile.IsAlive)
 
 	names, diags := NameValueFrom(ctx, profile.Names)
 	d.Append(diags...)
@@ -116,6 +118,8 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 		Death:   death,
 		Burial:  burial,
 		AboutMe: resourceModel.About.ValueStringPointer(),
+		Public:  resourceModel.Public.ValueBool(),
+		IsAlive: resourceModel.Alive.ValueBool(),
 	}
 
 	return profileRequest, d

@@ -20,6 +20,8 @@ type ResourceModel struct {
 	Burial        types.Object `tfsdk:"burial"`
 	Unions        types.List   `tfsdk:"unions"`
 	About         types.String `tfsdk:"about"`
+	Public        types.Bool   `tfsdk:"public"`
+	Alive         types.Bool   `tfsdk:"alive"`
 	CreatedAt     types.String `tfsdk:"created_at"`
 }
 

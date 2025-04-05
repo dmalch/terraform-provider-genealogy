@@ -25,6 +25,8 @@ func TestValueFrom(t *testing.T) {
 			DisplayName:   ptr("John A Doe"),
 			Gender:        ptr("male"),
 			AboutMe:       ptr("This is a test profile"),
+			Public:        true,
+			IsAlive:       true,
 			Names: map[string]geni.NameElement{
 				"en": {
 					FirstName:  ptr("John"),
@@ -76,6 +78,8 @@ func TestValueFrom(t *testing.T) {
 		Expect(actualValue.DisplayName.ValueString()).To(Equal(*givenProfile.DisplayName))
 		Expect(actualValue.Gender.ValueString()).To(Equal(*givenProfile.Gender))
 		Expect(actualValue.About.ValueString()).To(Equal(*givenProfile.AboutMe))
+		Expect(actualValue.Public.ValueBool()).To(Equal(givenProfile.Public))
+		Expect(actualValue.Alive.ValueBool()).To(Equal(givenProfile.IsAlive))
 		var actualNames = make(map[string]NameModel)
 		Expect(actualValue.Names.ElementsAs(t.Context(), &actualNames, false).HasError()).To(BeFalse())
 		Expect(actualNames).To(HaveKeyWithValue("en", NameModel{

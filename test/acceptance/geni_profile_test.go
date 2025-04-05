@@ -28,6 +28,10 @@ func TestAccProfile_createProfile(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("middle_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(false)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(true)),
 				},
 			},
 		},
@@ -64,6 +68,8 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.StringExact("Smith")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.StringExact("John Doe")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.StringExact("This is a test profile")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("name"), knownvalue.StringExact("Birth of John Doe")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1980)),
 				},
@@ -86,6 +92,8 @@ func profileWithDetails(testAccessToken string) string {
 		  birth_last_name = "Smith"
 		  display_name = "John Doe"
 		  about = "This is a test profile"
+		  public = true
+		  alive = false
 		  gender     = "male"
 		  birth      = {
 			name = "Birth of John Doe"

@@ -13,7 +13,7 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
-func TestAccProfile_createDocument(t *testing.T) {
+func TestAccDocument_createDocument(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -42,7 +42,7 @@ func TestAccProfile_createDocument(t *testing.T) {
 	})
 }
 
-func TestAccProfile_createDocumentWithDetails(t *testing.T) {
+func TestAccDocument_createDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -108,7 +108,7 @@ func TestAccProfile_createDocumentWithDetails(t *testing.T) {
 	})
 }
 
-func TestAccProfile_updateDocumentWithDetails(t *testing.T) {
+func TestAccDocument_updateDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){

@@ -5,10 +5,12 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -63,6 +65,8 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"labels": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
+				Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				Description: "The list of labels associated with the document.",
 			},
 			"created_at": schema.StringAttribute{

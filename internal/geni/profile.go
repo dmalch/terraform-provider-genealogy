@@ -336,7 +336,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,about_me,unions,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,about_me,unions,is_alive,public,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 
