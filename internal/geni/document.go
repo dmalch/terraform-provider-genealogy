@@ -204,3 +204,36 @@ func (c *Client) DeleteDocument(ctx context.Context, documentId string) error {
 
 	return nil
 }
+
+func (c *Client) UpdateDocument(ctx context.Context, profileId string, request *DocumentRequest) (*DocumentResponse, error) {
+	jsonBody, err := json.Marshal(request)
+	if err != nil {
+		slog.Error("Error marshaling request", "error", err)
+		return nil, err
+	}
+
+	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
+	jsonStr = escapeString(jsonStr)
+
+	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/update"
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var document DocumentResponse
+	err = json.Unmarshal(body, &document)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &document, nil
+}

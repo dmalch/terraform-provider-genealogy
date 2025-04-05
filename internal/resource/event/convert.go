@@ -170,7 +170,7 @@ func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetype
 		return types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
 	}
 
-	return types.ObjectNull(DateRangeModelAttributeTypes()), diag.Diagnostics{}
+	return types.ObjectNull(DateModelAttributeTypes()), diag.Diagnostics{}
 }
 
 func DateRangeValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
