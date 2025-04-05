@@ -142,7 +142,7 @@ func TestAccProfile_updateDocumentWithDetails(t *testing.T) {
 			
 					resource "geni_document" "test" {
 					  title = "Test Document"
-					  text = "This is a test document."
+					  text = "This is an updated test document."
 					  description = "This is a test document description."
 					  content_type = "text/plain"
 					  date = {
@@ -166,7 +166,7 @@ func TestAccProfile_updateDocumentWithDetails(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
-					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is a test document.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is an updated test document.")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("description"), knownvalue.StringExact("This is a test document description.")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("date"), knownvalue.ObjectExact(map[string]knownvalue.Check{
 						"year":  knownvalue.Int32Exact(1980),
