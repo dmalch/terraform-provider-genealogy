@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	documentIdFormat = regexp.MustCompile(`^profile-\d+$`)
+	documentIdFormat = regexp.MustCompile(`^document-\d+$`)
 	createdAtFormat  = regexp.MustCompile(`^\d+$`)
 	documentMimeType = regexp.MustCompile(`^((text/plain)|(application/pdf))$`)
 )
