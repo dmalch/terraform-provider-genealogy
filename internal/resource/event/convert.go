@@ -20,7 +20,7 @@ func ElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElem
 		return nil, d
 	}
 
-	dateModel, diags := DateObjectValueFrom(ctx, eventModel.Date)
+	dateModel, diags := DateRangeObjectValueFrom(ctx, eventModel.Date)
 	d.Append(diags...)
 
 	locationModel, diags := LocationObjectValueFrom(ctx, eventModel.Location)
@@ -29,7 +29,7 @@ func ElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElem
 	return &geni.EventElement{
 		Name:        eventModel.Name.ValueString(),
 		Description: eventModel.Description.ValueString(),
-		Date:        DateElementFrom(dateModel),
+		Date:        DateRangeElementFrom(dateModel),
 		Location:    LocationElementFrom(locationModel),
 	}, d
 }
@@ -83,6 +83,19 @@ func DateElementFrom(model *DateModel) *geni.DateElement {
 	}
 
 	return &geni.DateElement{
+		Circa: model.Circa.ValueBoolPointer(),
+		Day:   model.Day.ValueInt32Pointer(),
+		Month: model.Month.ValueInt32Pointer(),
+		Year:  model.Year.ValueInt32Pointer(),
+	}
+}
+
+func DateRangeElementFrom(model *DateRangeModel) *geni.DateElement {
+	if model == nil {
+		return nil
+	}
+
+	return &geni.DateElement{
 		Range:    model.Range.ValueStringPointer(),
 		Circa:    model.Circa.ValueBoolPointer(),
 		Day:      model.Day.ValueInt32Pointer(),
@@ -107,11 +120,23 @@ func DateObjectValueFrom(ctx context.Context, dateObject types.Object) (*DateMod
 	return &dateModel, diags
 }
 
+func DateRangeObjectValueFrom(ctx context.Context, dateObject types.Object) (*DateRangeModel, diag.Diagnostics) {
+	if dateObject.IsNull() || dateObject.IsUnknown() {
+		return nil, diag.Diagnostics{}
+	}
+
+	var dateModel DateRangeModel
+
+	diags := dateObject.As(ctx, &dateModel, basetypes.ObjectAsOptions{})
+
+	return &dateModel, diags
+}
+
 func ValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
 	var d diag.Diagnostics
 
 	if eventElement != nil {
-		dateObjectValue, diags := DateValueFrom(ctx, eventElement.Date)
+		dateObjectValue, diags := DateRangeValueFrom(ctx, eventElement.Date)
 		d.Append(diags...)
 
 		locationObjectValue, diags := LocationValueFrom(ctx, eventElement.Location)
@@ -136,6 +161,21 @@ func ValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.
 func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
 	if dateElement != nil {
 		dateModel := DateModel{
+			Circa: types.BoolPointerValue(dateElement.Circa),
+			Day:   types.Int32PointerValue(dateElement.Day),
+			Month: types.Int32PointerValue(dateElement.Month),
+			Year:  types.Int32PointerValue(dateElement.Year),
+		}
+
+		return types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
+	}
+
+	return types.ObjectNull(DateRangeModelAttributeTypes()), diag.Diagnostics{}
+}
+
+func DateRangeValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
+	if dateElement != nil {
+		dateModel := DateRangeModel{
 			Range:    types.StringPointerValue(dateElement.Range),
 			Circa:    types.BoolPointerValue(dateElement.Circa),
 			Day:      types.Int32PointerValue(dateElement.Day),
@@ -150,7 +190,7 @@ func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetype
 		return types.ObjectValueFrom(ctx, dateModel.AttributeTypes(), dateModel)
 	}
 
-	return types.ObjectNull(DateModelAttributeTypes()), diag.Diagnostics{}
+	return types.ObjectNull(DateRangeModelAttributeTypes()), diag.Diagnostics{}
 }
 
 func LocationValueFrom(ctx context.Context, location *geni.LocationElement) (basetypes.ObjectValue, diag.Diagnostics) {

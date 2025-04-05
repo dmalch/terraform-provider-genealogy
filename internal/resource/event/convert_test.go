@@ -16,7 +16,7 @@ func TestElementFrom(t *testing.T) {
 			map[string]attr.Value{
 				"name":        types.StringValue("Event Name"),
 				"description": types.StringValue("Event Description"),
-				"date": types.ObjectValueMust(DateModel{}.AttributeTypes(),
+				"date": types.ObjectValueMust(DateRangeModel{}.AttributeTypes(),
 					map[string]attr.Value{
 						"range":     types.StringValue("between"),
 						"circa":     types.BoolValue(true),
@@ -78,7 +78,7 @@ func TestElementFrom(t *testing.T) {
 			map[string]attr.Value{
 				"name":        types.StringValue("Event Name"),
 				"description": types.StringValue("Event Description"),
-				"date":        types.ObjectNull(DateModel{}.AttributeTypes()),
+				"date":        types.ObjectNull(DateRangeModel{}.AttributeTypes()),
 				"location":    types.ObjectNull(LocationModel{}.AttributeTypes()),
 			})
 

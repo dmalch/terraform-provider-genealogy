@@ -21,7 +21,7 @@ func EventModelAttributeTypes() map[string]attr.Type {
 		"name":        types.StringType,
 		"description": types.StringType,
 		"date": types.ObjectType{
-			AttrTypes: DateModelAttributeTypes(),
+			AttrTypes: DateRangeModelAttributeTypes(),
 		},
 		"location": types.ObjectType{
 			AttrTypes: LocationModelAttributeTypes(),
@@ -30,6 +30,27 @@ func EventModelAttributeTypes() map[string]attr.Type {
 }
 
 type DateModel struct {
+	Circa types.Bool  `tfsdk:"circa"`
+	Day   types.Int32 `tfsdk:"day"`
+	Month types.Int32 `tfsdk:"month"`
+	Year  types.Int32 `tfsdk:"year"`
+}
+
+func (m DateModel) AttributeTypes() map[string]attr.Type {
+	return DateModelAttributeTypes()
+}
+
+func DateModelAttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"circa": types.BoolType,
+		"day":   types.Int32Type,
+		"month": types.Int32Type,
+		"year":  types.Int32Type,
+	}
+}
+
+type DateRangeModel struct {
+	DateModel
 	Range    types.String `tfsdk:"range"`
 	Circa    types.Bool   `tfsdk:"circa"`
 	Day      types.Int32  `tfsdk:"day"`
@@ -41,11 +62,11 @@ type DateModel struct {
 	EndYear  types.Int32  `tfsdk:"end_year"`
 }
 
-func (m DateModel) AttributeTypes() map[string]attr.Type {
-	return DateModelAttributeTypes()
+func (m DateRangeModel) AttributeTypes() map[string]attr.Type {
+	return DateRangeModelAttributeTypes()
 }
 
-func DateModelAttributeTypes() map[string]attr.Type {
+func DateRangeModelAttributeTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"range":     types.StringType,
 		"circa":     types.BoolType,

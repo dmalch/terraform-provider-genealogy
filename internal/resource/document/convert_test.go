@@ -76,7 +76,7 @@ func TestRequestFrom(t *testing.T) {
 			Description: types.StringValue("This is a test document"),
 			ContentType: types.StringValue("text/plain"),
 			Text:        types.StringValue("This is the text content of the document"),
-			Date: types.ObjectValueMust(event.DateModel{}.AttributeTypes(),
+			Date: types.ObjectValueMust(event.DateRangeModel{}.AttributeTypes(),
 				map[string]attr.Value{
 					"range":     types.StringValue("between"),
 					"circa":     types.BoolValue(true),

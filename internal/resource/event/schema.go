@@ -36,7 +36,7 @@ func Schema(opts ...SchemaOptions) schema.SingleNestedAttribute {
 				Computed:    opt.DescriptionComputed,
 				Description: "Event's description.",
 			},
-			"date":     DateSchema("Event's date."),
+			"date":     DateRangeSchema("Event's date."),
 			"location": LocationSchema("Event's location."),
 		},
 		Description: opt.Description,
@@ -93,6 +93,31 @@ func LocationSchema(description string) schema.SingleNestedAttribute {
 }
 
 func DateSchema(description string) schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Optional: true,
+		Attributes: map[string]schema.Attribute{
+			"circa": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Indicates whether the date is an approximation.",
+			},
+			"day": schema.Int32Attribute{
+				Optional:    true,
+				Description: "Day of the month.",
+			},
+			"month": schema.Int32Attribute{
+				Optional:    true,
+				Description: "Month of the year.",
+			},
+			"year": schema.Int32Attribute{
+				Optional:    true,
+				Description: "Date's year.",
+			},
+		},
+		Description: description,
+	}
+}
+
+func DateRangeSchema(description string) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional: true,
 		Attributes: map[string]schema.Attribute{
