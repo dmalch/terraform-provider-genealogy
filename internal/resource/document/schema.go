@@ -62,7 +62,6 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			},
 			"labels": schema.SetAttribute{
 				ElementType: types.StringType,
-				Computed:    true,
 				Optional:    true,
 				Description: "The list of labels associated with the document.",
 			},

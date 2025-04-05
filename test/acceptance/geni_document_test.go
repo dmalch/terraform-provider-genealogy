@@ -125,6 +125,9 @@ func TestAccProfile_updateDocumentWithDetails(t *testing.T) {
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  text = "This is a test document."
+					  labels = [
+						"Military",
+					  ]
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -161,6 +164,10 @@ func TestAccProfile_updateDocumentWithDetails(t *testing.T) {
 						  street_address2 = "Apt 1"
 						  street_address3 = "Floor 2"
 					  }
+					  labels = [
+						"Census",
+						"Military",
+					  ]
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -185,6 +192,10 @@ func TestAccProfile_updateDocumentWithDetails(t *testing.T) {
 						"county":          knownvalue.StringExact("Alameda"),
 						"latitude":        knownvalue.Null(),
 						"longitude":       knownvalue.Null(),
+					})),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("labels"), knownvalue.SetExact([]knownvalue.Check{
+						knownvalue.StringExact("Census"),
+						knownvalue.StringExact("Military"),
 					})),
 				},
 			},

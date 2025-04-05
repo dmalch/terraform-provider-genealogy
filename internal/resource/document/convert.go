@@ -93,7 +93,17 @@ func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, 
 	d.Append(diags...)
 	resourceModel.Profiles = tags
 
-	labels, diags := types.SetValueFrom(ctx, types.StringType, response.Labels)
+	// Filter out duplicate labels
+	uniqueLabels := make([]string, 0, len(response.Labels))
+	seen := make(map[string]struct{})
+	for _, label := range response.Labels {
+		if _, ok := seen[label]; !ok {
+			seen[label] = struct{}{}
+			uniqueLabels = append(uniqueLabels, label)
+		}
+	}
+
+	labels, diags := types.SetValueFrom(ctx, types.StringType, uniqueLabels)
 	d.Append(diags...)
 	resourceModel.Labels = labels
 
