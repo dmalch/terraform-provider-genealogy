@@ -76,17 +76,12 @@ func TestRequestFrom(t *testing.T) {
 			Description: types.StringValue("This is a test document"),
 			ContentType: types.StringValue("text/plain"),
 			Text:        types.StringValue("This is the text content of the document"),
-			Date: types.ObjectValueMust(event.DateRangeModel{}.AttributeTypes(),
+			Date: types.ObjectValueMust(event.DateModel{}.AttributeTypes(),
 				map[string]attr.Value{
-					"range":     types.StringValue("between"),
-					"circa":     types.BoolValue(true),
-					"day":       types.Int32Value(19),
-					"month":     types.Int32Value(8),
-					"year":      types.Int32Value(1922),
-					"end_circa": types.BoolValue(false),
-					"end_day":   types.Int32Value(20),
-					"end_month": types.Int32Value(8),
-					"end_year":  types.Int32Value(1922),
+					"circa": types.BoolValue(true),
+					"day":   types.Int32Value(19),
+					"month": types.Int32Value(8),
+					"year":  types.Int32Value(1922),
 				}),
 			Location: types.ObjectValueMust(event.LocationModel{}.AttributeTypes(),
 				map[string]attr.Value{
@@ -113,15 +108,10 @@ func TestRequestFrom(t *testing.T) {
 		Expect(documentRequest.ContentType).To(HaveValue(Equal(givenResourceModel.ContentType.ValueString())))
 		Expect(documentRequest.Text).To(HaveValue(Equal(givenResourceModel.Text.ValueString())))
 		Expect(documentRequest.Date).ToNot(BeNil())
-		Expect(documentRequest.Date.Range).To(HaveValue(Equal("between")))
 		Expect(documentRequest.Date.Circa).To(HaveValue(BeTrue()))
 		Expect(documentRequest.Date.Day).To(HaveValue(Equal(int32(19))))
 		Expect(documentRequest.Date.Month).To(HaveValue(Equal(int32(8))))
 		Expect(documentRequest.Date.Year).To(HaveValue(Equal(int32(1922))))
-		Expect(documentRequest.Date.EndCirca).To(HaveValue(BeFalse()))
-		Expect(documentRequest.Date.EndDay).To(HaveValue(Equal(int32(20))))
-		Expect(documentRequest.Date.EndMonth).To(HaveValue(Equal(int32(8))))
-		Expect(documentRequest.Date.EndYear).To(HaveValue(Equal(int32(1922))))
 		Expect(documentRequest.Location).ToNot(BeNil())
 		Expect(documentRequest.Location.City).To(HaveValue(Equal("City")))
 		Expect(documentRequest.Location.Country).To(HaveValue(Equal("Country")))
