@@ -49,11 +49,15 @@ func unionWithTwoPartners(testAccessToken string) string {
 		resource "geni_profile" "husband" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -102,16 +106,22 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		resource "geni_profile" "husband" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "child" {
 		  first_name = "Alice"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -167,21 +177,29 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		resource "geni_profile" "husband" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "child1" {
 		  first_name = "Alice"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "child2" {
 		  first_name = "Bob"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -232,11 +250,15 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 		resource "geni_profile" "mother" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "child" {
 		  first_name = "Alice"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -284,11 +306,15 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		resource "geni_profile" "sibling1" {
 		  first_name = "Alice"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "sibling2" {
 		  first_name = "Bob"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -329,21 +355,29 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 				resource "geni_profile" "sibling1" {
 				  first_name = "Alice"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 				
 				resource "geni_profile" "sibling2" {
 				  first_name = "Bob"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "mother" {
 				  first_name = "Jane"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 
 				resource "geni_profile" "father" {
 				  first_name = "John"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 				
 				resource "geni_union" "doe_family" {
@@ -396,6 +430,8 @@ func unionWithOneParent(testAccessToken string) string {
 		resource "geni_profile" "mother" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -431,6 +467,8 @@ func unionWithOneChild(testAccessToken string) string {
 		resource "geni_profile" "child" {
 		  first_name = "Alice"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -466,16 +504,22 @@ func unionWithThreePartners(testAccessToken string) string {
 		resource "geni_profile" "partner1" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "partner2" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "partner3" {
 		  first_name = "Alice"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -518,16 +562,22 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 				resource "geni_profile" "husband" {
 				  first_name = "John"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 			
 				resource "geni_profile" "wife" {
 				  first_name = "Jane"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "partner3" {
 				  first_name = "Alice"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 				
 				resource "geni_union" "doe_family" {
@@ -573,16 +623,22 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 				resource "geni_profile" "husband" {
 				  first_name = "John"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "wife" {
 				  first_name = "Jane"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "child" {
 				  first_name = "Alice"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 				
 				resource "geni_union" "doe_family" {
@@ -626,16 +682,22 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 				resource "geni_profile" "husband" {
 				  first_name = "John"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "wife" {
 				  first_name = "Jane"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "child" {
 				  first_name = "Alice"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 				
 				resource "geni_union" "doe_family" {
@@ -676,21 +738,29 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				resource "geni_profile" "husband" {
 				  first_name = "John"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "wife" {
 				  first_name = "Jane"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "child1" {
 				  first_name = "Alice"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 		
 				resource "geni_profile" "child2" {
 				  first_name = "Bob"
 				  last_name  = "Doe"
+				  alive = false
+				  public = true
 				}
 				
 				resource "geni_union" "doe_family" {
@@ -747,11 +817,15 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 		resource "geni_profile" "husband" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {
@@ -860,11 +934,15 @@ func unionWithTwoPartnersAndMarriageDetails(testAccessToken string, year string)
 		resource "geni_profile" "husband" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
 		  first_name = "Jane"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		
 		resource "geni_union" "doe_family" {

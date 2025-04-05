@@ -30,8 +30,8 @@ func TestAccProfile_createProfile(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth_last_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("display_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.Null()),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(false)),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
 				},
 			},
 		},
@@ -48,6 +48,8 @@ func profile(testAccessToken string) string {
 		resource "geni_profile" "test" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		}
 		`
 }
@@ -219,6 +221,8 @@ func profileWithFixedBirthDate(testAccessToken string) string {
 		  first_name = "John"
 		  last_name  = "Doe"
 		  gender     = "male"
+		  alive = false
+		  public = true
 		  birth      = {
 			name = "Birth of John Doe"
 			date = {
@@ -267,6 +271,8 @@ func profileWithNamesInOtherLanguages(accessToken string) string {
 
 		resource "geni_profile" "test" {
 		  gender     = "male"
+		  alive = false
+		  public = true
 		  names = {
 			"en-US" = {
 				first_name = "John"
@@ -336,6 +342,8 @@ func profileWithFirstLastNameAndNames(accessToken string) string {
 		resource "geni_profile" "test" {
 		  first_name = "John"
 		  last_name  = "Doe"
+		  alive = false
+		  public = true
 		  names = {
 			"en-US" = {
 				first_name = "John"
@@ -376,6 +384,8 @@ func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) stri
 		}
 
 		resource "geni_profile" "test" {
+		  alive = false
+		  public = true
 		  names = {
 			"en-US" = {
 				first_name = "John"
@@ -430,6 +440,8 @@ func profileWithOneName(accessToken string) string {
 		}
 
 		resource "geni_profile" "test" {
+		  alive = false
+		  public = true
 		  names = {
 			"en-US" = {
 				first_name = "John"
@@ -466,6 +478,8 @@ func profileWithEmptyMiddleName(accessToken string) string {
 		}
 
 		resource "geni_profile" "test" {
+		  alive = false
+		  public = true
 		  names = {
 			"en-US" = {
 				first_name = "John"
@@ -494,6 +508,7 @@ func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 						first_name = "John"
 						last_name  = "Doe"
 						alive = true
+		  				public = false
 					}`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(true)),
@@ -509,6 +524,7 @@ func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 						first_name = "John"
 						last_name  = "Doe"
 						alive = false
+		  				public = true
 					}`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
@@ -576,6 +592,8 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 				}
 		
 				resource "geni_profile" "test" {
+				  alive = false
+				  public = true
 				  names = {
 					"en-US" = {
 					  first_name = "John"
@@ -608,6 +626,8 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 				}
 		
 				resource "geni_profile" "test" {
+				  alive = false
+				  public = true
 				  names = {
 					"en-US" = {
 					  first_name = "John"
@@ -653,6 +673,8 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 				  last_name = "Doe"
 				  birth_last_name = "Smith"
 				  display_name = "John Doe"
+				  alive = false
+				  public = true
 				}
 				`,
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -673,6 +695,8 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 				resource "geni_profile" "test" {
 				  first_name = "John"
 				  last_name = "Doee"
+				  alive = false
+				  public = true
 				}
 				`,
 				ConfigStateChecks: []statecheck.StateCheck{
