@@ -38,12 +38,7 @@ Optional:
 
 - `circa` (Boolean) Indicates whether the date is an approximation.
 - `day` (Number) Day of the month.
-- `end_circa` (Boolean) Indicates whether the end date is an approximation.
-- `end_day` (Number) Date's end day (only valid if range is between).
-- `end_month` (Number) Date's end month (only valid if range is between).
-- `end_year` (Number) Date's end year (only valid if range is between).
 - `month` (Number) Month of the year.
-- `range` (String) Range (before, after, or between).
 - `year` (Number) Date's year.
 
 

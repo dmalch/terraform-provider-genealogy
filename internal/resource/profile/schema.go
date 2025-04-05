@@ -145,13 +145,13 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(false),
-				Description: "Profile's public visibility.",
+				Description: "Profile's public visibility. Default is false.",
 			},
 			"alive": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),
-				Description: "Profile's alive status.",
+				Description: "Profile's alive status. Default is true.",
 			},
 			"created_at": schema.StringAttribute{
 				Computed:      true,

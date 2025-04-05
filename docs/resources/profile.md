@@ -18,6 +18,7 @@ description: |-
 ### Optional
 
 - `about` (String) Profile's about me section.
+- `alive` (Boolean) Profile's alive status. Default is true.
 - `baptism` (Attributes) Baptism event information. (see [below for nested schema](#nestedatt--baptism))
 - `birth` (Attributes) Birth event information. (see [below for nested schema](#nestedatt--birth))
 - `birth_last_name` (String) The birth last name of the person.
@@ -31,6 +32,7 @@ description: |-
 - `last_name` (String) The last name of the person.
 - `middle_name` (String) The middle name of the person.
 - `names` (Attributes Map) Nested maps of locales to name fields to values. (see [below for nested schema](#nestedatt--names))
+- `public` (Boolean) Profile's public visibility. Default is false.
 - `unions` (List of String) List of union IDs.
 
 <a id="nestedatt--baptism"></a>
