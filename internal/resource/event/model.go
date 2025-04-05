@@ -52,10 +52,6 @@ func DateModelAttributeTypes() map[string]attr.Type {
 type DateRangeModel struct {
 	DateModel
 	Range    types.String `tfsdk:"range"`
-	Circa    types.Bool   `tfsdk:"circa"`
-	Day      types.Int32  `tfsdk:"day"`
-	Month    types.Int32  `tfsdk:"month"`
-	Year     types.Int32  `tfsdk:"year"`
 	EndCirca types.Bool   `tfsdk:"end_circa"`
 	EndDay   types.Int32  `tfsdk:"end_day"`
 	EndMonth types.Int32  `tfsdk:"end_month"`
