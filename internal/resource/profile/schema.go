@@ -141,11 +141,11 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Description: "Profile's about me section.",
 			},
 			"public": schema.BoolAttribute{
-				Optional:    true,
+				Required:    true,
 				Description: "Profile's public visibility.",
 			},
 			"alive": schema.BoolAttribute{
-				Optional:    true,
+				Required:    true,
 				Description: "Profile's alive status.",
 			},
 			"created_at": schema.StringAttribute{
