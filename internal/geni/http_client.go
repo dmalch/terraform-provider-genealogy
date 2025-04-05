@@ -205,21 +205,13 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 		}),
 		retry.Context(ctx),
 		retry.Attempts(3),
-		retry.Delay(2*time.Second),     // Wait 2 seconds between retries
+		retry.Delay(1*time.Second),     // Wait 2 seconds between retries
 		retry.MaxJitter(2*time.Second), // Add up to 2 seconds of jitter to each retry
-		retry.DelayType(retry.CombineDelay(rateLimitingDelay, retry.RandomDelay)),
+		retry.DelayType(retry.CombineDelay(retry.FixedDelay, retry.RandomDelay)),
 		retry.OnRetry(func(n uint, err error) {
 			tflog.Debug(ctx, "Retrying request", map[string]interface{}{"attempt": n + 1, "error": err})
 		}),
 	)
-}
-
-func rateLimitingDelay(n uint, err error, config *retry.Config) time.Duration {
-	var retryErr errCode429WithRetry
-	if errors.As(err, &retryErr) {
-		return time.Duration(retryErr.secondsUntilRetry+1) * time.Second
-	}
-	return retry.FixedDelay(n, err, config)
 }
 
 func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) error {
