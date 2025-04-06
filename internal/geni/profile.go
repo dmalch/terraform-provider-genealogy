@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"math/big"
 	"net/http"
 	"strings"
 	"sync"
@@ -173,9 +172,9 @@ type LocationElement struct {
 	// County is the county name
 	County *string `json:"county,omitempty"`
 	// Latitude is the latitude
-	Latitude *big.Float `json:"latitude,omitempty"`
+	Latitude *float64 `json:"latitude,omitempty"`
 	// Longitude is the longitude
-	Longitude *big.Float `json:"longitude,omitempty"`
+	Longitude *float64 `json:"longitude,omitempty"`
 	// PlaceName is the place name
 	PlaceName *string `json:"place_name,omitempty"`
 	// State is the state name

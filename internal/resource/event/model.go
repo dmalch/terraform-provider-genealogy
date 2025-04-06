@@ -77,16 +77,16 @@ func DateRangeModelAttributeTypes() map[string]attr.Type {
 }
 
 type LocationModel struct {
-	City           types.String `tfsdk:"city"`
-	Country        types.String `tfsdk:"country"`
-	County         types.String `tfsdk:"county"`
-	Latitude       types.Number `tfsdk:"latitude"`
-	Longitude      types.Number `tfsdk:"longitude"`
-	PlaceName      types.String `tfsdk:"place_name"`
-	State          types.String `tfsdk:"state"`
-	StreetAddress1 types.String `tfsdk:"street_address1"`
-	StreetAddress2 types.String `tfsdk:"street_address2"`
-	StreetAddress3 types.String `tfsdk:"street_address3"`
+	City           types.String  `tfsdk:"city"`
+	Country        types.String  `tfsdk:"country"`
+	County         types.String  `tfsdk:"county"`
+	Latitude       types.Float64 `tfsdk:"latitude"`
+	Longitude      types.Float64 `tfsdk:"longitude"`
+	PlaceName      types.String  `tfsdk:"place_name"`
+	State          types.String  `tfsdk:"state"`
+	StreetAddress1 types.String  `tfsdk:"street_address1"`
+	StreetAddress2 types.String  `tfsdk:"street_address2"`
+	StreetAddress3 types.String  `tfsdk:"street_address3"`
 }
 
 func (m LocationModel) AttributeTypes() map[string]attr.Type {
@@ -98,8 +98,8 @@ func LocationModelAttributeTypes() map[string]attr.Type {
 		"city":            types.StringType,
 		"country":         types.StringType,
 		"county":          types.StringType,
-		"latitude":        types.NumberType,
-		"longitude":       types.NumberType,
+		"latitude":        types.Float64Type,
+		"longitude":       types.Float64Type,
 		"place_name":      types.StringType,
 		"state":           types.StringType,
 		"street_address1": types.StringType,

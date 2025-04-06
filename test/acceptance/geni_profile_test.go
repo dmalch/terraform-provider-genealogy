@@ -118,6 +118,9 @@ func profileWithDetails(testAccessToken string) string {
 			  street_address1 = "123 Main St"
 			  street_address2 = "Apt 1"
 			  street_address3 = "Floor 2"
+			  latitude = 55.8948313,
+			  longitude = 44.0386238,
+			  //postal_code = "606302",
 			}
 		  }
 		  baptism = {
