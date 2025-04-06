@@ -144,23 +144,23 @@ type EventElement struct {
 // DateElement is the response for a date.
 type DateElement struct {
 	// Circa is a boolean that indicates whether the date is approximate
-	Circa *bool `json:"circa,omitempty"`
+	Circa *bool `json:"circa"`
 	// Day is the day of the month
-	Day *int32 `json:"day,omitempty"`
+	Day *int32 `json:"day"`
 	// Month is the month of the year
-	Month *int32 `json:"month,omitempty"`
+	Month *int32 `json:"month"`
 	// Year is the year
-	Year *int32 `json:"year,omitempty"`
+	Year *int32 `json:"year"`
 	// EndCirca is a boolean that indicates whether the end date is approximate
-	EndCirca *bool `json:"end_circa,omitempty"`
+	EndCirca *bool `json:"end_circa"`
 	// EndDay is the end day of the month (only valid if range is between)
-	EndDay *int32 `json:"end_day,omitempty"`
+	EndDay *int32 `json:"end_day"`
 	// EndMonth is the end month of the year (only valid if range is between)
-	EndMonth *int32 `json:"end_month,omitempty"`
+	EndMonth *int32 `json:"end_month"`
 	// EndYear is the end year (only valid if range is between)
-	EndYear *int32 `json:"end_year,omitempty"`
+	EndYear *int32 `json:"end_year"`
 	// Range is the range (before, after, or between)
-	Range *string `json:"range,omitempty"`
+	Range *string `json:"range"`
 }
 
 // LocationElement is the response for a location.

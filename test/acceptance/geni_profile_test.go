@@ -716,7 +716,7 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 
 func TestAccProfile_updateProfileLocation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		IsUnitTest: true,
+		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"geni": providerserver.NewProtocol6WithError(internal.New()),
 		},
@@ -811,6 +811,109 @@ func TestAccProfile_updateProfileLocation(t *testing.T) {
 						AtMapKey("location").AtMapKey("street_address2"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
 						AtMapKey("location").AtMapKey("street_address3"), knownvalue.Null()),
+				},
+			},
+		},
+	})
+}
+
+func TestAccProfile_updateProfileDate(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+		  			  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  gender     = "male"
+					  alive = false
+					  public = true
+					  birth      = {
+						name = "Birth of John Doe"
+						date = {
+						  range = "between"
+						  year = 1980
+						  month = 1
+						  day = 1
+						  circa = true
+						  end_year = 1980
+						  end_month = 1
+						  end_day = 1
+						  end_circa = true
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("range"), knownvalue.StringExact("between")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1980)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("month"), knownvalue.Int32Exact(1)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("day"), knownvalue.Int32Exact(1)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("circa"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_year"), knownvalue.Int32Exact(1980)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_month"), knownvalue.Int32Exact(1)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_day"), knownvalue.Int32Exact(1)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_circa"), knownvalue.Bool(true)),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+		  			  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  gender     = "male"
+					  alive = false
+					  public = true
+					  birth      = {
+						name = "Birth of John Doe"
+						date = {
+						  year = 1980
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("range"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1980)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("month"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("day"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("circa"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_year"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_month"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_day"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("date").AtMapKey("end_circa"), knownvalue.Null()),
 				},
 			},
 		},
