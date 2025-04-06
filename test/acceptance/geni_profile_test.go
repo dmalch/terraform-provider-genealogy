@@ -713,3 +713,106 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProfile_updateProfileLocation(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+		  			  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  gender     = "male"
+					  alive = false
+					  public = true
+					  birth      = {
+						name = "Birth of John Doe"
+						date = {
+						  year = 1980
+						  month = 1
+						  day = 1
+						}
+						location = {
+						  city = "New York"
+						  country = "USA"
+						  place_name = "Hospital"
+						  state = "New York"
+						  street_address1 = "123 Main St"
+						  street_address2 = "Apt 1"
+						  street_address3 = "Floor 2"
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("city"), knownvalue.StringExact("New York")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("country"), knownvalue.StringExact("USA")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("place_name"), knownvalue.StringExact("Hospital")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("state"), knownvalue.StringExact("New York")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("street_address1"), knownvalue.StringExact("123 Main St")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("street_address2"), knownvalue.StringExact("Apt 1")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("street_address3"), knownvalue.StringExact("Floor 2")),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+		  			  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  gender     = "male"
+					  alive = false
+					  public = true
+					  birth      = {
+						name = "Birth of John Doe"
+						date = {
+						  year = 1980
+						  month = 1
+						  day = 1
+						}
+						location = {
+						  place_name = "New Place"
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("city"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("country"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("place_name"), knownvalue.StringExact("New Place")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("state"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("street_address1"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("street_address2"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").
+						AtMapKey("location").AtMapKey("street_address3"), knownvalue.Null()),
+				},
+			},
+		},
+	})
+}
