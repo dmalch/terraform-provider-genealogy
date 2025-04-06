@@ -1,7 +1,6 @@
 package document
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -33,8 +32,8 @@ func TestValueFrom(t *testing.T) {
 				City:           ptr("City"),
 				Country:        ptr("Country"),
 				County:         ptr("County"),
-				Latitude:       big.NewFloat(1.0),
-				Longitude:      big.NewFloat(2.0),
+				Latitude:       ptr(1.0),
+				Longitude:      ptr(2.0),
 				PlaceName:      ptr("Place Name"),
 				State:          ptr("State"),
 				StreetAddress1: ptr("Street Address 1"),
@@ -88,8 +87,8 @@ func TestRequestFrom(t *testing.T) {
 					"city":            types.StringValue("City"),
 					"country":         types.StringValue("Country"),
 					"county":          types.StringValue("County"),
-					"latitude":        types.NumberValue(big.NewFloat(1.0)),
-					"longitude":       types.NumberValue(big.NewFloat(2.0)),
+					"latitude":        types.Float64Value(1.0),
+					"longitude":       types.Float64Value(2.0),
 					"place_name":      types.StringValue("Place Name"),
 					"state":           types.StringValue("State"),
 					"street_address1": types.StringValue("Street Address 1"),
@@ -116,8 +115,8 @@ func TestRequestFrom(t *testing.T) {
 		Expect(documentRequest.Location.City).To(HaveValue(Equal("City")))
 		Expect(documentRequest.Location.Country).To(HaveValue(Equal("Country")))
 		Expect(documentRequest.Location.County).To(HaveValue(Equal("County")))
-		Expect(documentRequest.Location.Latitude).To(Equal(big.NewFloat(1.0)))
-		Expect(documentRequest.Location.Longitude).To(Equal(big.NewFloat(2.0)))
+		Expect(documentRequest.Location.Latitude).To(HaveValue(Equal(1.0)))
+		Expect(documentRequest.Location.Longitude).To(HaveValue(Equal(2.0)))
 		Expect(documentRequest.Location.PlaceName).To(HaveValue(Equal("Place Name")))
 		Expect(documentRequest.Location.State).To(HaveValue(Equal("State")))
 		Expect(documentRequest.Location.StreetAddress1).To(HaveValue(Equal("Street Address 1")))

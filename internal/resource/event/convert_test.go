@@ -1,7 +1,6 @@
 package event
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -33,8 +32,8 @@ func TestElementFrom(t *testing.T) {
 						"city":            types.StringValue("City"),
 						"country":         types.StringValue("Country"),
 						"county":          types.StringValue("County"),
-						"latitude":        types.NumberValue(big.NewFloat(1.0)),
-						"longitude":       types.NumberValue(big.NewFloat(2.0)),
+						"latitude":        types.Float64Value(1.0),
+						"longitude":       types.Float64Value(2.0),
 						"place_name":      types.StringValue("Place Name"),
 						"state":           types.StringValue("State"),
 						"street_address1": types.StringValue("Street Address 1"),
@@ -63,8 +62,8 @@ func TestElementFrom(t *testing.T) {
 		Expect(element.Location.City).To(HaveValue(Equal("City")))
 		Expect(element.Location.Country).To(HaveValue(Equal("Country")))
 		Expect(element.Location.County).To(HaveValue(Equal("County")))
-		Expect(element.Location.Latitude).To(Equal(big.NewFloat(1.0)))
-		Expect(element.Location.Longitude).To(Equal(big.NewFloat(2.0)))
+		Expect(element.Location.Latitude).To(HaveValue(Equal(1.0)))
+		Expect(element.Location.Longitude).To(HaveValue(Equal(2.0)))
 		Expect(element.Location.PlaceName).To(HaveValue(Equal("Place Name")))
 		Expect(element.Location.State).To(HaveValue(Equal("State")))
 		Expect(element.Location.StreetAddress1).To(HaveValue(Equal("Street Address 1")))
