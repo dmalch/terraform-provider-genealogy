@@ -152,19 +152,16 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				return nil, err
 			}
 
-			apiRateLimit := res.Header.Get("X-API-Rate-Limit")
-			if apiRateLimitNumber, err := strconv.Atoi(apiRateLimit); err == nil {
-				if c.limiter.Burst() != apiRateLimitNumber {
-					c.limiter.SetBurst(apiRateLimitNumber)
-				}
-			}
-
 			apiRateWindow := res.Header.Get("X-API-Rate-Window")
 			secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 			if err == nil {
-				newLimit := rate.Every(time.Duration(secondsUntilRetry) * time.Second)
-				if c.limiter.Limit() != newLimit {
-					c.limiter.SetLimit(newLimit)
+				apiRateLimit := res.Header.Get("X-API-Rate-Limit")
+				if apiRateLimitNumber, err := strconv.Atoi(apiRateLimit); err == nil {
+					newLimit := rate.Every(time.Duration(secondsUntilRetry/apiRateLimitNumber) * time.Second)
+					if c.limiter.Limit() != newLimit {
+						tflog.Debug(ctx, "Setting rate limit", map[string]interface{}{"limit": newLimit, "seconds_until_retry": secondsUntilRetry, "api_rate_limit": apiRateLimit})
+						c.limiter.SetLimit(newLimit)
+					}
 				}
 			}
 
