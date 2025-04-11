@@ -7,14 +7,14 @@ NC:=\033[0m # No Color
 build-local:
 	@echo "${WHITE}=====================${NC}"
 	@echo "${YELLOW}Building...${NC}"
-	go build -o bin/registry.terraform.io/dmalch/geni/0.0.1/darwin_arm64/terraform-provider-geni
+	go build -o bin/registry.terraform.io/dmalch/geni/0.6.4/darwin_arm64/terraform-provider-genealogy
 	@echo "${YELLOW}Building...${NC} ${GREEN}Done${NC}"
 
 .PHONY: build
 build:
 	@echo "${WHITE}=====================${NC}"
 	@echo "${YELLOW}Building...${NC}"
-	go build -o bin/terraform-provider-geni
+	go build -o bin/terraform-provider-genealogy
 	@echo "${YELLOW}Building...${NC} ${GREEN}Done${NC}"
 
 .PHONY: clean
