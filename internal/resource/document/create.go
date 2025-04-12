@@ -14,6 +14,11 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
+	// Get the planned profiles to tag the document with
+	plannedProfiles := plan.Profiles
+	profileIds, diags := SliceFromSet(ctx, plannedProfiles)
+	resp.Diagnostics.Append(diags...)
+
 	documentRequest, diags := RequestFrom(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -31,6 +36,16 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Tag the document with the person IDs
+	for _, profileId := range profileIds {
+		if _, err = r.client.TagDocument(ctx, documentResponse.Id, profileId); err != nil {
+			resp.Diagnostics.AddError("Error tagging document", err.Error())
+			return
+		}
+	}
+
+	plan.Profiles = plannedProfiles
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }

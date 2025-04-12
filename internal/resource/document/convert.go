@@ -50,7 +50,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 	locationModel, diags := event.LocationObjectValueFrom(ctx, resourceModel.Location)
 	d.Append(diags...)
 
-	labelModels, diags := LabelModelsFrom(ctx, resourceModel.Labels)
+	labelModels, diags := SliceFromSet(ctx, resourceModel.Labels)
 	d.Append(diags...)
 
 	var labels *string
@@ -76,15 +76,15 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 	return documentRequest, d
 }
 
-func LabelModelsFrom(ctx context.Context, labels types.Set) ([]string, diag.Diagnostics) {
-	if len(labels.Elements()) == 0 {
+func SliceFromSet(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+	if len(set.Elements()) == 0 {
 		return nil, diag.Diagnostics{}
 	}
 
-	var labelModels = make([]string, len(labels.Elements()))
-	diags := labels.ElementsAs(ctx, &labelModels, false)
+	var slice = make([]string, len(set.Elements()))
+	diags := set.ElementsAs(ctx, &slice, false)
 
-	return labelModels, diags
+	return slice, diags
 }
 
 func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, resourceModel *ResourceModel) diag.Diagnostics {

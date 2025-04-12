@@ -207,7 +207,7 @@ func (c *Client) DeleteDocument(ctx context.Context, documentId string) error {
 	return nil
 }
 
-func (c *Client) UpdateDocument(ctx context.Context, profileId string, request *DocumentRequest) (*DocumentResponse, error) {
+func (c *Client) UpdateDocument(ctx context.Context, documentId string, request *DocumentRequest) (*DocumentResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
 		slog.Error("Error marshaling request", "error", err)
@@ -217,7 +217,7 @@ func (c *Client) UpdateDocument(ctx context.Context, profileId string, request *
 	jsonStr := strings.ReplaceAll(string(jsonBody), "\\\\", "\\")
 	jsonStr = escapeString(jsonStr)
 
-	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/update"
+	url := BaseUrl(c.useSandboxEnv) + "api/" + documentId + "/update"
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
@@ -238,4 +238,28 @@ func (c *Client) UpdateDocument(ctx context.Context, profileId string, request *
 	}
 
 	return &document, nil
+}
+
+func (c *Client) TagDocument(ctx context.Context, documentId, profileId string) (*ProfileBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/" + documentId + "/tag/" + profileId
+
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profiles ProfileBulkResponse
+	err = json.Unmarshal(body, &profiles)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &profiles, nil
 }
