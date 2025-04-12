@@ -61,10 +61,12 @@ func LocationSchema(description string) schema.SingleNestedAttribute {
 			},
 			"latitude": schema.Float64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Latitude coordinate.",
 			},
 			"longitude": schema.Float64Attribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Longitude coordinate.",
 			},
 			"place_name": schema.StringAttribute{

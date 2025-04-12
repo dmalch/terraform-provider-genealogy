@@ -172,9 +172,9 @@ type LocationElement struct {
 	// County is the county name
 	County *string `json:"county"`
 	// Latitude is the latitude
-	Latitude *float64 `json:"latitude"`
+	Latitude *float64 `json:"latitude,omitempty"`
 	// Longitude is the longitude
-	Longitude *float64 `json:"longitude"`
+	Longitude *float64 `json:"longitude,omitempty"`
 	// PlaceName is the place name
 	PlaceName *string `json:"place_name"`
 	// State is the state name

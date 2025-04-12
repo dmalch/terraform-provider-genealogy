@@ -98,6 +98,10 @@ func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, 
 	d.Append(diags...)
 	resourceModel.Labels = labels
 
+	location, diags := event.UpdateComputedFieldsInLocationObject(ctx, resourceModel.Location, response.Location)
+	d.Append(diags...)
+	resourceModel.Location = location
+
 	resourceModel.CreatedAt = types.StringValue(response.CreatedAt)
 	return d
 }

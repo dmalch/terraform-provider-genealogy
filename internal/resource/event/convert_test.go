@@ -5,8 +5,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	. "github.com/onsi/gomega"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
+
+func ptr[T any](s T) *T {
+	return &s
+}
 
 func TestElementFrom(t *testing.T) {
 	t.Run("regular case", func(t *testing.T) {
@@ -73,7 +80,7 @@ func TestElementFrom(t *testing.T) {
 
 	t.Run("when date and location are nulls", func(t *testing.T) {
 		RegisterTestingT(t)
-		eventObject := types.ObjectValueMust(Model{}.AttributeTypes(),
+		eventObject := types.ObjectValueMust(EventModelAttributeTypes(),
 			map[string]attr.Value{
 				"name":        types.StringValue("Event Name"),
 				"description": types.StringValue("Event Description"),
@@ -98,5 +105,119 @@ func TestElementFrom(t *testing.T) {
 
 		Expect(diags).To(BeEmpty())
 		Expect(element).To(BeNil())
+	})
+}
+
+func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
+	t.Run("regular case when all elements are defined", func(t *testing.T) {
+		RegisterTestingT(t)
+
+		givenLocationObject := types.ObjectValueMust(LocationModelAttributeTypes(),
+			map[string]attr.Value{
+				"city":            types.StringValue("City"),
+				"country":         types.StringValue("Country"),
+				"county":          types.StringValue("County"),
+				"latitude":        types.Float64Value(1.0),
+				"longitude":       types.Float64Value(2.0),
+				"place_name":      types.StringValue("Place Name"),
+				"state":           types.StringValue("State"),
+				"street_address1": types.StringValue("Street Address 1"),
+				"street_address2": types.StringValue("Street Address 2"),
+				"street_address3": types.StringValue("Street Address 3"),
+			})
+		givenLocationResponse := &geni.LocationElement{
+			City:           ptr("City Response"),
+			Country:        ptr("Country Response"),
+			County:         ptr("County Response"),
+			Latitude:       ptr(1.1),
+			Longitude:      ptr(2.1),
+			PlaceName:      ptr("Place Name Response"),
+			State:          ptr("State Response"),
+			StreetAddress1: ptr("Street Address 1 Response"),
+			StreetAddress2: ptr("Street Address 2 Response"),
+			StreetAddress3: ptr("Street Address 3 Response"),
+		}
+		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, givenLocationResponse)
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationObject).ToNot(BeNil())
+		Expect(updatedLocationObject).To(Equal(givenLocationObject))
+	})
+
+	t.Run("when latitude and longitude is unknown", func(t *testing.T) {
+		RegisterTestingT(t)
+
+		givenLocationObject := types.ObjectValueMust(LocationModelAttributeTypes(),
+			map[string]attr.Value{
+				"city":            types.StringNull(),
+				"country":         types.StringNull(),
+				"county":          types.StringNull(),
+				"latitude":        types.Float64Unknown(),
+				"longitude":       types.Float64Unknown(),
+				"place_name":      types.StringNull(),
+				"state":           types.StringNull(),
+				"street_address1": types.StringNull(),
+				"street_address2": types.StringNull(),
+				"street_address3": types.StringNull(),
+			})
+		givenLocationResponse := &geni.LocationElement{
+			City:           ptr("City Response"),
+			Country:        ptr("Country Response"),
+			County:         ptr("County Response"),
+			Latitude:       ptr(1.1),
+			Longitude:      ptr(2.1),
+			PlaceName:      ptr("Place Name Response"),
+			State:          ptr("State Response"),
+			StreetAddress1: ptr("Street Address 1 Response"),
+			StreetAddress2: ptr("Street Address 2 Response"),
+			StreetAddress3: ptr("Street Address 3 Response"),
+		}
+		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, givenLocationResponse)
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationObject).ToNot(BeNil())
+
+		var updatedLocationModel LocationModel
+		diags = updatedLocationObject.As(t.Context(), &updatedLocationModel, basetypes.ObjectAsOptions{})
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationModel.Latitude.ValueFloat64()).To(Equal(*givenLocationResponse.Latitude))
+		Expect(updatedLocationModel.Longitude.ValueFloat64()).To(Equal(*givenLocationResponse.Longitude))
+	})
+
+	t.Run("when latitude and longitude is unknown and response is a zero", func(t *testing.T) {
+		RegisterTestingT(t)
+
+		givenLocationObject := types.ObjectValueMust(LocationModelAttributeTypes(),
+			map[string]attr.Value{
+				"city":            types.StringNull(),
+				"country":         types.StringNull(),
+				"county":          types.StringNull(),
+				"latitude":        types.Float64Unknown(),
+				"longitude":       types.Float64Unknown(),
+				"place_name":      types.StringNull(),
+				"state":           types.StringNull(),
+				"street_address1": types.StringNull(),
+				"street_address2": types.StringNull(),
+				"street_address3": types.StringNull(),
+			})
+		givenLocationResponse := &geni.LocationElement{
+			City:           ptr("City Response"),
+			Country:        ptr("Country Response"),
+			County:         ptr("County Response"),
+			Latitude:       ptr(0.0),
+			Longitude:      ptr(0.0),
+			PlaceName:      ptr("Place Name Response"),
+			State:          ptr("State Response"),
+			StreetAddress1: ptr("Street Address 1 Response"),
+			StreetAddress2: ptr("Street Address 2 Response"),
+			StreetAddress3: ptr("Street Address 3 Response"),
+		}
+		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, givenLocationResponse)
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationObject).ToNot(BeNil())
+
+		var updatedLocationModel LocationModel
+		diags = updatedLocationObject.As(t.Context(), &updatedLocationModel, basetypes.ObjectAsOptions{})
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationModel.Latitude.IsNull()).To(BeTrue())
+		Expect(updatedLocationModel.Longitude.IsNull()).To(BeTrue())
 	})
 }

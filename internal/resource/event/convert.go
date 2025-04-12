@@ -235,7 +235,7 @@ func UpdateComputedFieldsInEvent(ctx context.Context, eventObject types.Object, 
 	return eventObject, d
 }
 
-func updateComputedFieldsInEventObject(_ context.Context, eventObject *Model, eventElement *geni.EventElement) diag.Diagnostics {
+func updateComputedFieldsInEventObject(ctx context.Context, eventObject *Model, eventElement *geni.EventElement) diag.Diagnostics {
 	var d diag.Diagnostics
 
 	if eventObject.Name.IsNull() || eventObject.Name.IsUnknown() {
@@ -245,5 +245,41 @@ func updateComputedFieldsInEventObject(_ context.Context, eventObject *Model, ev
 		eventObject.Description = types.StringValue(eventElement.Description)
 	}
 
+	location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, eventElement.Location)
+	d.Append(diags...)
+	eventObject.Location = location
+
 	return d
+}
+
+func UpdateComputedFieldsInLocationObject(ctx context.Context, locationObject types.Object, locationElement *geni.LocationElement) (types.Object, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	if !locationObject.IsNull() && !locationObject.IsUnknown() {
+		var locationModel LocationModel
+
+		diags := locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})
+		d.Append(diags...)
+
+		if locationModel.Latitude.IsUnknown() {
+			if locationElement.Latitude != nil && *locationElement.Latitude == 0.0 {
+				locationModel.Latitude = types.Float64Null()
+			} else {
+				locationModel.Latitude = types.Float64PointerValue(locationElement.Latitude)
+			}
+		}
+
+		if locationModel.Longitude.IsUnknown() {
+			if locationElement.Longitude != nil && *locationElement.Longitude == 0.0 {
+				locationModel.Longitude = types.Float64Null()
+			} else {
+				locationModel.Longitude = types.Float64PointerValue(locationElement.Longitude)
+			}
+		}
+
+		locationObject, diags = types.ObjectValueFrom(ctx, locationModel.AttributeTypes(), locationModel)
+		d.Append(diags...)
+	}
+
+	return locationObject, d
 }
