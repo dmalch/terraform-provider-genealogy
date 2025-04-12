@@ -64,6 +64,8 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 		Description: resourceModel.Description.ValueStringPointer(),
 		ContentType: resourceModel.ContentType.ValueStringPointer(),
 		Text:        resourceModel.Text.ValueStringPointer(),
+		File:        resourceModel.File.ValueStringPointer(),
+		FileName:    resourceModel.FileName.ValueStringPointer(),
 		Date:        event.DateElementFrom(dateModel),
 		Location:    event.LocationElementFrom(locationModel),
 		Labels:      labels,

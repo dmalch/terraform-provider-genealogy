@@ -13,7 +13,7 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
-func TestAccDocument_createDocument(t *testing.T) {
+func TestAccDocument_createTextDocument(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -36,13 +36,15 @@ func TestAccDocument_createDocument(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is a test document.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
 				},
 			},
 		},
 	})
 }
 
-func TestAccDocument_createDocumentWithDetails(t *testing.T) {
+func TestAccDocument_createTextDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -83,6 +85,8 @@ func TestAccDocument_createDocumentWithDetails(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is a test document.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("description"), knownvalue.StringExact("This is a test document description.")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("date"), knownvalue.ObjectExact(map[string]knownvalue.Check{
 						"year":  knownvalue.Int32Exact(1980),
@@ -108,7 +112,7 @@ func TestAccDocument_createDocumentWithDetails(t *testing.T) {
 	})
 }
 
-func TestAccDocument_updateDocumentWithDetails(t *testing.T) {
+func TestAccDocument_updateTextDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -134,6 +138,8 @@ func TestAccDocument_updateDocumentWithDetails(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is a test document.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
 				},
 			},
 			{
@@ -174,6 +180,212 @@ func TestAccDocument_updateDocumentWithDetails(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/plain")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.StringExact("This is an updated test document.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("description"), knownvalue.StringExact("This is a test document description.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("date"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"year":  knownvalue.Int32Exact(1980),
+						"month": knownvalue.Int32Exact(1),
+						"day":   knownvalue.Int32Exact(1),
+						"circa": knownvalue.Bool(true),
+					})),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("location"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"city":            knownvalue.StringExact("New York"),
+						"country":         knownvalue.StringExact("USA"),
+						"place_name":      knownvalue.StringExact("Hospital"),
+						"state":           knownvalue.StringExact("New York"),
+						"street_address1": knownvalue.StringExact("123 Main St"),
+						"street_address2": knownvalue.StringExact("Apt 1"),
+						"street_address3": knownvalue.StringExact("Floor 2"),
+						"county":          knownvalue.StringExact("Alameda"),
+						"latitude":        knownvalue.Null(),
+						"longitude":       knownvalue.Null(),
+					})),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("labels"), knownvalue.SetExact([]knownvalue.Check{
+						knownvalue.StringExact("Census"),
+						knownvalue.StringExact("Military"),
+					})),
+				},
+			},
+		},
+	})
+}
+
+func TestAccDocument_createPngDocument(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  file = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					  content_type = "image/png"
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("image/png")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.StringExact("cs-white-fff.png")),
+				},
+			},
+		},
+	})
+}
+
+func TestAccDocument_createPngDocumentWithDetails(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  file = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					  content_type = "image/png"	
+					  description = "This is a test document description."
+					  date = {
+						  year = 1980
+						  month = 1
+						  day = 1
+						  circa = true
+					  }
+					  location = {
+						  city = "New York"
+						  county = "Alameda"
+						  country = "USA"
+						  place_name = "Hospital"
+						  state = "New York"
+						  street_address1 = "123 Main St"
+						  street_address2 = "Apt 1"
+						  street_address3 = "Floor 2"
+					  }
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("image/png")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.StringExact("cs-white-fff.png")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("description"), knownvalue.StringExact("This is a test document description.")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("date"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"year":  knownvalue.Int32Exact(1980),
+						"month": knownvalue.Int32Exact(1),
+						"day":   knownvalue.Int32Exact(1),
+						"circa": knownvalue.Bool(true),
+					})),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("location"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"city":            knownvalue.StringExact("New York"),
+						"country":         knownvalue.StringExact("USA"),
+						"place_name":      knownvalue.StringExact("Hospital"),
+						"state":           knownvalue.StringExact("New York"),
+						"street_address1": knownvalue.StringExact("123 Main St"),
+						"street_address2": knownvalue.StringExact("Apt 1"),
+						"street_address3": knownvalue.StringExact("Floor 2"),
+						"county":          knownvalue.StringExact("Alameda"),
+						"latitude":        knownvalue.Null(),
+						"longitude":       knownvalue.Null(),
+					})),
+				},
+			},
+		},
+	})
+}
+
+func TestAccDocument_updatePngDocumentWithDetails(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  file = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					  content_type = "image/png"
+					  labels = [
+						"Military",
+					  ]
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("image/png")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.StringExact("cs-white-fff.png")),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  file = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					  content_type = "image/png"
+					  description = "This is a test document description."
+					  date = {
+						  year = 1980
+						  month = 1
+						  day = 1
+						  circa = true
+					  }
+					  location = {
+						  city = "New York"
+						  county = "Alameda"
+						  country = "USA"
+						  place_name = "Hospital"
+						  state = "New York"
+						  street_address1 = "123 Main St"
+						  street_address2 = "Apt 1"
+						  street_address3 = "Floor 2"
+					  }
+					  labels = [
+						"Census",
+						"Military",
+					  ]
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("image/png")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.StringExact("cs-white-fff.png")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("description"), knownvalue.StringExact("This is a test document description.")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("date"), knownvalue.ObjectExact(map[string]knownvalue.Check{
 						"year":  knownvalue.Int32Exact(1980),

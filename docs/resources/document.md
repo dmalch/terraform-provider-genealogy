@@ -25,6 +25,8 @@ description: |-
 - `created_at` (String) The Unix epoch time in seconds when the document was created.
 - `date` (Attributes) Document's date. (see [below for nested schema](#nestedatt--date))
 - `description` (String) The document's description.
+- `file` (String) The document's file content. This is a base64 encoded string.
+- `file_name` (String) The document's filename. Required if the file is set.
 - `id` (String) The unique identifier for the document. This is a string that starts with 'document-' followed by a number.
 - `labels` (Set of String) The list of labels associated with the document.
 - `location` (Attributes) Document's location. (see [below for nested schema](#nestedatt--location))

@@ -21,7 +21,7 @@ import (
 var (
 	documentIdFormat = regexp.MustCompile(`^document-\d+$`)
 	createdAtFormat  = regexp.MustCompile(`^\d+$`)
-	documentMimeType = regexp.MustCompile(`^((text/plain)|(application/pdf))$`)
+	documentMimeType = regexp.MustCompile(`^((text/plain)|(application/pdf)|image/(jpg|png|tif))$`)
 )
 
 // Schema defines the schema for the resource.
@@ -32,8 +32,10 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:      true,
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				Validators:    []validator.String{stringvalidator.RegexMatches(documentIdFormat, "must be in the format document-1")},
-				Description:   "The unique identifier for the document. This is a string that starts with 'document-' followed by a number.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(documentIdFormat, "must be in the format document-1"),
+				},
+				Description: "The unique identifier for the document. This is a string that starts with 'document-' followed by a number.",
 			},
 			"title": schema.StringAttribute{
 				Required:    true,
@@ -46,13 +48,32 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"content_type": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Validators:  []validator.String{stringvalidator.RegexMatches(documentMimeType, "must be a valid mime type")},
+				Validators:  []validator.String{stringvalidator.RegexMatches(documentMimeType, "must be a supported mime type")},
 				Description: "The document's original content type.",
 			},
 			"text": schema.StringAttribute{
 				Optional:    true,
-				Validators:  []validator.String{stringvalidator.ExactlyOneOf(path.MatchRelative())},
+				Validators:  []validator.String{stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("file"))},
 				Description: "The document's text content.",
+			},
+			"file": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("text")),
+					stringvalidator.AlsoRequires(
+						path.MatchRelative().AtParent().AtName("file_name"),
+						path.MatchRelative().AtParent().AtName("content_type"),
+					),
+				},
+				Description: "The document's file content. This is a base64 encoded string.",
+			},
+			"file_name": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("text")),
+					stringvalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("file")),
+				},
+				Description: "The document's filename. Required if the file is set.",
 			},
 			"date":     event.DateSchema("Document's date."),
 			"location": event.LocationSchema("Document's location."),
