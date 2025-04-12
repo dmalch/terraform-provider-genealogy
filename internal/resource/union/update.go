@@ -3,10 +3,8 @@ package union
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Update updates the resource.
@@ -39,14 +37,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		for _, partnerId := range statePartnerIds {
 			// If the partner is not in the plan, fail the update because we can't remove
 			// partners from a union using the API
-			if _, ok := knownPlanPartnerIds[partnerId.ValueString()]; !ok {
+			if _, ok := knownPlanPartnerIds[partnerId]; !ok {
 				resp.Diagnostics.AddAttributeWarning(path.Root(fieldPartners), "Cannot remove partners", "Partners cannot be removed from a union using terraform unless the profile is deleted")
 			}
 		}
 
 		for _, partnerId := range planPartnerIds {
 			// If the partner is not in the state, we need to add it
-			if _, ok := knownStatePartnerIds[partnerId.ValueString()]; !ok {
+			if _, ok := knownStatePartnerIds[partnerId]; !ok {
 				// It is impossible to add an existing profile to a union using the API, so we
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
@@ -58,7 +56,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				}
 
 				// Merge the temporary profile with the second partner
-				if err := r.client.MergeProfiles(ctx, partnerId.ValueString(), tmpProfile.Id); err != nil {
+				if err := r.client.MergeProfiles(ctx, partnerId, tmpProfile.Id); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 					return
 				}
@@ -85,14 +83,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		for _, childId := range stateChildIds {
 			// If the child is not in the plan, fail the update because we can't remove
 			// children from a union using the API
-			if _, ok := knownPlanChildIds[childId.ValueString()]; !ok {
+			if _, ok := knownPlanChildIds[childId]; !ok {
 				resp.Diagnostics.AddAttributeWarning(path.Root(fieldChildren), "Cannot remove children", "Children cannot be removed from a union using terraform unless the profile is deleted")
 			}
 		}
 
 		for _, childId := range planChildIds {
 			// If the child is not in the state, we need to add it
-			if _, ok := knownStateChildIds[childId.ValueString()]; !ok {
+			if _, ok := knownStateChildIds[childId]; !ok {
 				// It is impossible to add an existing profile to a union using the API, so we
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
@@ -104,7 +102,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				}
 
 				// Merge the temporary profile with the child profile
-				if err := r.client.MergeProfiles(ctx, childId.ValueString(), tmpProfile.Id); err != nil {
+				if err := r.client.MergeProfiles(ctx, childId, tmpProfile.Id); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 					return
 				}
@@ -134,18 +132,4 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-}
-
-func hashMapFrom(slice []types.String) map[string]struct{} {
-	hashMap := make(map[string]struct{}, len(slice))
-	for _, elem := range slice {
-		hashMap[elem.ValueString()] = struct{}{}
-	}
-	return hashMap
-}
-
-func convertToSlice(ctx context.Context, set types.Set) ([]types.String, diag.Diagnostics) {
-	slice := make([]types.String, 0, len(set.Elements()))
-	diags := set.ElementsAs(ctx, &slice, false)
-	return slice, diags
 }

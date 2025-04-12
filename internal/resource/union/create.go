@@ -30,14 +30,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		// so we need to create a temporary partner profile and then merge it with the
 		// existing second partner profile.
 
-		tmpProfile, err := r.client.AddPartner(ctx, partnerIds[0].ValueString())
+		tmpProfile, err := r.client.AddPartner(ctx, partnerIds[0])
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 			return
 		}
 
 		// Merge the temporary profile with the second partner
-		if err := r.client.MergeProfiles(ctx, partnerIds[1].ValueString(), tmpProfile.Id); err != nil {
+		if err := r.client.MergeProfiles(ctx, partnerIds[1], tmpProfile.Id); err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 			return
 		}
@@ -83,7 +83,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0].ValueString())
+					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0])
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
@@ -95,7 +95,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddSibling(ctx, childrenIds[i+1].ValueString())
+					tmpProfile, err = r.client.AddSibling(ctx, childrenIds[i+1])
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
 						return
@@ -107,7 +107,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			}
 
 			// Merge the temporary profile with the child profile
-			if err := r.client.MergeProfiles(ctx, childId.ValueString(), tmpProfile.Id); err != nil {
+			if err := r.client.MergeProfiles(ctx, childId, tmpProfile.Id); err != nil {
 				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 				return
 			}

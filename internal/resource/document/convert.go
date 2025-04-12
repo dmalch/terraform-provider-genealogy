@@ -50,7 +50,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 	locationModel, diags := event.LocationObjectValueFrom(ctx, resourceModel.Location)
 	d.Append(diags...)
 
-	labelModels, diags := SliceFromSet(ctx, resourceModel.Labels)
+	labelModels, diags := convertToSlice(ctx, resourceModel.Labels)
 	d.Append(diags...)
 
 	var labels *string
@@ -76,7 +76,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 	return documentRequest, d
 }
 
-func SliceFromSet(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
 	if len(set.Elements()) == 0 {
 		return nil, diag.Diagnostics{}
 	}
@@ -87,15 +87,19 @@ func SliceFromSet(ctx context.Context, set types.Set) ([]string, diag.Diagnostic
 	return slice, diags
 }
 
+func hashMapFrom(slice []string) map[string]struct{} {
+	hashMap := make(map[string]struct{}, len(slice))
+	for _, elem := range slice {
+		hashMap[elem] = struct{}{}
+	}
+	return hashMap
+}
+
 func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, resourceModel *ResourceModel) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
 	resourceModel.ID = types.StringValue(response.Id)
 	resourceModel.ContentType = types.StringPointerValue(response.ContentType)
-
-	tags, diags := types.SetValueFrom(ctx, types.StringType, response.Tags)
-	d.Append(diags...)
-	resourceModel.Profiles = tags
 
 	// Filter out duplicate labels
 	labels, diags := types.SetValueFrom(ctx, types.StringType, filterOutDuplicateLabelsFrom(response.Labels))

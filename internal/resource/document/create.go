@@ -15,9 +15,11 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	// Get the planned profiles to tag the document with
-	plannedProfiles := plan.Profiles
-	profileIds, diags := SliceFromSet(ctx, plannedProfiles)
+	profileIds, diags := convertToSlice(ctx, plan.Profiles)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	documentRequest, diags := RequestFrom(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -44,8 +46,6 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			return
 		}
 	}
-
-	plan.Profiles = plannedProfiles
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }

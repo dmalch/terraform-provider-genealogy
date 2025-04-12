@@ -524,7 +524,7 @@ func TestAccDocument_createUrlDocumentWithDetails(t *testing.T) {
 	})
 }
 
-func TestAccDocument_createUrlDocumentWithPerson(t *testing.T) {
+func TestAccDocument_createUrlDocumentWithProfile(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
@@ -664,6 +664,105 @@ func TestAccDocument_updateUrlDocumentWithDetails(t *testing.T) {
 						knownvalue.StringExact("Census"),
 						knownvalue.StringExact("Military"),
 					})),
+				},
+			},
+		},
+	})
+}
+
+func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+
+					resource "geni_profile" "test_1" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  alive = false
+					  public = true
+					}
+
+					resource "geni_profile" "test_2" {
+					  first_name = "Jane"
+					  last_name  = "Smith"
+					  alive = true
+					  public = false
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  source_url = "https://example.com"
+					  profiles = [
+						geni_profile.test_1.id,
+					  ]
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/html")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("source_url"), knownvalue.StringExact("https://example.com")),
+					statecheck.CompareValueCollection("geni_document.test", []tfjsonpath.Path{tfjsonpath.New("profiles")},
+						"geni_profile.test_1", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+
+					resource "geni_profile" "test_1" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  alive = false
+					  public = true
+					}
+
+					resource "geni_profile" "test_2" {
+					  first_name = "Jane"
+					  last_name  = "Smith"
+					  alive = true
+					  public = false
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  source_url = "https://example.com"
+					  profiles = [
+						geni_profile.test_2.id,
+					  ]
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/html")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("source_url"), knownvalue.StringExact("https://example.com")),
+					statecheck.CompareValueCollection("geni_document.test", []tfjsonpath.Path{tfjsonpath.New("profiles")},
+						"geni_profile.test_2", tfjsonpath.New("id"), compare.ValuesSame()),
 				},
 			},
 		},

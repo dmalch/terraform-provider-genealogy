@@ -263,3 +263,27 @@ func (c *Client) TagDocument(ctx context.Context, documentId, profileId string) 
 
 	return &profiles, nil
 }
+
+func (c *Client) UntagDocument(ctx context.Context, documentId, profileId string) (*ProfileBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/" + documentId + "/untag/" + profileId
+
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profiles ProfileBulkResponse
+	err = json.Unmarshal(body, &profiles)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &profiles, nil
+}

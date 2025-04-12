@@ -76,3 +76,17 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, d
 
 	return &unionRequest, d
 }
+
+func hashMapFrom(slice []string) map[string]struct{} {
+	hashMap := make(map[string]struct{}, len(slice))
+	for _, elem := range slice {
+		hashMap[elem] = struct{}{}
+	}
+	return hashMap
+}
+
+func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+	slice := make([]string, 0, len(set.Elements()))
+	diags := set.ElementsAs(ctx, &slice, false)
+	return slice, diags
+}
