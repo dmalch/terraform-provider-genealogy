@@ -43,6 +43,8 @@ type DocumentResponse struct {
 	Title string `json:"title,omitempty"`
 	// Description is the document's description
 	Description *string `json:"description"`
+	// SourceUrl is the document's source URL
+	SourceUrl *string `json:"source_url"`
 	// ContentType is the document's content type
 	ContentType *string `json:"content_type"`
 	// Date is the document's date

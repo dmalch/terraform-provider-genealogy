@@ -16,6 +16,7 @@ func ValueFrom(ctx context.Context, response *geni.DocumentResponse, model *Reso
 
 	model.ID = types.StringValue(response.Id)
 	model.Title = types.StringValue(response.Title)
+	model.SourceUrl = types.StringPointerValue(response.SourceUrl)
 	model.Description = types.StringPointerValue(response.Description)
 	model.ContentType = types.StringPointerValue(response.ContentType)
 
@@ -66,6 +67,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 		Text:        resourceModel.Text.ValueStringPointer(),
 		File:        resourceModel.File.ValueStringPointer(),
 		FileName:    resourceModel.FileName.ValueStringPointer(),
+		SourceUrl:   resourceModel.SourceUrl.ValueStringPointer(),
 		Date:        event.DateElementFrom(dateModel),
 		Location:    event.LocationElementFrom(locationModel),
 		Labels:      labels,

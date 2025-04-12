@@ -19,9 +19,10 @@ import (
 )
 
 var (
-	documentIdFormat = regexp.MustCompile(`^document-\d+$`)
-	createdAtFormat  = regexp.MustCompile(`^\d+$`)
-	documentMimeType = regexp.MustCompile(`^((text/plain)|(application/pdf)|image/(jpg|png|tif))$`)
+	documentIdFormat       = regexp.MustCompile(`^document-\d+$`)
+	createdAtFormat        = regexp.MustCompile(`^\d+$`)
+	documentMimeTypeFormat = regexp.MustCompile(`^((text/plain)|(application/pdf)|image/(jpg|png|tif))$`)
+	urlFormat              = regexp.MustCompile(`^https?://`)
 )
 
 // Schema defines the schema for the resource.
@@ -48,18 +49,24 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"content_type": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Validators:  []validator.String{stringvalidator.RegexMatches(documentMimeType, "must be a supported mime type")},
+				Validators:  []validator.String{stringvalidator.RegexMatches(documentMimeTypeFormat, "must be a supported mime type")},
 				Description: "The document's original content type.",
 			},
 			"text": schema.StringAttribute{
-				Optional:    true,
-				Validators:  []validator.String{stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("file"))},
+				Optional: true,
+				Validators: []validator.String{stringvalidator.ExactlyOneOf(
+					path.MatchRelative().AtParent().AtName("file"),
+					path.MatchRelative().AtParent().AtName("source_url"),
+				)},
 				Description: "The document's text content.",
 			},
 			"file": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("text")),
+					stringvalidator.ExactlyOneOf(
+						path.MatchRelative().AtParent().AtName("text"),
+						path.MatchRelative().AtParent().AtName("source_url"),
+					),
 					stringvalidator.AlsoRequires(
 						path.MatchRelative().AtParent().AtName("file_name"),
 						path.MatchRelative().AtParent().AtName("content_type"),
@@ -70,10 +77,24 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"file_name": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("text")),
+					stringvalidator.ExactlyOneOf(
+						path.MatchRelative().AtParent().AtName("text"),
+						path.MatchRelative().AtParent().AtName("source_url"),
+					),
 					stringvalidator.AlsoRequires(path.MatchRelative().AtParent().AtName("file")),
 				},
 				Description: "The document's filename. Required if the file is set.",
+			},
+			"source_url": schema.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(
+						path.MatchRelative().AtParent().AtName("text"),
+						path.MatchRelative().AtParent().AtName("file"),
+					),
+					stringvalidator.RegexMatches(urlFormat, "must be a valid URL"),
+				},
+				Description: "The document's source URL. This is the URL where the document was found.",
 			},
 			"date":     event.DateSchema("Document's date."),
 			"location": event.LocationSchema("Document's location."),
