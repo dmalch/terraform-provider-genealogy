@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type DocumentRequest struct {
@@ -64,7 +65,7 @@ type DocumentResponse struct {
 func (c *Client) CreateDocument(ctx context.Context, request *DocumentRequest) (*DocumentResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
-		slog.Error("Error marshaling request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -75,7 +76,7 @@ func (c *Client) CreateDocument(ctx context.Context, request *DocumentRequest) (
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
-		slog.Error("Error creating request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -87,7 +88,7 @@ func (c *Client) CreateDocument(ctx context.Context, request *DocumentRequest) (
 	var document DocumentResponse
 	err = json.Unmarshal(body, &document)
 	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -98,7 +99,7 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 	url := BaseUrl(c.useSandboxEnv) + "api/" + documentId
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		slog.Error("Error creating request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -115,7 +116,7 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 
 			urlMap.Range(func(key, value interface{}) bool {
 				if _, ok := value.(context.CancelFunc); ok {
-					if keyString, ok := key.(string); ok {
+					if keyString, ok := key.(string); ok && strings.Contains(keyString, "document") {
 						ids = append(ids, keyString)
 					}
 				}
@@ -138,7 +139,7 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 			var response DocumentBulkResponse
 			err := json.Unmarshal(body, &response)
 			if err != nil {
-				slog.Error("Error unmarshaling bulk response", "error", err)
+				tflog.Error(ctx, "Error unmarshaling bulk response", map[string]interface{}{"error": err})
 				return nil, err
 			}
 
@@ -149,7 +150,7 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 
 				jsonBody, err := json.Marshal(&document)
 				if err != nil {
-					slog.Error("Error marshaling request", "error", err)
+					tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 					return nil, err
 				}
 
@@ -176,7 +177,7 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 	var document DocumentResponse
 	err = json.Unmarshal(body, &document)
 	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -188,7 +189,7 @@ func (c *Client) DeleteDocument(ctx context.Context, documentId string) error {
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 
 	if err != nil {
-		slog.Error("Error creating request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return err
 	}
 
@@ -200,7 +201,7 @@ func (c *Client) DeleteDocument(ctx context.Context, documentId string) error {
 	var result ResultResponse
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
 		return err
 	}
 
@@ -210,7 +211,7 @@ func (c *Client) DeleteDocument(ctx context.Context, documentId string) error {
 func (c *Client) UpdateDocument(ctx context.Context, documentId string, request *DocumentRequest) (*DocumentResponse, error) {
 	jsonBody, err := json.Marshal(request)
 	if err != nil {
-		slog.Error("Error marshaling request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -221,7 +222,7 @@ func (c *Client) UpdateDocument(ctx context.Context, documentId string, request 
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString(jsonStr))
 	if err != nil {
-		slog.Error("Error creating request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -233,7 +234,7 @@ func (c *Client) UpdateDocument(ctx context.Context, documentId string, request 
 	var document DocumentResponse
 	err = json.Unmarshal(body, &document)
 	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -245,7 +246,7 @@ func (c *Client) TagDocument(ctx context.Context, documentId, profileId string) 
 
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
-		slog.Error("Error creating request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -257,7 +258,7 @@ func (c *Client) TagDocument(ctx context.Context, documentId, profileId string) 
 	var profiles ProfileBulkResponse
 	err = json.Unmarshal(body, &profiles)
 	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -269,7 +270,7 @@ func (c *Client) UntagDocument(ctx context.Context, documentId, profileId string
 
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
-		slog.Error("Error creating request", "error", err)
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
 		return nil, err
 	}
 
@@ -281,7 +282,7 @@ func (c *Client) UntagDocument(ctx context.Context, documentId, profileId string
 	var profiles ProfileBulkResponse
 	err = json.Unmarshal(body, &profiles)
 	if err != nil {
-		slog.Error("Error unmarshaling response", "error", err)
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
 		return nil, err
 	}
 

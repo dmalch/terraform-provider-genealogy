@@ -263,7 +263,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 			urlMap.Range(func(key, value interface{}) bool {
 				if _, ok := value.(context.CancelFunc); ok {
-					if keyString, ok := key.(string); ok {
+					if keyString, ok := key.(string); ok && strings.Contains(keyString, "profile") {
 						ids = append(ids, keyString)
 					}
 				}

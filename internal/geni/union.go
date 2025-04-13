@@ -61,7 +61,7 @@ func (c *Client) GetUnion(ctx context.Context, unionId string) (*UnionResponse, 
 
 			urlMap.Range(func(key, value interface{}) bool {
 				if _, ok := value.(context.CancelFunc); ok {
-					if keyString, ok := key.(string); ok {
+					if keyString, ok := key.(string); ok && strings.Contains(keyString, "union") {
 						ids = append(ids, keyString)
 					}
 				}

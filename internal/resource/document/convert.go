@@ -101,6 +101,12 @@ func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, 
 	resourceModel.ID = types.StringValue(response.Id)
 	resourceModel.ContentType = types.StringPointerValue(response.ContentType)
 
+	if resourceModel.Profiles.IsNull() || resourceModel.Profiles.IsUnknown() {
+		tags, diags := types.SetValueFrom(ctx, types.StringType, response.Tags)
+		d.Append(diags...)
+		resourceModel.Profiles = tags
+	}
+
 	// Filter out duplicate labels
 	labels, diags := types.SetValueFrom(ctx, types.StringType, filterOutDuplicateLabelsFrom(response.Labels))
 	d.Append(diags...)
