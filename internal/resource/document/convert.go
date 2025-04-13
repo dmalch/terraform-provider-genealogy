@@ -98,8 +98,13 @@ func hashMapFrom(slice []string) map[string]struct{} {
 func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, resourceModel *ResourceModel) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
-	resourceModel.ID = types.StringValue(response.Id)
-	resourceModel.ContentType = types.StringPointerValue(response.ContentType)
+	if resourceModel.ID.IsNull() || resourceModel.ID.IsUnknown() {
+		resourceModel.ID = types.StringValue(response.Id)
+	}
+
+	if resourceModel.ContentType.IsNull() || resourceModel.ContentType.IsUnknown() {
+		resourceModel.ContentType = types.StringPointerValue(response.ContentType)
+	}
 
 	if resourceModel.Profiles.IsNull() || resourceModel.Profiles.IsUnknown() {
 		tags, diags := types.SetValueFrom(ctx, types.StringType, response.Tags)
@@ -116,7 +121,10 @@ func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, 
 	d.Append(diags...)
 	resourceModel.Location = location
 
-	resourceModel.CreatedAt = types.StringValue(response.CreatedAt)
+	if resourceModel.CreatedAt.IsNull() || resourceModel.CreatedAt.IsUnknown() {
+		resourceModel.CreatedAt = types.StringValue(response.CreatedAt)
+	}
+
 	return d
 }
 

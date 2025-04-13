@@ -21,7 +21,7 @@ import (
 var (
 	documentIdFormat       = regexp.MustCompile(`^document-\d+$`)
 	createdAtFormat        = regexp.MustCompile(`^\d+$`)
-	documentMimeTypeFormat = regexp.MustCompile(`^((text/plain)|(application/pdf)|image/(jpg|png|tif))$`)
+	documentMimeTypeFormat = regexp.MustCompile(`^(text/(plain|html)|(application/pdf)|image/(jpg|png|tif))$`)
 	urlFormat              = regexp.MustCompile(`^https?://`)
 )
 
@@ -58,7 +58,8 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 					path.MatchRelative().AtParent().AtName("file"),
 					path.MatchRelative().AtParent().AtName("source_url"),
 				)},
-				Description: "The document's text content.",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplaceIfConfigured()},
+				Description:   "The document's text content.",
 			},
 			"file": schema.StringAttribute{
 				Optional: true,
@@ -72,7 +73,8 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						path.MatchRelative().AtParent().AtName("content_type"),
 					),
 				},
-				Description: "The document's file content. This is a base64 encoded string.",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplaceIfConfigured()},
+				Description:   "The document's file content. This is a base64 encoded string.",
 			},
 			"file_name": schema.StringAttribute{
 				Optional: true,
@@ -94,7 +96,8 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 					),
 					stringvalidator.RegexMatches(urlFormat, "must be a valid URL"),
 				},
-				Description: "The document's source URL. This is the URL where the document was found.",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplaceIfConfigured()},
+				Description:   "The document's source URL. This is the URL where the document was found.",
 			},
 			"date":     event.DateSchema("Document's date."),
 			"location": event.LocationSchema("Document's location."),
