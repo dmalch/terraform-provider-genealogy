@@ -219,18 +219,19 @@ func LocationValueFrom(ctx context.Context, location *geni.LocationElement) (bas
 func UpdateComputedFieldsInEvent(ctx context.Context, eventObject types.Object, eventElement *geni.EventElement) (types.Object, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	if !eventObject.IsNull() && !eventObject.IsUnknown() {
-		var eventModel Model
+	var eventModel *Model
+	diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
+	d.Append(diags...)
 
-		diags := eventObject.As(ctx, &eventModel, basetypes.ObjectAsOptions{})
-		d.Append(diags...)
-
-		diags = updateComputedFieldsInEventObject(ctx, &eventModel, eventElement)
-		d.Append(diags...)
-
-		eventObject, diags = types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
-		d.Append(diags...)
+	if eventModel == nil {
+		return types.ObjectNull(EventModelAttributeTypes()), d
 	}
+
+	diags = updateComputedFieldsInEventObject(ctx, eventModel, eventElement)
+	d.Append(diags...)
+
+	eventObject, diags = types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+	d.Append(diags...)
 
 	return eventObject, d
 }
