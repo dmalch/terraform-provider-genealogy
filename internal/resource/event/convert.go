@@ -240,16 +240,30 @@ func updateComputedFieldsInEventObject(ctx context.Context, eventObject *Model, 
 	var d diag.Diagnostics
 
 	if eventObject.Name.IsNull() || eventObject.Name.IsUnknown() {
-		eventObject.Name = types.StringValue(eventElement.Name)
+		if eventElement == nil {
+			eventObject.Name = types.StringNull()
+		} else {
+			eventObject.Name = types.StringValue(eventElement.Name)
+		}
 	}
 
 	if eventObject.Description.IsNull() || eventObject.Description.IsUnknown() {
-		eventObject.Description = types.StringValue(eventElement.Description)
+		if eventElement == nil {
+			eventObject.Description = types.StringNull()
+		} else {
+			eventObject.Description = types.StringValue(eventElement.Description)
+		}
 	}
 
-	location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, eventElement.Location)
-	d.Append(diags...)
-	eventObject.Location = location
+	if eventElement == nil {
+		location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, nil)
+		d.Append(diags...)
+		eventObject.Location = location
+	} else {
+		location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, eventElement.Location)
+		d.Append(diags...)
+		eventObject.Location = location
+	}
 
 	return d
 }

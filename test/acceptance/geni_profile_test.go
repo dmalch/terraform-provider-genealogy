@@ -247,6 +247,40 @@ func profileWithFixedBirthDate(testAccessToken string) string {
 	`
 }
 
+func TestAccProfile_createProfileWithEmptyBirthLocation(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  first_name = "John"
+					  last_name  = "Doe"
+					  gender     = "male"
+					  alive = false
+					  public = true
+					  birth      = {
+						location = {
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
+				},
+			},
+		},
+	})
+}
+
 func TestAccProfile_createProfileWithNamesInOtherLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		//IsUnitTest: true,
