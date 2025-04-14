@@ -117,11 +117,9 @@ func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, 
 	d.Append(diags...)
 	resourceModel.Labels = labels
 
-	if resourceModel.Location.IsNull() || resourceModel.Location.IsUnknown() {
-		location, diags := event.UpdateComputedFieldsInLocationObject(ctx, resourceModel.Location, response.Location)
-		d.Append(diags...)
-		resourceModel.Location = location
-	}
+	location, diags := event.UpdateComputedFieldsInLocationObject(ctx, resourceModel.Location, response.Location)
+	d.Append(diags...)
+	resourceModel.Location = location
 
 	if resourceModel.CreatedAt.IsNull() || resourceModel.CreatedAt.IsUnknown() {
 		resourceModel.CreatedAt = types.StringValue(response.CreatedAt)

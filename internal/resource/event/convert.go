@@ -246,11 +246,9 @@ func updateComputedFieldsInEventObject(ctx context.Context, eventObject *Model, 
 		eventObject.Description = types.StringValue(eventElement.Description)
 	}
 
-	if eventObject.Location.IsNull() || eventObject.Location.IsUnknown() {
-		location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, eventElement.Location)
-		d.Append(diags...)
-		eventObject.Location = location
-	}
+	location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, eventElement.Location)
+	d.Append(diags...)
+	eventObject.Location = location
 
 	return d
 }
@@ -258,9 +256,13 @@ func updateComputedFieldsInEventObject(ctx context.Context, eventObject *Model, 
 func UpdateComputedFieldsInLocationObject(ctx context.Context, locationObject types.Object, locationElement *geni.LocationElement) (types.Object, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	var locationModel LocationModel
+	var locationModel *LocationModel
 	diags := locationObject.As(ctx, &locationModel, basetypes.ObjectAsOptions{})
 	d.Append(diags...)
+
+	if locationModel == nil {
+		return types.ObjectNull(LocationModelAttributeTypes()), d
+	}
 
 	if locationModel.Latitude.IsUnknown() {
 		if locationElement == nil || locationElement.Latitude != nil && *locationElement.Latitude == 0.0 {
