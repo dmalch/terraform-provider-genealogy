@@ -153,14 +153,22 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			}
 
 			apiRateWindow := res.Header.Get("X-API-Rate-Window")
+			apiRateLimit := res.Header.Get("X-API-Rate-Limit")
+
+			tflog.Debug(ctx, "Received response", map[string]interface{}{"status": res.StatusCode, "X-API-Rate-Window": apiRateWindow, "X-API-Rate-Limit": apiRateLimit})
+			tflog.Trace(ctx, "Received response", map[string]interface{}{"status": res.StatusCode, "body": string(body), "X-API-Rate-Window": apiRateWindow, "X-API-Rate-Limit": apiRateLimit})
+
 			secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 			if err == nil {
-				apiRateLimit := res.Header.Get("X-API-Rate-Limit")
 				if apiRateLimitNumber, err := strconv.Atoi(apiRateLimit); err == nil {
-					newLimit := rate.Every(time.Duration(secondsUntilRetry/apiRateLimitNumber) * time.Second)
+					newLimit := rate.Every(time.Duration(secondsUntilRetry) * time.Second / time.Duration(apiRateLimitNumber))
 					if c.limiter.Limit() != newLimit {
 						tflog.Debug(ctx, "Setting rate limit", map[string]interface{}{"limit": newLimit, "seconds_until_retry": secondsUntilRetry, "api_rate_limit": apiRateLimit})
 						c.limiter.SetLimit(newLimit)
+					}
+					if c.limiter.Burst() != apiRateLimitNumber {
+						tflog.Debug(ctx, "Setting rate burst", map[string]interface{}{"burst": apiRateLimitNumber})
+						c.limiter.SetBurst(apiRateLimitNumber)
 					}
 				}
 			}
@@ -187,9 +195,6 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				return nil, fmt.Errorf("non-OK HTTP status: %s, body: %s", res.Status, string(body))
 			}
 
-			tflog.Debug(ctx, "Received response", map[string]interface{}{"status": res.StatusCode})
-			tflog.Trace(ctx, "Received response", map[string]interface{}{"status": res.StatusCode, "body": string(body)})
-
 			if options.parseBulkResponse != nil {
 				return options.parseBulkResponse(req, body, c.urlMap)
 			}
@@ -202,7 +207,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 		}),
 		retry.Context(ctx),
 		retry.Attempts(4),
-		retry.Delay(10*time.Second),    // Wait 10 seconds between retries
+		retry.Delay(2*time.Second),     // Wait 2 seconds between retries
 		retry.MaxJitter(2*time.Second), // Add up to 2 seconds of jitter to each retry
 		retry.DelayType(retry.CombineDelay(retry.FixedDelay, retry.RandomDelay)),
 		retry.OnRetry(func(n uint, err error) {
