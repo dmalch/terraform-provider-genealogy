@@ -220,4 +220,31 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 		Expect(updatedLocationModel.Latitude.IsNull()).To(BeTrue())
 		Expect(updatedLocationModel.Longitude.IsNull()).To(BeTrue())
 	})
+
+	t.Run("when latitude and longitude is unknown and response is a null", func(t *testing.T) {
+		RegisterTestingT(t)
+
+		givenLocationObject := types.ObjectValueMust(LocationModelAttributeTypes(),
+			map[string]attr.Value{
+				"city":            types.StringNull(),
+				"country":         types.StringNull(),
+				"county":          types.StringNull(),
+				"latitude":        types.Float64Unknown(),
+				"longitude":       types.Float64Unknown(),
+				"place_name":      types.StringNull(),
+				"state":           types.StringNull(),
+				"street_address1": types.StringNull(),
+				"street_address2": types.StringNull(),
+				"street_address3": types.StringNull(),
+			})
+		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, nil)
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationObject).ToNot(BeNil())
+
+		var updatedLocationModel LocationModel
+		diags = updatedLocationObject.As(t.Context(), &updatedLocationModel, basetypes.ObjectAsOptions{})
+		Expect(diags).To(BeEmpty())
+		Expect(updatedLocationModel.Latitude.IsNull()).To(BeTrue())
+		Expect(updatedLocationModel.Longitude.IsNull()).To(BeTrue())
+	})
 }

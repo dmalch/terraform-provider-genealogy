@@ -201,8 +201,8 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			return errors.As(err, &errCode429WithRetry)
 		}),
 		retry.Context(ctx),
-		retry.Attempts(3),
-		retry.Delay(1*time.Second),     // Wait 2 seconds between retries
+		retry.Attempts(4),
+		retry.Delay(10*time.Second),    // Wait 10 seconds between retries
 		retry.MaxJitter(2*time.Second), // Add up to 2 seconds of jitter to each retry
 		retry.DelayType(retry.CombineDelay(retry.FixedDelay, retry.RandomDelay)),
 		retry.OnRetry(func(n uint, err error) {
