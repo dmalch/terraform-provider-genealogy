@@ -241,11 +241,12 @@ func updateComputedFieldsInEventObject(ctx context.Context, eventObject *Model, 
 	if eventObject.Name.IsNull() || eventObject.Name.IsUnknown() {
 		eventObject.Name = types.StringValue(eventElement.Name)
 	}
+
 	if eventObject.Description.IsNull() || eventObject.Description.IsUnknown() {
 		eventObject.Description = types.StringValue(eventElement.Description)
 	}
 
-	if !eventObject.Location.IsNull() && !eventObject.Location.IsUnknown() {
+	if eventObject.Location.IsNull() || eventObject.Location.IsUnknown() {
 		location, diags := UpdateComputedFieldsInLocationObject(ctx, eventObject.Location, eventElement.Location)
 		d.Append(diags...)
 		eventObject.Location = location
