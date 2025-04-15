@@ -105,7 +105,7 @@ type ProfileResponse struct {
 	ProfileUrl string `json:"profile_url,omitempty"`
 	// MergePending is a boolean that indicates whether the profile has a pending merge
 	MergePending bool `json:"merge_pending,omitempty"`
-	// MergedInto is the URL (or id) of the profile this profile is currently merged into
+	// MergedInto is the ID of the profile this profile is currently merged into
 	MergedInto string `json:"merged_into,omitempty"`
 	// MergeNote is the note explaining the profile's merge status
 	MergeNote []string `json:"merge_note,omitempty"`
@@ -113,6 +113,8 @@ type ProfileResponse struct {
 	Url string `json:"url,omitempty"`
 	// Unions is the URLs to unions
 	Unions []string `json:"unions,omitempty"`
+	// Deleted is a boolean that indicates whether the profile is deleted
+	Deleted bool `json:"deleted"`
 	// UpdatedAt is the timestamp of when the profile was last updated
 	UpdatedAt string `json:"updated_at,omitempty"`
 	// CreatedAt is the timestamp of when the profile was created
@@ -335,7 +337,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,about_me,unions,is_alive,public,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 

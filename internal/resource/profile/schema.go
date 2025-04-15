@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -147,6 +148,16 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"alive": schema.BoolAttribute{
 				Required:    true,
 				Description: "Profile's alive status.",
+			},
+			"deleted": schema.BoolAttribute{
+				Computed:      true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
+				Description:   "Profile's deleted status.",
+			},
+			"auto_update_when_merged": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Whether to automatically update the profile when it is merged with another profile.",
 			},
 			"created_at": schema.StringAttribute{
 				Computed:      true,

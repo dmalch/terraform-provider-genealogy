@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -38,6 +39,12 @@ func Schema(opts ...SchemaOptions) schema.SingleNestedAttribute {
 			},
 			"date":     DateRangeSchema("Event's date."),
 			"location": LocationSchema("Event's location."),
+		},
+		Validators: []validator.Object{
+			objectvalidator.Any(
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("date")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("location")),
+			),
 		},
 		Description: opt.Description,
 	}
@@ -90,6 +97,18 @@ func LocationSchema(description string) schema.SingleNestedAttribute {
 				Description: "Third line of the street address.",
 			},
 		},
+		Validators: []validator.Object{
+			objectvalidator.Any(
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("city")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("country")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("county")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("place_name")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("state")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("street_address1")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("street_address2")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("street_address3")),
+			),
+		},
 		Description: description,
 	}
 }
@@ -114,6 +133,13 @@ func DateSchema(description string) schema.SingleNestedAttribute {
 				Optional:    true,
 				Description: "Date's year.",
 			},
+		},
+		Validators: []validator.Object{
+			objectvalidator.Any(
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("day")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("month")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("year")),
+			),
 		},
 		Description: description,
 	}
@@ -163,6 +189,13 @@ func DateRangeSchema(description string) schema.SingleNestedAttribute {
 				Validators:  []validator.Int32{int32validator.AlsoRequires(rangePath)},
 				Description: "Date's end year (only valid if range is between).",
 			},
+		},
+		Validators: []validator.Object{
+			objectvalidator.Any(
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("day")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("month")),
+				objectvalidator.AlsoRequires(path.MatchRelative().AtName("year")),
+			),
 		},
 		Description: description,
 	}

@@ -52,6 +52,8 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	d.Append(diags...)
 	profileModel.Burial = burial
 
+	profileModel.Deleted = types.BoolValue(profile.Deleted)
+
 	if profile.CreatedAt != "" {
 		profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
 	}
@@ -185,6 +187,7 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	d.Append(diags...)
 	profileModel.Burial = burial
 
+	profileModel.Deleted = types.BoolValue(profile.Deleted)
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
 
 	return d

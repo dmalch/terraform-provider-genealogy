@@ -6,23 +6,25 @@ import (
 )
 
 type ResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	FirstName     types.String `tfsdk:"first_name"`
-	LastName      types.String `tfsdk:"last_name"`
-	MiddleName    types.String `tfsdk:"middle_name"`
-	BirthLastName types.String `tfsdk:"birth_last_name"`
-	DisplayName   types.String `tfsdk:"display_name"`
-	Names         types.Map    `tfsdk:"names"`
-	Gender        types.String `tfsdk:"gender"`
-	Birth         types.Object `tfsdk:"birth"`
-	Baptism       types.Object `tfsdk:"baptism"`
-	Death         types.Object `tfsdk:"death"`
-	Burial        types.Object `tfsdk:"burial"`
-	Unions        types.List   `tfsdk:"unions"`
-	About         types.String `tfsdk:"about"`
-	Public        types.Bool   `tfsdk:"public"`
-	Alive         types.Bool   `tfsdk:"alive"`
-	CreatedAt     types.String `tfsdk:"created_at"`
+	ID                   types.String `tfsdk:"id"`
+	FirstName            types.String `tfsdk:"first_name"`
+	LastName             types.String `tfsdk:"last_name"`
+	MiddleName           types.String `tfsdk:"middle_name"`
+	BirthLastName        types.String `tfsdk:"birth_last_name"`
+	DisplayName          types.String `tfsdk:"display_name"`
+	Names                types.Map    `tfsdk:"names"`
+	Gender               types.String `tfsdk:"gender"`
+	Birth                types.Object `tfsdk:"birth"`
+	Baptism              types.Object `tfsdk:"baptism"`
+	Death                types.Object `tfsdk:"death"`
+	Burial               types.Object `tfsdk:"burial"`
+	Unions               types.List   `tfsdk:"unions"`
+	About                types.String `tfsdk:"about"`
+	Public               types.Bool   `tfsdk:"public"`
+	Alive                types.Bool   `tfsdk:"alive"`
+	Deleted              types.Bool   `tfsdk:"deleted"`
+	AutoUpdateWhenMerged types.Bool   `tfsdk:"auto_update_when_merged"`
+	CreatedAt            types.String `tfsdk:"created_at"`
 }
 
 type NameModel struct {

@@ -273,9 +273,7 @@ func TestAccProfile_createProfileWithEmptyBirthLocation(t *testing.T) {
 					  }
 					}
 				`,
-				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-				},
+				ExpectError: regexp.MustCompile(`birth.location.city" must be specified when "birth.location" is\s*specified`),
 			},
 		},
 	})
