@@ -56,7 +56,7 @@ func (c *Client) initProfileCache(ctx context.Context) error {
 	defer c.profileCacheLock.Unlock()
 
 	// If the cache is empty, retrieve all managed profiles
-	if !c.documentCacheInitialized {
+	if !c.profileCacheInitialized {
 		// Retrieve the first page of managed profiles using the API
 		profiles, err := c.GetManagedProfiles(ctx, 1)
 		if err != nil {
@@ -87,7 +87,7 @@ func (c *Client) initProfileCache(ctx context.Context) error {
 			}
 		}
 
-		c.documentCacheInitialized = true
+		c.profileCacheInitialized = true
 	}
 	return nil
 }
