@@ -23,12 +23,14 @@ description: |-
 ### Optional
 
 - `about` (String) Profile's about me section.
+- `auto_update_when_merged` (Boolean) Whether to automatically update the profile when it is merged with another profile.
 - `baptism` (Attributes) Baptism event information. (see [below for nested schema](#nestedatt--baptism))
 - `birth` (Attributes) Birth event information. (see [below for nested schema](#nestedatt--birth))
 - `birth_last_name` (String) The birth last name of the person.
 - `burial` (Attributes) Burial event information. (see [below for nested schema](#nestedatt--burial))
 - `created_at` (String) The Unix epoch time in seconds when the profile was created.
 - `death` (Attributes) Death event information. (see [below for nested schema](#nestedatt--death))
+- `deleted` (Boolean) Profile's deleted status.
 - `display_name` (String) The display name of the person.
 - `first_name` (String) The first name of the person.
 - `gender` (String) Profile's gender.

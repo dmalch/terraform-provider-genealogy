@@ -17,4 +17,5 @@ This provider enables managing data on Geni.com through Terraform. It exposes co
 ### Optional
 
 - `access_token` (String, Sensitive) The Access Token for the Geni API, if not provided the provider will attempt to do a browser-based OAuth login flow
+- `use_profile_cache` (Boolean) Whether to use the profile cache for faster lookups
 - `use_sandbox_env` (Boolean) Whether to use the Geni Sandbox environment

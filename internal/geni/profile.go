@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -49,7 +50,9 @@ type ProfileRequest struct {
 }
 
 type ProfileBulkResponse struct {
-	Results []ProfileResponse `json:"results,omitempty"`
+	Results    []ProfileResponse `json:"results,omitempty"`
+	Page       int               `json:"page,omitempty"`
+	TotalCount int               `json:"total_count,omitempty"`
 }
 
 type ProfileResponse struct {
@@ -347,6 +350,40 @@ func (c *Client) fixResponse(profile *ProfileResponse) {
 	for i, union := range profile.Unions {
 		profile.Unions[i] = strings.Replace(union, apiUrl(c.useSandboxEnv), "", 1)
 	}
+}
+
+func (c *Client) GetManagedProfiles(ctx context.Context, page int) (*ProfileBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/user/managed-profiles"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	c.addProfileFieldsQueryParams(req)
+
+	query := req.URL.Query()
+	query.Add("page", strconv.Itoa(page))
+	req.URL.RawQuery = query.Encode()
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile ProfileBulkResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	// Iterate over the profiles and fix the response
+	for i := range profile.Results {
+		c.fixResponse(&profile.Results[i])
+	}
+
+	return &profile, nil
 }
 
 func (c *Client) UpdateProfile(ctx context.Context, profileId string, request *ProfileRequest) (*ProfileResponse, error) {

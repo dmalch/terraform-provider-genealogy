@@ -43,6 +43,10 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 				Optional:    true,
 				Description: "Whether to use the Geni Sandbox environment",
 			},
+			"use_profile_cache": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Whether to use the profile cache for faster lookups",
+			},
 		},
 		Description: "This provider enables managing data on Geni.com through Terraform. It exposes configuration and resources that help automate genealogical information. This application uses the Geni API but is not endorsed, operated, or sponsored by Geni.com.",
 	}
