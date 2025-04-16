@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -112,6 +113,11 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:    true,
 				Computed:    true,
 				Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
+				PlanModifiers: []planmodifier.Set{setplanmodifier.RequiresReplaceIf(
+					valuesAreRemovedFromState,
+					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
+					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
+				)},
 				Description: "The list of labels associated with the document.",
 			},
 			"created_at": schema.StringAttribute{
@@ -123,4 +129,28 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			},
 		},
 	}
+}
+
+func valuesAreRemovedFromState(_ context.Context, req planmodifier.SetRequest, resp *setplanmodifier.RequiresReplaceIfFuncResponse) {
+	if req.ConfigValue.IsNull() {
+		return
+	}
+
+	// If plan contains all values from state, no need to replace
+	for _, v := range req.StateValue.Elements() {
+		// Check if the value is in the plan
+		if !contains(req.PlanValue.Elements(), v) {
+			resp.RequiresReplace = true
+			break
+		}
+	}
+}
+
+func contains(elements []attr.Value, v attr.Value) bool {
+	for _, p := range elements {
+		if v.Equal(p) {
+			return true
+		}
+	}
+	return false
 }
