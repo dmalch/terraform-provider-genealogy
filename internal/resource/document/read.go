@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 // Read reads the resource.
@@ -15,10 +17,21 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	documentResponse, err := r.client.GetDocument(ctx, state.ID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading document", err.Error())
-		return
+	var documentResponse *geni.DocumentResponse
+	var err error
+
+	if r.useDocumentCache {
+		documentResponse, err = r.client.GetDocumentFromCache(ctx, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Error reading document", err.Error())
+			return
+		}
+	} else {
+		documentResponse, err = r.client.GetDocument(ctx, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Error reading document", err.Error())
+			return
+		}
 	}
 
 	diags := ValueFrom(ctx, documentResponse, &state)

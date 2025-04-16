@@ -36,13 +36,16 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 }
 
 type Client struct {
-	useSandboxEnv bool
-	tokenSource   oauth2.TokenSource
-	client        *http.Client
-	limiter       *rate.Limiter
-	urlMap        *sync.Map
-	cache         *bigcache.BigCache
-	cacheLock     sync.Mutex
+	useSandboxEnv            bool
+	tokenSource              oauth2.TokenSource
+	client                   *http.Client
+	limiter                  *rate.Limiter
+	urlMap                   *sync.Map
+	cache                    *bigcache.BigCache
+	profileCacheLock         sync.Mutex
+	profileCacheInitialized  bool
+	documentCacheLock        sync.Mutex
+	documentCacheInitialized bool
 }
 
 func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {

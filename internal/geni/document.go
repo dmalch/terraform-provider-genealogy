@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -35,7 +36,9 @@ type DocumentRequest struct {
 }
 
 type DocumentBulkResponse struct {
-	Results []DocumentResponse `json:"results,omitempty"`
+	Results    []DocumentResponse `json:"results,omitempty"`
+	Page       int                `json:"page,omitempty"`
+	TotalCount int                `json:"total_count,omitempty"`
 }
 type DocumentResponse struct {
 	// Id is the document's id
@@ -175,6 +178,35 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 	}
 
 	var document DocumentResponse
+	err = json.Unmarshal(body, &document)
+	if err != nil {
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
+		return nil, err
+	}
+
+	return &document, nil
+}
+
+const maxDocumentsPerPage = 50
+
+func (c *Client) GetUploadedDocuments(ctx context.Context, page int) (*DocumentBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/user/uploaded-documents"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
+		return nil, err
+	}
+
+	query := req.URL.Query()
+	query.Add("page", strconv.Itoa(page))
+	req.URL.RawQuery = query.Encode()
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var document DocumentBulkResponse
 	err = json.Unmarshal(body, &document)
 	if err != nil {
 		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})

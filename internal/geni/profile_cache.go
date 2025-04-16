@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Client) GetProfileFromCache(ctx context.Context, profileId string) (*ProfileResponse, error) {
-	if err := c.initCache(ctx); err != nil {
+	if err := c.initProfileCache(ctx); err != nil {
 		tflog.Error(ctx, "Error initializing cache", map[string]interface{}{"error": err})
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (c *Client) GetProfileFromCache(ctx context.Context, profileId string) (*Pr
 			}
 
 			// Store the retrieved profile in the cache
-			if err := c.storeInCache(ctx, *profile); err != nil {
+			if err := c.storeInCache(ctx, profile.Id, *profile); err != nil {
 				tflog.Error(ctx, "Error storing profile in cache", map[string]interface{}{"error": err})
 				return nil, err
 			}
@@ -51,12 +51,12 @@ func (c *Client) GetProfileFromCache(ctx context.Context, profileId string) (*Pr
 	return &profile, nil
 }
 
-func (c *Client) initCache(ctx context.Context) error {
-	c.cacheLock.Lock()
-	defer c.cacheLock.Unlock()
+func (c *Client) initProfileCache(ctx context.Context) error {
+	c.profileCacheLock.Lock()
+	defer c.profileCacheLock.Unlock()
 
 	// If the cache is empty, retrieve all managed profiles
-	if c.cache.Len() == 0 {
+	if !c.documentCacheInitialized {
 		// Retrieve the first page of managed profiles using the API
 		profiles, err := c.GetManagedProfiles(ctx, 1)
 		if err != nil {
@@ -64,8 +64,15 @@ func (c *Client) initCache(ctx context.Context) error {
 			return err
 		}
 
+		for _, profile := range profiles.Results {
+			if err := c.storeInCache(ctx, profile.Id, profile); err != nil {
+				tflog.Error(ctx, "Error storing profile in cache", map[string]interface{}{"error": err})
+				return err
+			}
+		}
+
 		// Retrieve all managed profiles using the API, run up to 200 times
-		for i := 0; i < 200 && len(profiles.Results) > 0; i++ {
+		for i := 0; i < 200 && len(profiles.Results) == maxProfilesPerPage; i++ {
 			profiles, err = c.GetManagedProfiles(ctx, profiles.Page+1)
 			if err != nil {
 				tflog.Error(ctx, "Error retrieving managed profiles", map[string]interface{}{"error": err})
@@ -73,25 +80,14 @@ func (c *Client) initCache(ctx context.Context) error {
 			}
 
 			for _, profile := range profiles.Results {
-				if err := c.storeInCache(ctx, profile); err != nil {
+				if err := c.storeInCache(ctx, profile.Id, profile); err != nil {
 					tflog.Error(ctx, "Error storing profile in cache", map[string]interface{}{"error": err})
 					return err
 				}
 			}
 		}
-	}
-	return nil
-}
 
-func (c *Client) storeInCache(ctx context.Context, profile ProfileResponse) error {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(profile); err != nil {
-		tflog.Error(ctx, "Error encoding profile", map[string]interface{}{"error": err})
-		return err
-	}
-	if err := c.cache.Set(profile.Id, buf.Bytes()); err != nil {
-		tflog.Error(ctx, "Error setting profile in cache", map[string]interface{}{"error": err})
-		return err
+		c.documentCacheInitialized = true
 	}
 	return nil
 }

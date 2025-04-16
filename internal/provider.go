@@ -47,6 +47,10 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 				Optional:    true,
 				Description: "Whether to use the profile cache for faster lookups",
 			},
+			"use_document_cache": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Whether to use the document cache for faster lookups",
+			},
 		},
 		Description: "This provider enables managing data on Geni.com through Terraform. It exposes configuration and resources that help automate genealogical information. This application uses the Geni API but is not endorsed, operated, or sponsored by Geni.com.",
 	}
@@ -81,8 +85,9 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	resp.ResourceData = &config.ClientData{
-		Client:          geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool()),
-		UseProfileCache: cfg.UseProfileCache.ValueBool(),
+		Client:           geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool()),
+		UseProfileCache:  cfg.UseProfileCache.ValueBool(),
+		UseDocumentCache: cfg.UseDocumentCache.ValueBool(),
 	}
 }
 
