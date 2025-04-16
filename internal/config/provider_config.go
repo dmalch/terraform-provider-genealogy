@@ -7,10 +7,12 @@ import (
 )
 
 type GeniProviderConfig struct {
-	AccessToken   types.String `tfsdk:"access_token"`
-	UseSandboxEnv types.Bool   `tfsdk:"use_sandbox_env"`
+	AccessToken     types.String `tfsdk:"access_token"`
+	UseSandboxEnv   types.Bool   `tfsdk:"use_sandbox_env"`
+	UseProfileCache types.Bool   `tfsdk:"use_profile_cache"`
 }
 
 type ClientData struct {
-	Client *geni.Client
+	Client          *geni.Client
+	UseProfileCache bool
 }

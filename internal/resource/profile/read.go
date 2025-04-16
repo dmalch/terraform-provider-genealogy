@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 // Read reads the resource.
@@ -15,20 +17,27 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	profileResponse, err := r.client.GetProfile(ctx, state.ID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading profile", err.Error())
-		return
-	}
+	var profileResponse *geni.ProfileResponse
+	var err error
 
-	// If the profile is deleted, check if it was merged into another profile and
-	// read that profile instead. Iterate up to 10 times to find the merged profile.
-	if state.AutoUpdateWhenMerged.ValueBool() && profileResponse.Deleted {
-		for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
-			profileResponse, err = r.client.GetProfile(ctx, profileResponse.MergedInto)
-			if err != nil {
-				resp.Diagnostics.AddError("Error reading profile", err.Error())
-				return
+	if r.useProfileCache {
+		// TODO: Use the profile cache to get the profile.
+	} else {
+		profileResponse, err = r.client.GetProfile(ctx, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Error reading profile", err.Error())
+			return
+		}
+
+		// If the profile is deleted, check if it was merged into another profile and
+		// read that profile instead. Iterate up to 10 times to find the merged profile.
+		if state.AutoUpdateWhenMerged.ValueBool() && profileResponse.Deleted {
+			for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
+				profileResponse, err = r.client.GetProfile(ctx, profileResponse.MergedInto)
+				if err != nil {
+					resp.Diagnostics.AddError("Error reading profile", err.Error())
+					return
+				}
 			}
 		}
 	}

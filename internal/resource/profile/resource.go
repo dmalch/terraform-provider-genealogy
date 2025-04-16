@@ -12,7 +12,8 @@ import (
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	client *geni.Client
+	client          *geni.Client
+	useProfileCache bool
 }
 
 func NewProfileResource() resource.Resource {
@@ -42,4 +43,5 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	}
 
 	r.client = cfg.Client
+	r.useProfileCache = cfg.UseProfileCache
 }

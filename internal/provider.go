@@ -77,7 +77,8 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	resp.ResourceData = &config.ClientData{
-		Client: geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool()),
+		Client:          geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool()),
+		UseProfileCache: cfg.UseProfileCache.ValueBool(),
 	}
 }
 
