@@ -28,6 +28,7 @@ description: |-
 - `birth` (Attributes) Birth event information. (see [below for nested schema](#nestedatt--birth))
 - `birth_last_name` (String) The birth last name of the person.
 - `burial` (Attributes) Burial event information. (see [below for nested schema](#nestedatt--burial))
+- `cause_of_death` (String) Profile's death cause
 - `created_at` (String) The Unix epoch time in seconds when the profile was created.
 - `death` (Attributes) Death event information. (see [below for nested schema](#nestedatt--death))
 - `deleted` (Boolean) Profile's deleted status.
@@ -36,6 +37,7 @@ description: |-
 - `gender` (String) Profile's gender.
 - `id` (String) The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.
 - `last_name` (String) The last name of the person.
+- `merged_into` (String) The ID of the profile this profile was merged into.
 - `middle_name` (String) The middle name of the person.
 - `names` (Attributes Map) Nested maps of locales to name fields to values. (see [below for nested schema](#nestedatt--names))
 - `unions` (List of String) List of union IDs.
