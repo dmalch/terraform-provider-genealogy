@@ -28,7 +28,7 @@ type ProfileRequest struct {
 	// Death is the death event info
 	Death *EventElement `json:"death,omitempty"`
 	// CauseOfDeath is the cause of death
-	CauseOfDeath string `json:"cause_of_death,omitempty"`
+	CauseOfDeath *string `json:"cause_of_death,omitempty"`
 	// Burial is the burial event info
 	Burial *EventElement `json:"burial,omitempty"`
 	// IsAlive is a boolean that indicates whether the profile is living
@@ -83,7 +83,7 @@ type ProfileResponse struct {
 	// Death is the death event info
 	Death *EventElement `json:"death,omitempty"`
 	// CauseOfDeath is the cause of death
-	CauseOfDeath string `json:"cause_of_death,omitempty"`
+	CauseOfDeath *string `json:"cause_of_death,omitempty"`
 	// Burial is the burial event info
 	Burial *EventElement `json:"burial,omitempty"`
 	// Events is the events associated with this profile
@@ -340,7 +340,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,cause_of_death,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 

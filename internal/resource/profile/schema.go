@@ -137,6 +137,10 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				DescriptionComputed: true,
 				Description:         "Burial event information.",
 			}),
+			"cause_of_death": schema.StringAttribute{
+				Optional:    true,
+				Description: "Profile's death cause",
+			},
 			"about": schema.StringAttribute{
 				Optional:    true,
 				Description: "Profile's about me section.",

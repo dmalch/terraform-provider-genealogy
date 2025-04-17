@@ -52,6 +52,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	d.Append(diags...)
 	profileModel.Burial = burial
 
+	profileModel.CauseOfDeath = types.StringPointerValue(profile.CauseOfDeath)
 	profileModel.Deleted = types.BoolValue(profile.Deleted)
 	profileModel.MergedInto = types.StringPointerValue(profile.MergedInto)
 
@@ -114,15 +115,16 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	}
 
 	profileRequest := &geni.ProfileRequest{
-		Names:   convertedNames,
-		Gender:  resourceModel.Gender.ValueStringPointer(),
-		Birth:   birth,
-		Baptism: baptism,
-		Death:   death,
-		Burial:  burial,
-		AboutMe: resourceModel.About.ValueStringPointer(),
-		Public:  resourceModel.Public.ValueBool(),
-		IsAlive: resourceModel.Alive.ValueBool(),
+		Names:        convertedNames,
+		Gender:       resourceModel.Gender.ValueStringPointer(),
+		Birth:        birth,
+		Baptism:      baptism,
+		Death:        death,
+		Burial:       burial,
+		CauseOfDeath: resourceModel.CauseOfDeath.ValueStringPointer(),
+		AboutMe:      resourceModel.About.ValueStringPointer(),
+		Public:       resourceModel.Public.ValueBool(),
+		IsAlive:      resourceModel.Alive.ValueBool(),
 	}
 
 	return profileRequest, d

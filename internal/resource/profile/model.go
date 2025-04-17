@@ -18,6 +18,7 @@ type ResourceModel struct {
 	Baptism              types.Object `tfsdk:"baptism"`
 	Death                types.Object `tfsdk:"death"`
 	Burial               types.Object `tfsdk:"burial"`
+	CauseOfDeath         types.String `tfsdk:"cause_of_death"`
 	Unions               types.List   `tfsdk:"unions"`
 	About                types.String `tfsdk:"about"`
 	Public               types.Bool   `tfsdk:"public"`
