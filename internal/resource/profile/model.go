@@ -23,6 +23,7 @@ type ResourceModel struct {
 	Public               types.Bool   `tfsdk:"public"`
 	Alive                types.Bool   `tfsdk:"alive"`
 	Deleted              types.Bool   `tfsdk:"deleted"`
+	MergedInto           types.String `tfsdk:"merged_into"`
 	AutoUpdateWhenMerged types.Bool   `tfsdk:"auto_update_when_merged"`
 	CreatedAt            types.String `tfsdk:"created_at"`
 }

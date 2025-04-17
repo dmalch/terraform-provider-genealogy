@@ -155,6 +155,12 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 				Description:   "Profile's deleted status.",
 			},
+			"merged_into": schema.StringAttribute{
+				Computed:      true,
+				Optional:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Description:   "The ID of the profile this profile was merged into.",
+			},
 			"auto_update_when_merged": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Whether to automatically update the profile when it is merged with another profile.",

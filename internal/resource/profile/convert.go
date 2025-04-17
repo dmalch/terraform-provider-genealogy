@@ -53,6 +53,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	profileModel.Burial = burial
 
 	profileModel.Deleted = types.BoolValue(profile.Deleted)
+	profileModel.MergedInto = types.StringPointerValue(profile.MergedInto)
 
 	if profile.CreatedAt != "" {
 		profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
@@ -188,6 +189,7 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	profileModel.Burial = burial
 
 	profileModel.Deleted = types.BoolValue(profile.Deleted)
+	profileModel.MergedInto = types.StringPointerValue(profile.MergedInto)
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
 
 	return d
