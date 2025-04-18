@@ -2,6 +2,7 @@ package document
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -17,21 +18,15 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	var documentResponse *geni.DocumentResponse
-	var err error
+	documentResponse, err := r.getDocument(ctx, state.ID.ValueString())
+	if err != nil {
+		if errors.Is(err, geni.ErrResourceNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 
-	if r.useDocumentCache {
-		documentResponse, err = r.client.GetDocumentFromCache(ctx, state.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Error reading document", err.Error())
-			return
-		}
-	} else {
-		documentResponse, err = r.client.GetDocument(ctx, state.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Error reading document", err.Error())
-			return
-		}
+		resp.Diagnostics.AddError("Error reading document", err.Error())
+		return
 	}
 
 	diags := ValueFrom(ctx, documentResponse, &state)
@@ -41,6 +36,14 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func (r *Resource) getDocument(ctx context.Context, documentId string) (*geni.DocumentResponse, error) {
+	if r.useDocumentCache {
+		return r.client.GetDocumentFromCache(ctx, documentId)
+	}
+
+	return r.client.GetDocument(ctx, documentId)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

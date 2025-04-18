@@ -2,6 +2,7 @@ package profile
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -20,18 +21,15 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	var profileResponse *geni.ProfileResponse
 	var err error
 
-	if r.useProfileCache {
-		profileResponse, err = r.client.GetProfileFromCache(ctx, state.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Error reading profile", err.Error())
+	profileResponse, err = r.getProfile(ctx, state.ID.ValueString())
+	if err != nil {
+		if errors.Is(err, geni.ErrResourceNotFound) {
+			resp.State.RemoveResource(ctx)
 			return
 		}
-	} else {
-		profileResponse, err = r.client.GetProfile(ctx, state.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Error reading profile", err.Error())
-			return
-		}
+
+		resp.Diagnostics.AddError("Error reading profile", err.Error())
+		return
 	}
 
 	// If the profile is deleted, check if it was merged into another profile and
@@ -44,6 +42,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 				return
 			}
 		}
+	}
+
+	if profileResponse.Deleted {
+		resp.State.RemoveResource(ctx)
+		return
 	}
 
 	newState := state
@@ -69,6 +72,14 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
+}
+
+func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {
+	if r.useProfileCache {
+		return r.client.GetProfileFromCache(ctx, profileId)
+	}
+
+	return r.client.GetProfile(ctx, profileId)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
