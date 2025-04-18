@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,6 +25,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	profileResponse, err = r.getProfile(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
+			resp.Diagnostics.AddWarning("Resource not found", "The profile was not found in the Geni API.")
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -45,6 +47,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	if profileResponse.Deleted {
+		if profileResponse.MergedInto != nil && *profileResponse.MergedInto != "" {
+			resp.Diagnostics.AddWarning("Resource is merged", fmt.Sprintf("The profile was merged into another profile. Please use the merged profile ID=%s.", *profileResponse.MergedInto))
+		} else {
+			resp.Diagnostics.AddWarning("Resource is deleted", "The profile was deleted in the Geni API.")
+		}
 		resp.State.RemoveResource(ctx)
 		return
 	}

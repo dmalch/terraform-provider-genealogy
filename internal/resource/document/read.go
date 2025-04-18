@@ -21,6 +21,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	documentResponse, err := r.getDocument(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
+			resp.Diagnostics.AddWarning("Resource not found", "The profile was not found in the Geni API.")
 			resp.State.RemoveResource(ctx)
 			return
 		}
