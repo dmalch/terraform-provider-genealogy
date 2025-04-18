@@ -32,9 +32,13 @@ Below is a brief example of adding these resources in the Terraform configuratio
 
 ```hcl
 resource "geni_profile" "mother" {
-  first_name      = "Jane"
-  last_name       = "Doe"
-  birth_last_name = "Brown"
+  names = {
+    "en-US" = {
+      first_name      = "Jane"
+      last_name       = "Doe"
+      birth_last_name = "Brown"
+    }
+  }
 }
 
 resource "geni_profile" "father" {
@@ -57,15 +61,23 @@ resource "geni_profile" "father" {
   }
 }
 resource "geni_profile" "child1" {
-  first_name   = "Alice"
-  last_name    = "Doe"
-  display_name = "Alicia"
+  names = {
+    "en-US" = {
+      first_name   = "Alice"
+      last_name    = "Doe"
+      display_name = "Alicia"
+    }
+  }
 }
 
 resource "geni_profile" "child2" {
-  first_name   = "Bob"
-  last_name    = "Doe"
-  display_name = "Bobby"
+  names = {
+    "en-US" = {
+      first_name   = "Bob"
+      last_name    = "Doe"
+      display_name = "Bobby"
+    }
+    }
 }
 
 resource "geni_union" "doe_family" {
