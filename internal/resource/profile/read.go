@@ -48,9 +48,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 	if profileResponse.Deleted {
 		if profileResponse.MergedInto != nil && *profileResponse.MergedInto != "" {
-			resp.Diagnostics.AddWarning("Resource is merged", fmt.Sprintf("The profile was merged into another profile. Please use the merged profile ID=%s.", *profileResponse.MergedInto))
+			resp.Diagnostics.AddWarning(fmt.Sprintf("Resource %s is merged", profileResponse.Id),
+				fmt.Sprintf("The profile %s was merged into another profile. Please use the merged profile ID=%s.", profileResponse.Id, *profileResponse.MergedInto))
 		} else {
-			resp.Diagnostics.AddWarning("Resource is deleted", "The profile was deleted in the Geni API.")
+			resp.Diagnostics.AddWarning("Resource is deleted",
+				fmt.Sprintf("The profile %s was deleted in the Geni API.", profileResponse.Id))
 		}
 		resp.State.RemoveResource(ctx)
 		return
