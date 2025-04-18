@@ -26,8 +26,8 @@ func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {
 			{
 				Config: unionWithTwoPartners(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -47,15 +47,23 @@ func unionWithTwoPartners(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "husband" {
-		  first_name = "John"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -79,9 +87,9 @@ func TestAccUnion_createUnionWithTwoPartnersAndChild(t *testing.T) {
 			{
 				Config: unionWithTwoPartnersAndChild(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
-					statecheck.ExpectKnownValue("geni_profile.child", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.child", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -104,22 +112,34 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "husband" {
-		  first_name = "John"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "child" {
-		  first_name = "Alice"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -147,10 +167,10 @@ func TestAccUnion_createUnionWithTwoPartnersTwoChildren(t *testing.T) {
 			{
 				Config: unionWithTwoPartnersTwoChildren(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
-					statecheck.ExpectKnownValue("geni_profile.child1", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
-					statecheck.ExpectKnownValue("geni_profile.child2", tfjsonpath.New("first_name"), knownvalue.StringExact("Bob")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.child1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_profile.child2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Bob")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -175,29 +195,45 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "husband" {
-		  first_name = "John"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "child1" {
-		  first_name = "Alice"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "child2" {
-		  first_name = "Bob"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Bob"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -226,8 +262,8 @@ func TestAccUnion_createUnionWithOneParentAndChild(t *testing.T) {
 			{
 				Config: unionWithOneParentAndChild(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.mother", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
-					statecheck.ExpectKnownValue("geni_profile.child", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_profile.mother", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.child", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(1)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.mother", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -248,15 +284,23 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "mother" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "child" {
-		  first_name = "Alice"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -283,8 +327,8 @@ func TestAccUnion_createUnionWithTwoSiblingsWithoutParents(t *testing.T) {
 			{
 				Config: unionWithTwoSiblingsWithoutParents(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
-					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("first_name"), knownvalue.StringExact("Bob")),
+					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Bob")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
 						"geni_profile.sibling1", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -304,15 +348,23 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "sibling1" {
-		  first_name = "Alice"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "sibling2" {
-		  first_name = "Bob"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Bob"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -336,8 +388,8 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 			{
 				Config: unionWithTwoSiblingsWithoutParents(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("first_name"), knownvalue.StringExact("Alice")),
-					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("first_name"), knownvalue.StringExact("Bob")),
+					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
+					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Bob")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
 						"geni_profile.sibling1", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -353,29 +405,45 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 				}
 
 				resource "geni_profile" "sibling1" {
-				  first_name = "Alice"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Alice"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 				
 				resource "geni_profile" "sibling2" {
-				  first_name = "Bob"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Bob"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "mother" {
-				  first_name = "Jane"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Jane"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 
 				resource "geni_profile" "father" {
-				  first_name = "John"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
@@ -428,8 +496,12 @@ func unionWithOneParent(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "mother" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -465,8 +537,12 @@ func unionWithOneChild(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "child" {
-		  first_name = "Alice"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -502,22 +578,34 @@ func unionWithThreePartners(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "partner1" {
-		  first_name = "John"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "partner2" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "partner3" {
-		  first_name = "Alice"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -542,8 +630,8 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 			{
 				Config: unionWithTwoPartners(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -560,22 +648,34 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 				}
 
 				resource "geni_profile" "husband" {
-				  first_name = "John"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 			
 				resource "geni_profile" "wife" {
-				  first_name = "Jane"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Jane"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "partner3" {
-				  first_name = "Alice"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Alice"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
@@ -621,22 +721,34 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 				}
 
 				resource "geni_profile" "husband" {
-				  first_name = "John"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "wife" {
-				  first_name = "Jane"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Jane"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "child" {
-				  first_name = "Alice"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Alice"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
@@ -680,22 +792,34 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 				}
 
 				resource "geni_profile" "husband" {
-				  first_name = "John"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "wife" {
-				  first_name = "Jane"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Jane"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "child" {
-				  first_name = "Alice"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Alice"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
@@ -736,29 +860,45 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				}
 
 				resource "geni_profile" "husband" {
-				  first_name = "John"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "wife" {
-				  first_name = "Jane"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Jane"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "child1" {
-				  first_name = "Alice"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Alice"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
 		
 				resource "geni_profile" "child2" {
-				  first_name = "Bob"
-				  last_name  = "Doe"
+				  names = {
+					"en-US" = {
+						first_name = "Bob"
+						last_name = "Doe"
+					}
+				  }
 				  alive = false
 				  public = true
 				}
@@ -794,8 +934,8 @@ func TestAccUnion_createUnionWithTwoPartnersAndDetails(t *testing.T) {
 			{
 				Config: unionWithTwoPartnersAndDetails(testAccessToken),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -815,15 +955,23 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 		}
 
 		resource "geni_profile" "husband" {
-		  first_name = "John"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
@@ -895,8 +1043,8 @@ func TestAccUnion_updateUnionDetails(t *testing.T) {
 			{
 				Config: unionWithTwoPartnersAndMarriageDetails(testAccessToken, "1980"),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -909,8 +1057,8 @@ func TestAccUnion_updateUnionDetails(t *testing.T) {
 			{
 				Config: unionWithTwoPartnersAndMarriageDetails(testAccessToken, "1981"),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
@@ -932,15 +1080,23 @@ func unionWithTwoPartnersAndMarriageDetails(testAccessToken string, year string)
 		}
 
 		resource "geni_profile" "husband" {
-		  first_name = "John"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}
 		
 		resource "geni_profile" "wife" {
-		  first_name = "Jane"
-		  last_name  = "Doe"
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
 		  alive = false
 		  public = true
 		}

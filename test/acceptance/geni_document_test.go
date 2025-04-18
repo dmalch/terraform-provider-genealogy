@@ -539,8 +539,12 @@ func TestAccDocument_createUrlDocumentWithProfile(t *testing.T) {
 					}
 
 					resource "geni_profile" "test" {
-					  first_name = "John"
-					  last_name  = "Doe"
+					  names = {
+						"en-US" = {
+							first_name = "John"
+							last_name = "Doe"
+						}
+					  }
 					  alive = false
 					  public = true
 					}
@@ -554,8 +558,8 @@ func TestAccDocument_createUrlDocumentWithProfile(t *testing.T) {
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/html")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
@@ -685,15 +689,23 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 					}
 
 					resource "geni_profile" "test_1" {
-					  first_name = "John"
-					  last_name  = "Doe"
+					  names = {
+						"en-US" = {
+							first_name = "John"
+							last_name = "Doe"
+						}
+					  }
 					  alive = false
 					  public = true
 					}
 
 					resource "geni_profile" "test_2" {
-					  first_name = "Jane"
-					  last_name  = "Smith"
+					  names = {
+						"en-US" = {
+							first_name = "Jane"
+							last_name = "Smith"
+						}
+					  }
 					  alive = true
 					  public = false
 					}
@@ -707,10 +719,10 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
-					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Smith")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/html")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),
@@ -729,15 +741,23 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 					}
 
 					resource "geni_profile" "test_1" {
-					  first_name = "John"
-					  last_name  = "Doe"
+					  names = {
+						"en-US" = {
+							first_name = "John"
+							last_name = "Doe"
+						}
+					  }
 					  alive = false
 					  public = true
 					}
 
 					resource "geni_profile" "test_2" {
-					  first_name = "Jane"
-					  last_name  = "Smith"
+					  names = {
+						"en-US" = {
+							first_name = "Jane"
+							last_name = "Smith"
+						}
+					  }
 					  alive = true
 					  public = false
 					}
@@ -751,10 +771,10 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("first_name"), knownvalue.StringExact("John")),
-					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("last_name"), knownvalue.StringExact("Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("first_name"), knownvalue.StringExact("Jane")),
-					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("last_name"), knownvalue.StringExact("Smith")),
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test_1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
+					statecheck.ExpectKnownValue("geni_profile.test_2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Smith")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("content_type"), knownvalue.StringExact("text/html")),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("text"), knownvalue.Null()),

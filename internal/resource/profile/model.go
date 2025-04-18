@@ -7,11 +7,6 @@ import (
 
 type ResourceModel struct {
 	ID                   types.String `tfsdk:"id"`
-	FirstName            types.String `tfsdk:"first_name"`
-	LastName             types.String `tfsdk:"last_name"`
-	MiddleName           types.String `tfsdk:"middle_name"`
-	BirthLastName        types.String `tfsdk:"birth_last_name"`
-	DisplayName          types.String `tfsdk:"display_name"`
 	Names                types.Map    `tfsdk:"names"`
 	Gender               types.String `tfsdk:"gender"`
 	Birth                types.Object `tfsdk:"birth"`

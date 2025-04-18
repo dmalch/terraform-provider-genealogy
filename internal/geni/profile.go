@@ -66,8 +66,8 @@ type ProfileResponse struct {
 	LastName *string `json:"last_name,omitempty"`
 	// MiddleName is the profile's middle name
 	MiddleName *string `json:"middle_name,omitempty"`
-	// BirthLastName is the profile's maiden name
-	BirthLastName *string `json:"maiden_name,omitempty"`
+	// MaidenName is the profile's maiden name
+	MaidenName *string `json:"maiden_name,omitempty"`
 	// DisplayName is the profile's display name
 	DisplayName *string `json:"display_name,omitempty"`
 	// Nicknames is the profile's nicknames

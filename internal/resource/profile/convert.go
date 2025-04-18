@@ -18,11 +18,6 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 		profileModel.ID = types.StringValue(profile.Id)
 	}
 
-	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
-	profileModel.LastName = types.StringPointerValue(profile.LastName)
-	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
-	profileModel.BirthLastName = types.StringPointerValue(profile.BirthLastName)
-	profileModel.DisplayName = types.StringPointerValue(profile.DisplayName)
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 	profileModel.About = types.StringPointerValue(profile.AboutMe)
 	profileModel.Public = types.BoolValue(profile.Public)
@@ -102,16 +97,6 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	if len(resourceModel.Names.Elements()) > 0 {
 		convertedNames, diags = NameElementsFrom(ctx, resourceModel.Names)
 		d.Append(diags...)
-	} else {
-		convertedNames = map[string]geni.NameElement{
-			"en-US": {
-				FirstName:   resourceModel.FirstName.ValueStringPointer(),
-				LastName:    resourceModel.LastName.ValueStringPointer(),
-				MiddleName:  resourceModel.MiddleName.ValueStringPointer(),
-				MaidenName:  resourceModel.BirthLastName.ValueStringPointer(),
-				DisplayName: resourceModel.DisplayName.ValueStringPointer(),
-			},
-		}
 	}
 
 	profileRequest := &geni.ProfileRequest{
@@ -163,12 +148,6 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	var d diag.Diagnostics
 
 	profileModel.ID = types.StringValue(profile.Id)
-
-	profileModel.FirstName = types.StringPointerValue(profile.FirstName)
-	profileModel.LastName = types.StringPointerValue(profile.LastName)
-	profileModel.MiddleName = types.StringPointerValue(profile.MiddleName)
-	profileModel.BirthLastName = types.StringPointerValue(profile.BirthLastName)
-	profileModel.DisplayName = types.StringPointerValue(profile.DisplayName)
 
 	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
