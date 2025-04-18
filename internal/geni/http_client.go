@@ -19,6 +19,8 @@ import (
 	"golang.org/x/time/rate"
 )
 
+var ErrResourceNotFound = fmt.Errorf("resource not found")
+
 type errCode429WithRetry struct {
 	statusCode        int
 	secondsUntilRetry int
@@ -193,14 +195,19 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				}
 
 				if res.StatusCode == http.StatusUnauthorized {
-					tflog.Warn(ctx, "Received 401 Unauthorized, retrying.")
+					tflog.Warn(ctx, "Received 401 Unauthorized, retrying...")
 					return nil, newErrWithRetry(res.StatusCode, 1)
+				}
+
+				if res.StatusCode == http.StatusNotFound {
+					tflog.Warn(ctx, "Received 404 Not Found.")
+					return nil, ErrResourceNotFound
 				}
 
 				if strings.Contains(string(body), "Request unsuccessful. Incapsula incident ID:") {
 					// Incapsula is a DDoS protection service that Geni uses. If we get a response
 					// with this message, it means that the request was blocked by Incapsula.
-					tflog.Warn(ctx, "Incapsula blocked request")
+					tflog.Warn(ctx, "Incapsula blocked request.")
 					return nil, fmt.Errorf("incapsula blocked request")
 				}
 
