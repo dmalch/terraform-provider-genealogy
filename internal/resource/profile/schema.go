@@ -9,11 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/geniplanmodifier"
 )
 
 var (
@@ -65,11 +67,21 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				},
 				Description: "Nested maps of locales to name fields to values.",
 			},
-			"unions": schema.ListAttribute{
+			"unions": schema.SetAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
 				Optional:    true,
 				Description: "List of union IDs.",
+			},
+			"projects": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Set{setplanmodifier.RequiresReplaceIf(
+					geniplanmodifier.ValuesAreRemovedFromState,
+					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
+					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
+				)},
+				Description: "List of project IDs.",
 			},
 			"birth": event.Schema(event.SchemaOptions{
 				NameComputed:        true,

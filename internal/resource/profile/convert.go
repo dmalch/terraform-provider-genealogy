@@ -27,7 +27,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	d.Append(diags...)
 	profileModel.Names = names
 
-	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	unions, diags := types.SetValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
 	profileModel.Unions = unions
 
@@ -149,7 +149,7 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 
 	profileModel.ID = types.StringValue(profile.Id)
 
-	unions, diags := types.ListValueFrom(ctx, types.StringType, profile.Unions)
+	unions, diags := types.SetValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
 	profileModel.Unions = unions
 
@@ -174,4 +174,15 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
 
 	return d
+}
+
+func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+	if len(set.Elements()) == 0 {
+		return nil, diag.Diagnostics{}
+	}
+
+	var slice = make([]string, len(set.Elements()))
+	diags := set.ElementsAs(ctx, &slice, false)
+
+	return slice, diags
 }

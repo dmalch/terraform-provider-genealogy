@@ -46,3 +46,26 @@ func (c *Client) GetProject(ctx context.Context, projectId string) (*ProjectResp
 
 	return &project, nil
 }
+
+func (c *Client) AddProfileToProject(ctx context.Context, profileId, projectId string) (*ProfileBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/" + projectId + "/add_profiles/" + profileId
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var project ProfileBulkResponse
+	err = json.Unmarshal(body, &project)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &project, nil
+}

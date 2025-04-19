@@ -20,6 +20,12 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
+	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	profileResponse, err := r.client.CreateProfile(ctx, profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
@@ -30,6 +36,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Link the profile to the projects if specified.
+	for _, projectId := range projectIds {
+		if _, err := r.client.AddProfileToProject(ctx, profileResponse.Id, projectId); err != nil {
+			resp.Diagnostics.AddError("Error linking profile to project", err.Error())
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)

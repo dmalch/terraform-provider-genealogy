@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/geniplanmodifier"
 )
 
 var (
@@ -114,7 +115,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:    true,
 				Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				PlanModifiers: []planmodifier.Set{setplanmodifier.RequiresReplaceIf(
-					valuesAreRemovedFromState,
+					geniplanmodifier.ValuesAreRemovedFromState,
 					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
 					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
 				)},
@@ -129,28 +130,4 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			},
 		},
 	}
-}
-
-func valuesAreRemovedFromState(_ context.Context, req planmodifier.SetRequest, resp *setplanmodifier.RequiresReplaceIfFuncResponse) {
-	if req.ConfigValue.IsNull() {
-		return
-	}
-
-	// If plan contains all values from state, no need to replace
-	for _, v := range req.StateValue.Elements() {
-		// Check if the value is in the plan
-		if !contains(req.PlanValue.Elements(), v) {
-			resp.RequiresReplace = true
-			break
-		}
-	}
-}
-
-func contains(elements []attr.Value, v attr.Value) bool {
-	for _, p := range elements {
-		if v.Equal(p) {
-			return true
-		}
-	}
-	return false
 }
