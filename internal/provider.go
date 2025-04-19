@@ -14,6 +14,7 @@ import (
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
+	"github.com/dmalch/terraform-provider-genealogy/internal/datasource/project"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
@@ -84,10 +85,16 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: cfg.AccessToken.ValueString()})
 	}
 
+	client := geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
+
 	resp.ResourceData = &config.ClientData{
-		Client:           geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool()),
+		Client:           client,
 		UseProfileCache:  cfg.UseProfileCache.ValueBool(),
 		UseDocumentCache: cfg.UseDocumentCache.ValueBool(),
+	}
+
+	resp.DataSourceData = &config.ClientData{
+		Client: client,
 	}
 }
 
@@ -120,5 +127,7 @@ func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {
 }
 
 func (p *GeniProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{
+		project.NewDataSource,
+	}
 }
