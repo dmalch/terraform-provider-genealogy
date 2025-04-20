@@ -20,10 +20,24 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
+	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	profileResponse, err := r.client.UpdateProfile(ctx, plan.ID.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating profile", err.Error())
 		return
+	}
+
+	// Link the profile to the projects if specified.
+	for _, projectId := range projectIds {
+		if _, err := r.client.AddProfileToProject(ctx, profileResponse.Id, projectId); err != nil {
+			resp.Diagnostics.AddError("Error linking profile to project", err.Error())
+			return
+		}
 	}
 
 	diags = UpdateComputedFields(ctx, profileResponse, &plan)

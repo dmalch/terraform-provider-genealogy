@@ -32,18 +32,18 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	diags = UpdateComputedFields(ctx, profileResponse, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Link the profile to the projects if specified.
 	for _, projectId := range projectIds {
 		if _, err := r.client.AddProfileToProject(ctx, profileResponse.Id, projectId); err != nil {
 			resp.Diagnostics.AddError("Error linking profile to project", err.Error())
 			return
 		}
+	}
+
+	diags = UpdateComputedFields(ctx, profileResponse, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)

@@ -47,25 +47,29 @@ func (c *Client) GetProject(ctx context.Context, projectId string) (*ProjectResp
 	return &project, nil
 }
 
-func (c *Client) AddProfileToProject(ctx context.Context, profileId, projectId string) (*ProfileBulkResponse, error) {
-	url := BaseUrl(c.useSandboxEnv) + "api/" + projectId + "/add_profiles/" + profileId
+func (c *Client) AddProfileToProject(ctx context.Context, profileId, projectId string) (*ProfileResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/" + projectId + "/add_profiles"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
 		return nil, err
 	}
 
+	query := req.URL.Query()
+	query.Add("profile_ids", profileId)
+	req.URL.RawQuery = query.Encode()
+
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	var project ProfileBulkResponse
-	err = json.Unmarshal(body, &project)
+	var profileResponse ProfileResponse
+	err = json.Unmarshal(body, &profileResponse)
 	if err != nil {
 		slog.Error("Error unmarshaling response", "error", err)
 		return nil, err
 	}
 
-	return &project, nil
+	return &profileResponse, nil
 }
