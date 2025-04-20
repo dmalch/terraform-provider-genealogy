@@ -16,6 +16,7 @@ type ResourceModel struct {
 	Date        types.Object `tfsdk:"date"`
 	Location    types.Object `tfsdk:"location"`
 	Profiles    types.Set    `tfsdk:"profiles"`
+	Projects    types.Set    `tfsdk:"projects"`
 	Labels      types.Set    `tfsdk:"labels"`
 	CreatedAt   types.String `tfsdk:"created_at"`
 }

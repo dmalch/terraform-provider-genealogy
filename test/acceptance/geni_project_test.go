@@ -121,3 +121,36 @@ func TestAccProject_addProfileToTwoProject(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProject_addDocumentToProject(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					data "geni_project" "test" {
+					  id = "project-6"
+					}
+			
+					resource "geni_document" "test" {
+					  title = "Test Document"
+					  text = "This is a test document."
+					  projects = [data.geni_project.test.id]
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
+				},
+			},
+		},
+	})
+}

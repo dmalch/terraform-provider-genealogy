@@ -21,6 +21,12 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
+	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	documentRequest, diags := RequestFrom(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -43,6 +49,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	for _, profileId := range profileIds {
 		if _, err = r.client.TagDocument(ctx, documentResponse.Id, profileId); err != nil {
 			resp.Diagnostics.AddError("Error tagging document", err.Error())
+			return
+		}
+	}
+
+	// Link the profile to the projects if specified.
+	for _, projectId := range projectIds {
+		if _, err := r.client.AddDocumentToProject(ctx, documentResponse.Id, projectId); err != nil {
+			resp.Diagnostics.AddError("Error linking document to project", err.Error())
 			return
 		}
 	}

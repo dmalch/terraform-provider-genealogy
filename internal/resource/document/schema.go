@@ -109,6 +109,16 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Optional:    true,
 				Description: "The list of profiles associated with the document.",
 			},
+			"projects": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Set{setplanmodifier.RequiresReplaceIf(
+					geniplanmodifier.ValuesAreRemovedFromState,
+					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
+					"If the value of this attribute is configured and changes, Terraform will destroy and recreate the resource.",
+				)},
+				Description: "List of project IDs.",
+			},
 			"labels": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,

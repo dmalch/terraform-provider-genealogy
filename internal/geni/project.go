@@ -73,3 +73,30 @@ func (c *Client) AddProfileToProject(ctx context.Context, profileId, projectId s
 
 	return &profileResponse, nil
 }
+
+func (c *Client) AddDocumentToProject(ctx context.Context, docimentId, projectId string) (*DocumentBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/" + projectId + "/add_documents"
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	query := req.URL.Query()
+	query.Add("ids", docimentId)
+	req.URL.RawQuery = query.Encode()
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var documentResponse DocumentBulkResponse
+	err = json.Unmarshal(body, &documentResponse)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	return &documentResponse, nil
+}

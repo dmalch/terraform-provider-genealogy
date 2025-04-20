@@ -21,6 +21,12 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
+	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	documentResponse, err := r.client.UpdateDocument(ctx, plan.ID.ValueString(), documentRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating document", err.Error())
@@ -67,6 +73,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 					return
 				}
 			}
+		}
+	}
+
+	// Link the profile to the projects if specified.
+	for _, projectId := range projectIds {
+		if _, err := r.client.AddDocumentToProject(ctx, documentResponse.Id, projectId); err != nil {
+			resp.Diagnostics.AddError("Error linking document to project", err.Error())
+			return
 		}
 	}
 
