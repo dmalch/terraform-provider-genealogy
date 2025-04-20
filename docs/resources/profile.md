@@ -35,7 +35,8 @@ description: |-
 - `id` (String) The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.
 - `merged_into` (String) The ID of the profile this profile was merged into.
 - `names` (Attributes Map) Nested maps of locales to name fields to values. (see [below for nested schema](#nestedatt--names))
-- `unions` (List of String) List of union IDs.
+- `projects` (Set of String) List of project IDs.
+- `unions` (Set of String) List of union IDs.
 
 <a id="nestedatt--baptism"></a>
 ### Nested Schema for `baptism`
