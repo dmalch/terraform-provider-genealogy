@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -67,14 +69,16 @@ func LocationSchema(description string) schema.SingleNestedAttribute {
 				Description: "County name.",
 			},
 			"latitude": schema.Float64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Description: "Latitude coordinate.",
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Float64{float64planmodifier.UseStateForUnknown()},
+				Description:   "Latitude coordinate.",
 			},
 			"longitude": schema.Float64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Description: "Longitude coordinate.",
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Float64{float64planmodifier.UseStateForUnknown()},
+				Description:   "Longitude coordinate.",
 			},
 			"place_name": schema.StringAttribute{
 				Optional:    true,

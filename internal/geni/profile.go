@@ -109,7 +109,7 @@ type ProfileResponse struct {
 	// MergePending is a boolean that indicates whether the profile has a pending merge
 	MergePending bool `json:"merge_pending,omitempty"`
 	// MergedInto is the ID of the profile this profile is currently merged into
-	MergedInto *string `json:"merged_into,omitempty"`
+	MergedInto string `json:"merged_into,omitempty"`
 	// MergeNote is the note explaining the profile's merge status
 	MergeNote []string `json:"merge_note,omitempty"`
 	// Url is the URL to access profile through the API

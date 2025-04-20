@@ -37,8 +37,8 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	// If the profile is deleted, check if it was merged into another profile and
 	// read that profile instead. Iterate up to 10 times to find the merged profile.
 	if state.AutoUpdateWhenMerged.ValueBool() && profileResponse.Deleted {
-		for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != nil && *profileResponse.MergedInto != ""; i++ {
-			profileResponse, err = r.client.GetProfile(ctx, *profileResponse.MergedInto)
+		for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
+			profileResponse, err = r.client.GetProfile(ctx, profileResponse.MergedInto)
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading profile", err.Error())
 				return
@@ -47,9 +47,9 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	if profileResponse.Deleted {
-		if profileResponse.MergedInto != nil && *profileResponse.MergedInto != "" {
+		if profileResponse.MergedInto != "" {
 			resp.Diagnostics.AddWarning(fmt.Sprintf("Resource %s is merged", profileResponse.Id),
-				fmt.Sprintf("The profile %s was merged into another profile. Please use the merged profile ID=%s.", profileResponse.Id, *profileResponse.MergedInto))
+				fmt.Sprintf("The profile %s was merged into another profile. Please use the merged profile ID=%s.", profileResponse.Id, profileResponse.MergedInto))
 		} else {
 			resp.Diagnostics.AddWarning("Resource is deleted",
 				fmt.Sprintf("The profile %s was deleted in the Geni API.", profileResponse.Id))
