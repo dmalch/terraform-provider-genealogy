@@ -31,6 +31,7 @@ description: |-
 - `labels` (Set of String) The list of labels associated with the document.
 - `location` (Attributes) Document's location. (see [below for nested schema](#nestedatt--location))
 - `profiles` (Set of String) The list of profiles associated with the document.
+- `projects` (Set of String) List of project IDs.
 - `source_url` (String) The document's source URL. This is the URL where the document was found.
 - `text` (String) The document's text content.
 
