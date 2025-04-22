@@ -21,12 +21,20 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	unionResponse, err := r.client.GetUnion(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
-			resp.Diagnostics.AddWarning("Union not found", "The union was not found in the Geni API.")
+			resp.Diagnostics.AddWarning("Union not found", "The union was not found in the Geni API. Removing from state.")
 			resp.State.RemoveResource(ctx)
 			return
 		}
 
 		resp.Diagnostics.AddError("Error reading union", err.Error())
+		return
+	}
+
+	// If the union doesn't have any partners or children, remove the resource from
+	// the state
+	if len(unionResponse.Partners) == 0 && len(unionResponse.Children) == 0 {
+		resp.Diagnostics.AddWarning("Union has no partners or children", "The union has no partners or children. Removing from state.")
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
