@@ -73,7 +73,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				var err error
 				tmpProfile, err = r.client.AddChild(ctx, plan.ID.ValueString())
 				if err != nil {
-					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
+					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return
 				}
 			} else {
@@ -85,7 +85,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					var err error
 					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0])
 					if err != nil {
-						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
+						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 						return
 					}
 				} else if len(partnerIds) == 0 && len(childrenIds) > 1 {
@@ -97,7 +97,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					var err error
 					tmpProfile, err = r.client.AddSibling(ctx, childrenIds[i+1])
 					if err != nil {
-						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
+						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 						return
 					}
 

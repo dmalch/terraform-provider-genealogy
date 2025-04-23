@@ -97,7 +97,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 				tmpProfile, err := r.client.AddChild(ctx, plan.ID.ValueString())
 				if err != nil {
-					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child", err.Error())
+					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return
 				}
 
