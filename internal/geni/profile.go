@@ -352,6 +352,39 @@ func (c *Client) fixResponse(profile *ProfileResponse) {
 	}
 }
 
+func (c *Client) GetProfiles(ctx context.Context, profileIds []string) (*ProfileBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/profile"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		slog.Error("Error creating request", "error", err)
+		return nil, err
+	}
+
+	c.addProfileFieldsQueryParams(req)
+
+	query := req.URL.Query()
+	query.Add("ids", strings.Join(profileIds, ","))
+	req.URL.RawQuery = query.Encode()
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var profiles ProfileBulkResponse
+	err = json.Unmarshal(body, &profiles)
+	if err != nil {
+		slog.Error("Error unmarshaling response", "error", err)
+		return nil, err
+	}
+
+	for i := range profiles.Results {
+		c.fixResponse(&profiles.Results[i])
+	}
+
+	return &profiles, nil
+}
+
 const maxProfilesPerPage = 50
 
 func (c *Client) GetManagedProfiles(ctx context.Context, page int) (*ProfileBulkResponse, error) {
