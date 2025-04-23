@@ -98,6 +98,11 @@ func (r *Resource) findExistingUnion(ctx context.Context, partners types.Set) (s
 		return "", diags
 	}
 
+	if len(profiles.Results) < 2 {
+		diags.AddError("Error reading partners", "Not enough partners found.")
+		return "", diags
+	}
+
 	// Check if the partners have overlapping unions
 	// Add first partner unions to a map
 	unionMap := make(map[string]struct{})
