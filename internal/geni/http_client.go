@@ -48,6 +48,14 @@ type Client struct {
 	profileCacheInitialized  bool
 	documentCacheLock        sync.Mutex
 	documentCacheInitialized bool
+
+	unionRequests chan UnionAsyncRequest
+}
+
+type UnionAsyncRequest struct {
+	UnionId  string
+	Response chan *UnionResponse
+	Error    chan error
 }
 
 func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
@@ -64,6 +72,7 @@ func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
 		limiter:       rate.NewLimiter(rate.Every(1*time.Second), 1),
 		urlMap:        &sync.Map{},
 		cache:         cache,
+		unionRequests: make(chan UnionAsyncRequest),
 	}
 }
 

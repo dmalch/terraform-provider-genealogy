@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -22,10 +23,15 @@ import (
 )
 
 type GeniProvider struct {
+	initClientOnce sync.Once
 }
 
+var client *geni.Client
+
 func New() provider.Provider {
-	return &GeniProvider{}
+	return &GeniProvider{
+		initClientOnce: sync.Once{},
+	}
 }
 
 func (p *GeniProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -85,7 +91,10 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: cfg.AccessToken.ValueString()})
 	}
 
-	client := geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
+	p.initClientOnce.Do(func() {
+		client = geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
+		go client.UnionBulkProcessor(context.Background())
+	})
 
 	resp.ResourceData = &config.ClientData{
 		Client:           client,

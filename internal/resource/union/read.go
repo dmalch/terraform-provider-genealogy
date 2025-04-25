@@ -20,7 +20,8 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	unionResponse, err := r.client.GetUnion(ctx, state.ID.ValueString())
+	unionResponse, err := r.client.GetUnionAsync(ctx, state.ID.ValueString())
+	//unionResponse, err := r.client.GetUnion(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			resp.Diagnostics.AddWarning("Union not found", "The union was not found in the Geni API. Removing from state.")
