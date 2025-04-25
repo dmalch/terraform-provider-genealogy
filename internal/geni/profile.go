@@ -36,7 +36,7 @@ type ProfileRequest struct {
 	// Title is the profile's name title
 	Title string `json:"title,omitempty"`
 	// AboutMe is the profile's about me section
-	AboutMe *string `json:"about_me,omitempty"`
+	AboutMe *string `json:"about_me"`
 	// Occupation is the profile's occupation
 	Occupation string `json:"occupation,omitempty"`
 	// Suffix is the profile's suffix
