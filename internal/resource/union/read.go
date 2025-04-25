@@ -99,7 +99,6 @@ func (r *Resource) findExistingUnion(ctx context.Context, partners types.Set) (s
 	}
 
 	if len(profiles.Results) < 2 {
-		diags.AddError("Error reading partners", "Not enough partners found.")
 		return "", diags
 	}
 
