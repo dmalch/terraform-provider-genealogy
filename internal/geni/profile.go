@@ -141,7 +141,7 @@ type NameElement struct {
 // EventElement is the response for an event.
 type EventElement struct {
 	Date        *DateElement     `json:"date"`
-	Description string           `json:"description,omitempty"`
+	Description *string          `json:"description,omitempty"`
 	Location    *LocationElement `json:"location"`
 	Name        string           `json:"name,omitempty"`
 }

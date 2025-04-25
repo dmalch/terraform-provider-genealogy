@@ -28,7 +28,7 @@ func ElementFrom(ctx context.Context, eventObject types.Object) (*geni.EventElem
 
 	return &geni.EventElement{
 		Name:        eventModel.Name.ValueString(),
-		Description: eventModel.Description.ValueString(),
+		Description: eventModel.Description.ValueStringPointer(),
 		Date:        DateRangeElementFrom(dateModel),
 		Location:    LocationElementFrom(locationModel),
 	}, d
@@ -143,7 +143,7 @@ func ValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.
 		d.Append(diags...)
 
 		eventModel := Model{
-			Description: types.StringValue(eventElement.Description),
+			Description: types.StringPointerValue(eventElement.Description),
 			Name:        types.StringValue(eventElement.Name),
 			Date:        dateObjectValue,
 			Location:    locationObjectValue,
@@ -251,7 +251,7 @@ func updateComputedFieldsInEventObject(ctx context.Context, eventObject *Model, 
 		if eventElement == nil {
 			eventObject.Description = types.StringNull()
 		} else {
-			eventObject.Description = types.StringValue(eventElement.Description)
+			eventObject.Description = types.StringPointerValue(eventElement.Description)
 		}
 	}
 

@@ -36,7 +36,6 @@ func Schema(opts ...SchemaOptions) schema.SingleNestedAttribute {
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
-				Computed:    opt.DescriptionComputed,
 				Description: "Event's description.",
 			},
 			"date":     DateRangeSchema("Event's date."),

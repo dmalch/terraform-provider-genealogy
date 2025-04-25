@@ -54,7 +54,7 @@ func TestElementFrom(t *testing.T) {
 
 		Expect(diags).To(BeEmpty())
 		Expect(element.Name).To(Equal("Event Name"))
-		Expect(element.Description).To(Equal("Event Description"))
+		Expect(element.Description).To(HaveValue(Equal("Event Description")))
 		Expect(element.Date).ToNot(BeNil())
 		Expect(element.Date.Range).To(HaveValue(Equal("between")))
 		Expect(element.Date.Circa).To(HaveValue(BeTrue()))
@@ -92,7 +92,7 @@ func TestElementFrom(t *testing.T) {
 
 		Expect(diags).To(BeEmpty())
 		Expect(element.Name).To(Equal("Event Name"))
-		Expect(element.Description).To(Equal("Event Description"))
+		Expect(element.Description).To(HaveValue(Equal("Event Description")))
 		Expect(element.Date).To(BeNil())
 		Expect(element.Location).To(BeNil())
 	})
