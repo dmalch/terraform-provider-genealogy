@@ -27,29 +27,29 @@ func NewClient(client *geni.Client) *Client {
 }
 
 type unionAsyncRequest struct {
-	UnionId  string
+	Id       string
 	Response chan *geni.UnionResponse
 	Error    chan error
 }
 
 type profileAsyncRequest struct {
-	ProfileId string
-	Response  chan *geni.ProfileResponse
-	Error     chan error
+	Id       string
+	Response chan *geni.ProfileResponse
+	Error    chan error
 }
 
 type documentAsyncRequest struct {
-	DocumentId string
-	Response   chan *geni.DocumentResponse
-	Error      chan error
+	Id       string
+	Response chan *geni.DocumentResponse
+	Error    chan error
 }
 
-func (c *Client) GetUnion(ctx context.Context, unionId string) (*geni.UnionResponse, error) {
+func (c *Client) GetUnion(ctx context.Context, id string) (*geni.UnionResponse, error) {
 	response := make(chan *geni.UnionResponse)
 	errors := make(chan error)
 
 	c.unionRequests <- unionAsyncRequest{
-		UnionId:  unionId,
+		Id:       id,
 		Response: response,
 		Error:    errors,
 	}
@@ -66,14 +66,14 @@ func (c *Client) GetUnion(ctx context.Context, unionId string) (*geni.UnionRespo
 	}
 }
 
-func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {
+func (c *Client) GetProfile(ctx context.Context, id string) (*geni.ProfileResponse, error) {
 	response := make(chan *geni.ProfileResponse)
 	errors := make(chan error)
 
 	c.profileRequests <- profileAsyncRequest{
-		ProfileId: profileId,
-		Response:  response,
-		Error:     errors,
+		Id:       id,
+		Response: response,
+		Error:    errors,
 	}
 
 	select {
@@ -88,14 +88,14 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.Profil
 	}
 }
 
-func (c *Client) GetDocument(ctx context.Context, documentId string) (*geni.DocumentResponse, error) {
+func (c *Client) GetDocument(ctx context.Context, id string) (*geni.DocumentResponse, error) {
 	response := make(chan *geni.DocumentResponse)
 	errors := make(chan error)
 
 	c.documentRequests <- documentAsyncRequest{
-		DocumentId: documentId,
-		Response:   response,
-		Error:      errors,
+		Id:       id,
+		Response: response,
+		Error:    errors,
 	}
 
 	select {
@@ -199,7 +199,7 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncRequest) {
 	if len(batch) == 1 {
 		req := batch[0]
-		res, err := c.client.GetUnion(ctx, req.UnionId)
+		res, err := c.client.GetUnion(ctx, req.Id)
 		if err != nil {
 			req.Error <- err
 			return
@@ -211,7 +211,7 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 	if len(batch) > 1 {
 		unionIds := make([]string, len(batch))
 		for i, req := range batch {
-			unionIds[i] = req.UnionId
+			unionIds[i] = req.Id
 		}
 
 		res, err := c.client.GetUnions(ctx, unionIds)
@@ -222,16 +222,16 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 			return
 		}
 
-		unionIdToResponse := make(map[string]*geni.UnionResponse)
+		idToResponse := make(map[string]*geni.UnionResponse)
 		for _, resUnion := range res.Results {
-			unionIdToResponse[resUnion.Id] = &resUnion
+			idToResponse[resUnion.Id] = &resUnion
 		}
 
 		for _, req := range batch {
-			if resUnion, ok := unionIdToResponse[req.UnionId]; ok {
-				req.Response <- resUnion
+			if result, ok := idToResponse[req.Id]; ok {
+				req.Response <- result
 			} else {
-				req.Error <- fmt.Errorf("union %s not found in the response", req.UnionId)
+				req.Error <- fmt.Errorf("union %s not found in the response", req.Id)
 			}
 		}
 	}
@@ -240,7 +240,7 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyncRequest) {
 	if len(batch) == 1 {
 		req := batch[0]
-		res, err := c.client.GetProfile(ctx, req.ProfileId)
+		res, err := c.client.GetProfile(ctx, req.Id)
 		if err != nil {
 			req.Error <- err
 			return
@@ -252,7 +252,7 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 	if len(batch) > 1 {
 		profileIds := make([]string, len(batch))
 		for i, req := range batch {
-			profileIds[i] = req.ProfileId
+			profileIds[i] = req.Id
 		}
 
 		res, err := c.client.GetProfiles(ctx, profileIds)
@@ -263,16 +263,16 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 			return
 		}
 
-		profileIdToResponse := make(map[string]*geni.ProfileResponse)
+		idToResponse := make(map[string]*geni.ProfileResponse)
 		for _, resProfile := range res.Results {
-			profileIdToResponse[resProfile.Id] = &resProfile
+			idToResponse[resProfile.Id] = &resProfile
 		}
 
 		for _, req := range batch {
-			if resUnion, ok := profileIdToResponse[req.ProfileId]; ok {
-				req.Response <- resUnion
+			if result, ok := idToResponse[req.Id]; ok {
+				req.Response <- result
 			} else {
-				req.Error <- fmt.Errorf("profile %s not found in the response", req.ProfileId)
+				req.Error <- fmt.Errorf("profile %s not found in the response", req.Id)
 			}
 		}
 	}
@@ -281,7 +281,7 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAsyncRequest) {
 	if len(batch) == 1 {
 		req := batch[0]
-		res, err := c.client.GetDocument(ctx, req.DocumentId)
+		res, err := c.client.GetDocument(ctx, req.Id)
 		if err != nil {
 			req.Error <- err
 			return
@@ -293,7 +293,7 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 	if len(batch) > 1 {
 		profileIds := make([]string, len(batch))
 		for i, req := range batch {
-			profileIds[i] = req.DocumentId
+			profileIds[i] = req.Id
 		}
 
 		res, err := c.client.GetDocuments(ctx, profileIds)
@@ -304,16 +304,16 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 			return
 		}
 
-		documentIdToResponse := make(map[string]*geni.DocumentResponse)
-		for _, resDocument := range res.Results {
-			documentIdToResponse[resDocument.Id] = &resDocument
+		idToResponse := make(map[string]*geni.DocumentResponse)
+		for _, result := range res.Results {
+			idToResponse[result.Id] = &result
 		}
 
 		for _, req := range batch {
-			if resUnion, ok := documentIdToResponse[req.DocumentId]; ok {
+			if resUnion, ok := idToResponse[req.Id]; ok {
 				req.Response <- resUnion
 			} else {
-				req.Error <- fmt.Errorf("document %s not found in the response", req.DocumentId)
+				req.Error <- fmt.Errorf("document %s not found in the response", req.Id)
 			}
 		}
 	}
