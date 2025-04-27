@@ -25,19 +25,17 @@ import (
 )
 
 type GeniProvider struct {
-	initClientOnce sync.Once
 }
 
 var (
-	client      *geni.Client
-	batchClient *genibatch.Client
-	cacheClient *genicache.Client
+	initClientOnce = sync.Once{}
+	client         *geni.Client
+	batchClient    *genibatch.Client
+	cacheClient    *genicache.Client
 )
 
 func New() provider.Provider {
-	return &GeniProvider{
-		initClientOnce: sync.Once{},
-	}
+	return &GeniProvider{}
 }
 
 func (p *GeniProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -101,7 +99,7 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: cfg.AccessToken.ValueString()})
 	}
 
-	p.initClientOnce.Do(func() {
+	initClientOnce.Do(func() {
 		client = geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
 		batchClient = genibatch.NewClient(client)
 		cacheClient = genicache.NewClient(client, batchClient)
