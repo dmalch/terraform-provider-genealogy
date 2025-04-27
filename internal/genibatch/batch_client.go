@@ -208,7 +208,7 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
-				go c.processBatchOfDocuments(ctx, batch)
+				go c.processBatchOfDocuments(ctx, requests)
 			}
 		case <-ctx.Done():
 			err := ctx.Err()
