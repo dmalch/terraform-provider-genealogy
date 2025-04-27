@@ -122,13 +122,21 @@ func (c *Client) UnionBulkProcessor(ctx context.Context) {
 		case req := <-c.unionRequests:
 			batch = append(batch, req)
 			if len(batch) >= batchSize {
-				c.processBatchOfUnions(ctx, batch)
+				// copy the batch to a new slice
+				requests := make([]unionAsyncRequest, len(batch))
+				copy(requests, batch)
 				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfUnions(ctx, requests)
 			}
 		case <-ticker.C:
 			if len(batch) > 0 {
-				c.processBatchOfUnions(ctx, batch)
+				// copy the batch to a new slice
+				requests := make([]unionAsyncRequest, len(batch))
+				copy(requests, batch)
 				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfUnions(ctx, requests)
 			}
 		case <-ctx.Done():
 			err := ctx.Err()
@@ -150,13 +158,21 @@ func (c *Client) ProfileBulkProcessor(ctx context.Context) {
 		case req := <-c.profileRequests:
 			batch = append(batch, req)
 			if len(batch) >= batchSize {
-				c.processBatchOfProfiles(ctx, batch)
+				// copy the batch to a new slice
+				requests := make([]profileAsyncRequest, len(batch))
+				copy(requests, batch)
 				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfProfiles(ctx, requests)
 			}
 		case <-ticker.C:
 			if len(batch) > 0 {
-				c.processBatchOfProfiles(ctx, batch)
+				// copy the batch to a new slice
+				requests := make([]profileAsyncRequest, len(batch))
+				copy(requests, batch)
 				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfProfiles(ctx, requests)
 			}
 		case <-ctx.Done():
 			err := ctx.Err()
@@ -178,13 +194,21 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 		case req := <-c.documentRequests:
 			batch = append(batch, req)
 			if len(batch) >= batchSize {
-				c.processBatchOfDocuments(ctx, batch)
+				// copy the batch to a new slice
+				requests := make([]documentAsyncRequest, len(batch))
+				copy(requests, batch)
 				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfDocuments(ctx, requests)
 			}
 		case <-ticker.C:
 			if len(batch) > 0 {
-				c.processBatchOfDocuments(ctx, batch)
+				// copy the batch to a new slice
+				requests := make([]documentAsyncRequest, len(batch))
+				copy(requests, batch)
 				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfDocuments(ctx, batch)
 			}
 		case <-ctx.Done():
 			err := ctx.Err()
