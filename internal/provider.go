@@ -17,6 +17,7 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/datasource/project"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
@@ -26,7 +27,10 @@ type GeniProvider struct {
 	initClientOnce sync.Once
 }
 
-var client *geni.Client
+var (
+	client      *geni.Client
+	batchClient *genibatch.Client
+)
 
 func New() provider.Provider {
 	return &GeniProvider{
@@ -93,11 +97,13 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	p.initClientOnce.Do(func() {
 		client = geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
-		go client.UnionBulkProcessor(context.Background())
+		batchClient := genibatch.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
+		go batchClient.UnionBulkProcessor(context.Background())
 	})
 
 	resp.ResourceData = &config.ClientData{
 		Client:           client,
+		BatchClient:      batchClient,
 		UseProfileCache:  cfg.UseProfileCache.ValueBool(),
 		UseDocumentCache: cfg.UseDocumentCache.ValueBool(),
 	}

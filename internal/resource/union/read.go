@@ -44,7 +44,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 		if existingUnionId != "" {
 			resp.Diagnostics.AddWarning("Found existing union", "The union in the state has no partners or children. Found an existing union with ID "+existingUnionId+".")
-			unionResponse, err = r.client.GetUnion(ctx, existingUnionId)
+			unionResponse, err = r.client.GetUnionAsync(ctx, existingUnionId)
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading union", err.Error())
 				return
