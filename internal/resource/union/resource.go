@@ -8,11 +8,13 @@ import (
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 )
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	client *geni.Client
+	client      *geni.Client
+	batchClient *genibatch.Client
 }
 
 func NewUnionResource() resource.Resource {
@@ -42,4 +44,5 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	}
 
 	r.client = cfg.Client
+	r.batchClient = cfg.BatchClient
 }

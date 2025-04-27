@@ -20,8 +20,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	unionResponse, err := r.client.GetUnionAsync(ctx, state.ID.ValueString())
-	//unionResponse, err := r.client.GetUnion(ctx, state.ID.ValueString())
+	unionResponse, err := r.batchClient.GetUnion(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			resp.Diagnostics.AddWarning("Union not found", "The union was not found in the Geni API. Removing from state.")
@@ -44,7 +43,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 		if existingUnionId != "" {
 			resp.Diagnostics.AddWarning("Found existing union", "The union in the state has no partners or children. Found an existing union with ID "+existingUnionId+".")
-			unionResponse, err = r.client.GetUnionAsync(ctx, existingUnionId)
+			unionResponse, err = r.client.GetUnion(ctx, existingUnionId)
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading union", err.Error())
 				return
