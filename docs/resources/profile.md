@@ -28,6 +28,7 @@ description: |-
 - `burial` (Attributes) Burial event information. (see [below for nested schema](#nestedatt--burial))
 - `cause_of_death` (String) Profile's death cause
 - `created_at` (String) The Unix epoch time in seconds when the profile was created.
+- `current_residence` (Attributes) Event's location. (see [below for nested schema](#nestedatt--current_residence))
 - `death` (Attributes) Death event information. (see [below for nested schema](#nestedatt--death))
 - `deleted` (Boolean) Profile's deleted status.
 - `gender` (String) Profile's gender.
@@ -167,6 +168,23 @@ Optional:
 - `street_address2` (String) Second line of the street address.
 - `street_address3` (String) Third line of the street address.
 
+
+
+<a id="nestedatt--current_residence"></a>
+### Nested Schema for `current_residence`
+
+Optional:
+
+- `city` (String) City name.
+- `country` (String) Country name.
+- `county` (String) County name.
+- `latitude` (Number) Latitude coordinate.
+- `longitude` (Number) Longitude coordinate.
+- `place_name` (String) Place name.
+- `state` (String) State name.
+- `street_address1` (String) First line of the street address.
+- `street_address2` (String) Second line of the street address.
+- `street_address3` (String) Third line of the street address.
 
 
 <a id="nestedatt--death"></a>

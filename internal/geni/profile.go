@@ -35,6 +35,8 @@ type ProfileRequest struct {
 	IsAlive bool `json:"is_alive"`
 	// Title is the profile's name title
 	Title string `json:"title,omitempty"`
+	// CurrentResidence is the profile's current residence
+	CurrentResidence *LocationElement `json:"current_residence"`
 	// AboutMe is the profile's about me section
 	AboutMe *string `json:"about_me"`
 	// Occupation is the profile's occupation
@@ -92,6 +94,8 @@ type ProfileResponse struct {
 	IsAlive bool `json:"is_alive"`
 	// Title is the profile's name title
 	Title string `json:"title,omitempty"`
+	// CurrentResidence is the profile's current residence
+	CurrentResidence *LocationElement `json:"current_residence"`
 	// AboutMe is the profile's about me section
 	AboutMe *string `json:"about_me,omitempty"`
 	// Occupation is the profile's occupation
@@ -340,7 +344,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,cause_of_death,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 

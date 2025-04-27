@@ -23,6 +23,10 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	profileModel.Public = types.BoolValue(profile.Public)
 	profileModel.Alive = types.BoolValue(profile.IsAlive)
 
+	currentResidence, diags := event.LocationValueFrom(ctx, profile.CurrentResidence)
+	d.Append(diags...)
+	profileModel.CurrentResidence = currentResidence
+
 	names, diags := NameValueFrom(ctx, profile.Names)
 	d.Append(diags...)
 	profileModel.Names = names
@@ -93,6 +97,9 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	burial, diags := event.ElementFrom(ctx, resourceModel.Burial)
 	d.Append(diags...)
 
+	currentResidence, diags := event.LocationObjectValueFrom(ctx, resourceModel.CurrentResidence)
+	d.Append(diags...)
+
 	var convertedNames map[string]geni.NameElement
 	if len(resourceModel.Names.Elements()) > 0 {
 		convertedNames, diags = NameElementsFrom(ctx, resourceModel.Names)
@@ -100,16 +107,17 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	}
 
 	profileRequest := &geni.ProfileRequest{
-		Names:        convertedNames,
-		Gender:       resourceModel.Gender.ValueStringPointer(),
-		Birth:        birth,
-		Baptism:      baptism,
-		Death:        death,
-		Burial:       burial,
-		CauseOfDeath: resourceModel.CauseOfDeath.ValueStringPointer(),
-		AboutMe:      resourceModel.About.ValueStringPointer(),
-		Public:       resourceModel.Public.ValueBool(),
-		IsAlive:      resourceModel.Alive.ValueBool(),
+		Names:            convertedNames,
+		Gender:           resourceModel.Gender.ValueStringPointer(),
+		Birth:            birth,
+		Baptism:          baptism,
+		Death:            death,
+		Burial:           burial,
+		CauseOfDeath:     resourceModel.CauseOfDeath.ValueStringPointer(),
+		CurrentResidence: event.LocationElementFrom(currentResidence),
+		AboutMe:          resourceModel.About.ValueStringPointer(),
+		Public:           resourceModel.Public.ValueBool(),
+		IsAlive:          resourceModel.Alive.ValueBool(),
 	}
 
 	return profileRequest, d
