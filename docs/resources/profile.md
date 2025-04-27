@@ -23,7 +23,6 @@ description: |-
 ### Optional
 
 - `about` (String) Profile's about me section.
-- `auto_update_when_merged` (Boolean) Whether to automatically update the profile when it is merged with another profile.
 - `baptism` (Attributes) Baptism event information. (see [below for nested schema](#nestedatt--baptism))
 - `birth` (Attributes) Birth event information. (see [below for nested schema](#nestedatt--birth))
 - `burial` (Attributes) Burial event information. (see [below for nested schema](#nestedatt--burial))

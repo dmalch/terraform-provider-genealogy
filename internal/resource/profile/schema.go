@@ -132,10 +132,6 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 				Description:   "The ID of the profile this profile was merged into.",
 			},
-			"auto_update_when_merged": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Whether to automatically update the profile when it is merged with another profile.",
-			},
 			"created_at": schema.StringAttribute{
 				Computed:      true,
 				Optional:      true,
