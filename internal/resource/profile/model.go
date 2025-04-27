@@ -6,23 +6,22 @@ import (
 )
 
 type ResourceModel struct {
-	ID                   types.String `tfsdk:"id"`
-	Names                types.Map    `tfsdk:"names"`
-	Gender               types.String `tfsdk:"gender"`
-	Birth                types.Object `tfsdk:"birth"`
-	Baptism              types.Object `tfsdk:"baptism"`
-	Death                types.Object `tfsdk:"death"`
-	Burial               types.Object `tfsdk:"burial"`
-	CauseOfDeath         types.String `tfsdk:"cause_of_death"`
-	Unions               types.Set    `tfsdk:"unions"`
-	Projects             types.Set    `tfsdk:"projects"`
-	About                types.String `tfsdk:"about"`
-	Public               types.Bool   `tfsdk:"public"`
-	Alive                types.Bool   `tfsdk:"alive"`
-	Deleted              types.Bool   `tfsdk:"deleted"`
-	MergedInto           types.String `tfsdk:"merged_into"`
-	AutoUpdateWhenMerged types.Bool   `tfsdk:"auto_update_when_merged"`
-	CreatedAt            types.String `tfsdk:"created_at"`
+	ID           types.String `tfsdk:"id"`
+	Names        types.Map    `tfsdk:"names"`
+	Gender       types.String `tfsdk:"gender"`
+	Birth        types.Object `tfsdk:"birth"`
+	Baptism      types.Object `tfsdk:"baptism"`
+	Death        types.Object `tfsdk:"death"`
+	Burial       types.Object `tfsdk:"burial"`
+	CauseOfDeath types.String `tfsdk:"cause_of_death"`
+	Unions       types.Set    `tfsdk:"unions"`
+	Projects     types.Set    `tfsdk:"projects"`
+	About        types.String `tfsdk:"about"`
+	Public       types.Bool   `tfsdk:"public"`
+	Alive        types.Bool   `tfsdk:"alive"`
+	Deleted      types.Bool   `tfsdk:"deleted"`
+	MergedInto   types.String `tfsdk:"merged_into"`
+	CreatedAt    types.String `tfsdk:"created_at"`
 }
 
 type NameModel struct {

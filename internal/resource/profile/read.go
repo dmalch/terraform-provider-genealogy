@@ -33,7 +33,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 	// If the profile is deleted, check if it was merged into another profile and
 	// read that profile instead. Iterate up to 10 times to find the merged profile.
-	if state.AutoUpdateWhenMerged.ValueBool() && profileResponse.Deleted {
+	if r.autoUpdateMergedProfiles && profileResponse.Deleted {
 		for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
 			profileResponse, err = r.batchClient.GetProfile(ctx, profileResponse.MergedInto)
 			if err != nil {

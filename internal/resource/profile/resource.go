@@ -14,10 +14,11 @@ import (
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	client          *geni.Client
-	batchClient     *genibatch.Client
-	cacheClient     *genicache.Client
-	useProfileCache bool
+	client                   *geni.Client
+	batchClient              *genibatch.Client
+	cacheClient              *genicache.Client
+	useProfileCache          bool
+	autoUpdateMergedProfiles bool
 }
 
 func NewProfileResource() resource.Resource {
@@ -50,4 +51,5 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	r.batchClient = cfg.BatchClient
 	r.cacheClient = cfg.CacheClient
 	r.useProfileCache = cfg.UseProfileCache
+	r.autoUpdateMergedProfiles = cfg.AutoUpdateMergedProfiles
 }
