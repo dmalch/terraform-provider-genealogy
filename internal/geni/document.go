@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -106,78 +105,39 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 		return nil, err
 	}
 
-	body, err := c.doRequest(ctx, req,
-		WithRequestKey(func() string {
-			return documentId
-		}),
-		WithPrepareBulkRequest(func(req *http.Request, urlMap *sync.Map) {
-			// Add a new ids parameter containing IDs of all documents to be fetched in
-			// addition to the current one. First, we need to get the IDs from the map.
-			ids := make([]string, 0)
-
-			ids = append(ids, documentId)
-
-			urlMap.Range(func(key, value interface{}) bool {
-				if _, ok := value.(context.CancelFunc); ok {
-					if keyString, ok := key.(string); ok && strings.Contains(keyString, "document") {
-						ids = append(ids, keyString)
-					}
-				}
-				return true
-			})
-
-			if len(ids) > 1 {
-				query := req.URL.Query()
-				query.Add("ids", strings.Join(ids, ","))
-				req.URL.RawQuery = query.Encode()
-			}
-		}),
-		WithParseBulkResponse(func(req *http.Request, body []byte, urlMap *sync.Map) ([]byte, error) {
-			// If only one document is requested, we can skip the bulk response parsing
-			if !req.URL.Query().Has("ids") {
-				return body, nil
-			}
-
-			// Parse the response to get the document ID
-			var response DocumentBulkResponse
-			err := json.Unmarshal(body, &response)
-			if err != nil {
-				tflog.Error(ctx, "Error unmarshaling bulk response", map[string]interface{}{"error": err})
-				return nil, err
-			}
-
-			var requestedRes []byte
-
-			// Store the response in the map using the document ID as the key
-			for _, document := range response.Results {
-
-				jsonBody, err := json.Marshal(&document)
-				if err != nil {
-					tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
-					return nil, err
-				}
-
-				if document.Id == documentId {
-					requestedRes = jsonBody
-					continue
-				}
-
-				previous, loaded := urlMap.Swap(document.Id, jsonBody)
-				if loaded {
-					// If the previous value is context cancel function, cancel it
-					if cancelFunc, ok := previous.(context.CancelFunc); ok {
-						cancelFunc()
-					}
-				}
-			}
-
-			return requestedRes, nil
-		}))
+	body, err := c.doRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	var document DocumentResponse
+	err = json.Unmarshal(body, &document)
+	if err != nil {
+		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})
+		return nil, err
+	}
+
+	return &document, nil
+}
+
+func (c *Client) GetDocuments(ctx context.Context, documentIds []string) (*DocumentBulkResponse, error) {
+	url := BaseUrl(c.useSandboxEnv) + "api/document"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		tflog.Error(ctx, "Error marshaling request", map[string]interface{}{"error": err})
+		return nil, err
+	}
+
+	query := req.URL.Query()
+	query.Add("ids", strings.Join(documentIds, ","))
+	req.URL.RawQuery = query.Encode()
+
+	body, err := c.doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var document DocumentBulkResponse
 	err = json.Unmarshal(body, &document)
 	if err != nil {
 		tflog.Error(ctx, "Error unmarshaling response", map[string]interface{}{"error": err})

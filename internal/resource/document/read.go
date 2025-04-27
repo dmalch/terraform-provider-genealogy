@@ -44,7 +44,7 @@ func (r *Resource) getDocument(ctx context.Context, documentId string) (*geni.Do
 		return r.cacheClient.GetDocument(ctx, documentId)
 	}
 
-	return r.client.GetDocument(ctx, documentId)
+	return r.batchClient.GetDocument(ctx, documentId)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

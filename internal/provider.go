@@ -103,6 +103,7 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		cacheClient = genicache.NewClient(client, batchClient)
 		go batchClient.UnionBulkProcessor(context.Background())
 		go batchClient.ProfileBulkProcessor(context.Background())
+		go batchClient.DocumentBulkProcessor(context.Background())
 	})
 
 	resp.ResourceData = &config.ClientData{

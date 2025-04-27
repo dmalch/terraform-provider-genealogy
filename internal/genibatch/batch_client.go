@@ -11,16 +11,18 @@ import (
 )
 
 type Client struct {
-	client          *geni.Client
-	unionRequests   chan unionAsyncRequest
-	profileRequests chan profileAsyncRequest
+	client           *geni.Client
+	unionRequests    chan unionAsyncRequest
+	profileRequests  chan profileAsyncRequest
+	documentRequests chan documentAsyncRequest
 }
 
 func NewClient(client *geni.Client) *Client {
 	return &Client{
-		client:          client,
-		unionRequests:   make(chan unionAsyncRequest),
-		profileRequests: make(chan profileAsyncRequest),
+		client:           client,
+		unionRequests:    make(chan unionAsyncRequest),
+		profileRequests:  make(chan profileAsyncRequest),
+		documentRequests: make(chan documentAsyncRequest),
 	}
 }
 
@@ -34,6 +36,12 @@ type profileAsyncRequest struct {
 	ProfileId string
 	Response  chan *geni.ProfileResponse
 	Error     chan error
+}
+
+type documentAsyncRequest struct {
+	DocumentId string
+	Response   chan *geni.DocumentResponse
+	Error      chan error
 }
 
 func (c *Client) GetUnion(ctx context.Context, unionId string) (*geni.UnionResponse, error) {
@@ -66,6 +74,28 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.Profil
 		ProfileId: profileId,
 		Response:  response,
 		Error:     errors,
+	}
+
+	select {
+	case res := <-response:
+		return res, nil
+	case err := <-errors:
+		tflog.Error(ctx, "Error processing request", map[string]interface{}{"error": err})
+		return nil, err
+	case <-ctx.Done():
+		tflog.Error(ctx, "Context done", map[string]interface{}{"error": ctx.Err()})
+		return nil, ctx.Err()
+	}
+}
+
+func (c *Client) GetDocument(ctx context.Context, documentId string) (*geni.DocumentResponse, error) {
+	response := make(chan *geni.DocumentResponse)
+	errors := make(chan error)
+
+	c.documentRequests <- documentAsyncRequest{
+		DocumentId: documentId,
+		Response:   response,
+		Error:      errors,
 	}
 
 	select {
@@ -126,6 +156,34 @@ func (c *Client) ProfileBulkProcessor(ctx context.Context) {
 		case <-ticker.C:
 			if len(batch) > 0 {
 				c.processBatchOfProfiles(ctx, batch)
+				batch = batch[:0] // Reset batch
+			}
+		case <-ctx.Done():
+			err := ctx.Err()
+			if err != nil {
+				tflog.Error(ctx, "Context done", map[string]interface{}{"error": err})
+			}
+			return
+		}
+	}
+}
+
+func (c *Client) DocumentBulkProcessor(ctx context.Context) {
+	batch := make([]documentAsyncRequest, 0, batchSize)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case req := <-c.documentRequests:
+			batch = append(batch, req)
+			if len(batch) >= batchSize {
+				c.processBatchOfDocuments(ctx, batch)
+				batch = batch[:0] // Reset batch
+			}
+		case <-ticker.C:
+			if len(batch) > 0 {
+				c.processBatchOfDocuments(ctx, batch)
 				batch = batch[:0] // Reset batch
 			}
 		case <-ctx.Done():
@@ -215,6 +273,47 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 				req.Response <- resUnion
 			} else {
 				req.Error <- fmt.Errorf("profile %s not found in the response", req.ProfileId)
+			}
+		}
+	}
+}
+
+func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAsyncRequest) {
+	if len(batch) == 1 {
+		req := batch[0]
+		res, err := c.client.GetDocument(ctx, req.DocumentId)
+		if err != nil {
+			req.Error <- err
+			return
+		}
+
+		req.Response <- res
+	}
+
+	if len(batch) > 1 {
+		profileIds := make([]string, len(batch))
+		for i, req := range batch {
+			profileIds[i] = req.DocumentId
+		}
+
+		res, err := c.client.GetDocuments(ctx, profileIds)
+		if err != nil {
+			for _, req := range batch {
+				req.Error <- err
+			}
+			return
+		}
+
+		documentIdToResponse := make(map[string]*geni.DocumentResponse)
+		for _, resDocument := range res.Results {
+			documentIdToResponse[resDocument.Id] = &resDocument
+		}
+
+		for _, req := range batch {
+			if resUnion, ok := documentIdToResponse[req.DocumentId]; ok {
+				req.Response <- resUnion
+			} else {
+				req.Error <- fmt.Errorf("document %s not found in the response", req.DocumentId)
 			}
 		}
 	}
