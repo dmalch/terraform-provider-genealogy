@@ -41,7 +41,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 func (r *Resource) getDocument(ctx context.Context, documentId string) (*geni.DocumentResponse, error) {
 	if r.useDocumentCache {
-		return r.client.GetDocumentFromCache(ctx, documentId)
+		return r.cacheClient.GetDocument(ctx, documentId)
 	}
 
 	return r.client.GetDocument(ctx, documentId)

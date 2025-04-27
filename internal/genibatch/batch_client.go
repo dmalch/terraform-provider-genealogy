@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"golang.org/x/oauth2"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
@@ -17,9 +16,9 @@ type Client struct {
 	profileRequests chan profileAsyncRequest
 }
 
-func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
+func NewClient(client *geni.Client) *Client {
 	return &Client{
-		client:          geni.NewClient(tokenSource, useSandboxEnv),
+		client:          client,
 		unionRequests:   make(chan unionAsyncRequest),
 		profileRequests: make(chan profileAsyncRequest),
 	}

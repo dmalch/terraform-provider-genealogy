@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/allegro/bigcache/v3"
 	"github.com/avast/retry-go/v4"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"golang.org/x/oauth2"
@@ -38,32 +37,20 @@ func newErrWithRetry(statusCode int, secondsUntilRetry int) error {
 }
 
 type Client struct {
-	useSandboxEnv            bool
-	tokenSource              oauth2.TokenSource
-	client                   *http.Client
-	limiter                  *rate.Limiter
-	urlMap                   *sync.Map
-	cache                    *bigcache.BigCache
-	profileCacheLock         sync.Mutex
-	profileCacheInitialized  bool
-	documentCacheLock        sync.Mutex
-	documentCacheInitialized bool
+	useSandboxEnv bool
+	tokenSource   oauth2.TokenSource
+	client        *http.Client
+	limiter       *rate.Limiter
+	urlMap        *sync.Map
 }
 
 func NewClient(tokenSource oauth2.TokenSource, useSandboxEnv bool) *Client {
-	cache, err := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
-	if err != nil {
-		tflog.Error(context.Background(), "Error creating cache", map[string]interface{}{"error": err})
-		panic(err)
-	}
-
 	return &Client{
 		useSandboxEnv: useSandboxEnv,
 		tokenSource:   tokenSource,
 		client:        &http.Client{},
 		limiter:       rate.NewLimiter(rate.Every(1*time.Second), 1),
 		urlMap:        &sync.Map{},
-		cache:         cache,
 	}
 }
 

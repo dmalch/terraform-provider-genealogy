@@ -187,8 +187,6 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*DocumentR
 	return &document, nil
 }
 
-const maxDocumentsPerPage = 50
-
 func (c *Client) GetUploadedDocuments(ctx context.Context, page int) (*DocumentBulkResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/user/uploaded-documents"
 	req, err := http.NewRequest(http.MethodGet, url, nil)

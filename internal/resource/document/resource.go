@@ -8,11 +8,13 @@ import (
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 )
 
 type Resource struct {
 	resource.ResourceWithConfigure
 	client           *geni.Client
+	cacheClient      *genicache.Client
 	useDocumentCache bool
 }
 
@@ -43,5 +45,6 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	}
 
 	r.client = cfg.Client
+	r.cacheClient = cfg.CacheClient
 	r.useDocumentCache = cfg.UseDocumentCache
 }

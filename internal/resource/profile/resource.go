@@ -9,12 +9,14 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
+	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 )
 
 type Resource struct {
 	resource.ResourceWithConfigure
 	client          *geni.Client
 	batchClient     *genibatch.Client
+	cacheClient     *genicache.Client
 	useProfileCache bool
 }
 
@@ -46,5 +48,6 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 
 	r.client = cfg.Client
 	r.batchClient = cfg.BatchClient
+	r.cacheClient = cfg.CacheClient
 	r.useProfileCache = cfg.UseProfileCache
 }

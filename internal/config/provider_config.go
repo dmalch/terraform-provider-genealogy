@@ -5,6 +5,7 @@ import (
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
+	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 )
 
 type GeniProviderConfig struct {
@@ -17,6 +18,7 @@ type GeniProviderConfig struct {
 type ClientData struct {
 	Client           *geni.Client
 	BatchClient      *genibatch.Client
+	CacheClient      *genicache.Client
 	UseProfileCache  bool
 	UseDocumentCache bool
 }

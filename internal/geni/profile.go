@@ -385,8 +385,6 @@ func (c *Client) GetProfiles(ctx context.Context, profileIds []string) (*Profile
 	return &profiles, nil
 }
 
-const maxProfilesPerPage = 50
-
 func (c *Client) GetManagedProfiles(ctx context.Context, page int) (*ProfileBulkResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/user/managed-profiles"
 	req, err := http.NewRequest(http.MethodGet, url, nil)
