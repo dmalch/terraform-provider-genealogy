@@ -19,10 +19,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	var profileResponse *geni.ProfileResponse
-	var err error
-
-	profileResponse, err = r.getProfile(ctx, state.ID.ValueString())
+	profileResponse, err := r.getProfile(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			resp.Diagnostics.AddWarning("Profile not found", "The profile was not found in the Geni API.")
