@@ -97,8 +97,9 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	p.initClientOnce.Do(func() {
 		client = geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
-		batchClient := genibatch.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
+		batchClient = genibatch.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
 		go batchClient.UnionBulkProcessor(context.Background())
+		go batchClient.ProfileBulkProcessor(context.Background())
 	})
 
 	resp.ResourceData = &config.ClientData{

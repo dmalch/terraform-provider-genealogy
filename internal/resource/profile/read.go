@@ -38,7 +38,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	// read that profile instead. Iterate up to 10 times to find the merged profile.
 	if state.AutoUpdateWhenMerged.ValueBool() && profileResponse.Deleted {
 		for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
-			profileResponse, err = r.client.GetProfile(ctx, profileResponse.MergedInto)
+			profileResponse, err = r.batchClient.GetProfile(ctx, profileResponse.MergedInto)
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading profile", err.Error())
 				return
@@ -88,7 +88,7 @@ func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.Prof
 		return r.client.GetProfileFromCache(ctx, profileId)
 	}
 
-	return r.client.GetProfile(ctx, profileId)
+	return r.batchClient.GetProfile(ctx, profileId)
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
