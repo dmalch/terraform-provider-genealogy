@@ -33,16 +33,6 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 	// If the profile is deleted, check if it was merged into another profile and
 	// read that profile instead. Iterate up to 10 times to find the merged profile.
-	if r.autoUpdateMergedProfiles && profileResponse.Deleted {
-		for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
-			profileResponse, err = r.batchClient.GetProfile(ctx, profileResponse.MergedInto)
-			if err != nil {
-				resp.Diagnostics.AddError("Error reading profile", err.Error())
-				return
-			}
-		}
-	}
-
 	if profileResponse.Deleted {
 		if profileResponse.MergedInto != "" {
 			resp.Diagnostics.AddWarning(fmt.Sprintf("Resource %s is merged", profileResponse.Id),
@@ -51,8 +41,19 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 			resp.Diagnostics.AddWarning("Resource is deleted",
 				fmt.Sprintf("The profile %s was deleted in the Geni API.", profileResponse.Id))
 		}
-		resp.State.RemoveResource(ctx)
-		return
+
+		if r.autoUpdateMergedProfiles {
+			for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
+				profileResponse, err = r.batchClient.GetProfile(ctx, profileResponse.MergedInto)
+				if err != nil {
+					resp.Diagnostics.AddError("Error reading profile", err.Error())
+					return
+				}
+			}
+		} else {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 	}
 
 	newState := state
