@@ -221,24 +221,34 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 }
 
 func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncRequest) {
-	if len(batch) == 1 {
-		req := batch[0]
-		res, err := c.client.GetUnion(ctx, req.Id)
+	// Create a hashset to store unique IDs
+	ids := make(map[string]struct{}, len(batch))
+	for _, req := range batch {
+		ids[req.Id] = struct{}{}
+	}
+
+	// Get keys from the hashset as a slice
+	keys := make([]string, 0, len(ids))
+	for id := range ids {
+		keys = append(keys, id)
+	}
+
+	if len(keys) == 1 {
+		result, err := c.client.GetUnion(ctx, keys[0])
 		if err != nil {
-			req.Error <- err
+			for _, req := range batch {
+				req.Error <- err
+			}
 			return
 		}
 
-		req.Response <- res
+		for _, req := range batch {
+			req.Response <- result
+		}
 	}
 
-	if len(batch) > 1 {
-		unionIds := make([]string, len(batch))
-		for i, req := range batch {
-			unionIds[i] = req.Id
-		}
-
-		res, err := c.client.GetUnions(ctx, unionIds)
+	if len(keys) > 1 {
+		res, err := c.client.GetUnions(ctx, keys)
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -247,8 +257,8 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 		}
 
 		idToResponse := make(map[string]*geni.UnionResponse)
-		for _, resUnion := range res.Results {
-			idToResponse[resUnion.Id] = &resUnion
+		for _, result := range res.Results {
+			idToResponse[result.Id] = &result
 		}
 
 		for _, req := range batch {
@@ -262,24 +272,34 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 }
 
 func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyncRequest) {
-	if len(batch) == 1 {
-		req := batch[0]
-		res, err := c.client.GetProfile(ctx, req.Id)
+	// Create a hashset to store unique IDs
+	ids := make(map[string]struct{}, len(batch))
+	for _, req := range batch {
+		ids[req.Id] = struct{}{}
+	}
+
+	// Get keys from the hashset as a slice
+	keys := make([]string, 0, len(ids))
+	for id := range ids {
+		keys = append(keys, id)
+	}
+
+	if len(keys) == 1 {
+		result, err := c.client.GetProfile(ctx, keys[0])
 		if err != nil {
-			req.Error <- err
+			for _, req := range batch {
+				req.Error <- err
+			}
 			return
 		}
 
-		req.Response <- res
+		for _, req := range batch {
+			req.Response <- result
+		}
 	}
 
-	if len(batch) > 1 {
-		profileIds := make([]string, len(batch))
-		for i, req := range batch {
-			profileIds[i] = req.Id
-		}
-
-		res, err := c.client.GetProfiles(ctx, profileIds)
+	if len(keys) > 1 {
+		res, err := c.client.GetProfiles(ctx, keys)
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -288,8 +308,8 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 		}
 
 		idToResponse := make(map[string]*geni.ProfileResponse)
-		for _, resProfile := range res.Results {
-			idToResponse[resProfile.Id] = &resProfile
+		for _, result := range res.Results {
+			idToResponse[result.Id] = &result
 		}
 
 		for _, req := range batch {
@@ -303,24 +323,34 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 }
 
 func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAsyncRequest) {
-	if len(batch) == 1 {
-		req := batch[0]
-		res, err := c.client.GetDocument(ctx, req.Id)
+	// Create a hashset to store unique IDs
+	ids := make(map[string]struct{}, len(batch))
+	for _, req := range batch {
+		ids[req.Id] = struct{}{}
+	}
+
+	// Get keys from the hashset as a slice
+	keys := make([]string, 0, len(ids))
+	for id := range ids {
+		keys = append(keys, id)
+	}
+
+	if len(keys) == 1 {
+		result, err := c.client.GetDocument(ctx, keys[0])
 		if err != nil {
-			req.Error <- err
+			for _, req := range batch {
+				req.Error <- err
+			}
 			return
 		}
 
-		req.Response <- res
+		for _, req := range batch {
+			req.Response <- result
+		}
 	}
 
-	if len(batch) > 1 {
-		profileIds := make([]string, len(batch))
-		for i, req := range batch {
-			profileIds[i] = req.Id
-		}
-
-		res, err := c.client.GetDocuments(ctx, profileIds)
+	if len(keys) > 1 {
+		res, err := c.client.GetDocuments(ctx, keys)
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -334,8 +364,8 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 		}
 
 		for _, req := range batch {
-			if resUnion, ok := idToResponse[req.Id]; ok {
-				req.Response <- resUnion
+			if result, ok := idToResponse[req.Id]; ok {
+				req.Response <- result
 			} else {
 				req.Error <- fmt.Errorf("document %s not found in the response", req.Id)
 			}
