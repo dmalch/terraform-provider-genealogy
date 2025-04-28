@@ -177,6 +177,10 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	d.Append(diags...)
 	profileModel.Burial = burial
 
+	currentResidence, diags := event.UpdateComputedFieldsInLocationObject(ctx, profileModel.CurrentResidence, profile.CurrentResidence)
+	d.Append(diags...)
+	profileModel.CurrentResidence = currentResidence
+
 	profileModel.Deleted = types.BoolValue(profile.Deleted)
 	profileModel.MergedInto = types.StringValue(profile.MergedInto)
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
