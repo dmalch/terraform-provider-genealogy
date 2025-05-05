@@ -1,3 +1,9 @@
+## 0.13.2
+
+IMPROVEMENTS:
+
+* Updated batch processing functions to eliminate duplicate IDs using a hashset. This ensures optimized and accurate request handling for unions, profiles, and documents, simplifying the logic for single and multiple ID processing scenarios.
+
 ## 0.13.1
 
 BUG FIXES:
