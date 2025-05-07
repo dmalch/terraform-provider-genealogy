@@ -13,8 +13,9 @@ import (
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	client      *geni.Client
-	batchClient *genibatch.Client
+	client                   *geni.Client
+	batchClient              *genibatch.Client
+	autoUpdateMergedProfiles bool
 }
 
 func NewUnionResource() resource.Resource {
@@ -45,4 +46,5 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 
 	r.client = cfg.Client
 	r.batchClient = cfg.BatchClient
+	r.autoUpdateMergedProfiles = cfg.AutoUpdateMergedProfiles
 }

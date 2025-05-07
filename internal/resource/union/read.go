@@ -32,24 +32,24 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	// If the union doesn't have any partners or children, remove the resource from
+	// If the union doesn't have any partners and children, remove the resource from
 	// the state
 	if len(unionResponse.Partners) == 0 && len(unionResponse.Children) == 0 {
-		existingUnionId, diags := r.findExistingUnion(ctx, state.Partners)
+		existingUnionId, diags := r.findExistingUnionForPartners(ctx, state.Partners)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 
 		if existingUnionId != "" {
-			resp.Diagnostics.AddWarning("Found existing union", "The union in the state has no partners or children. Found an existing union with ID "+existingUnionId+".")
+			resp.Diagnostics.AddWarning("Found existing union", "The union in the state has no partners and children. Found an existing union with ID "+existingUnionId+".")
 			unionResponse, err = r.client.GetUnion(ctx, existingUnionId)
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading union", err.Error())
 				return
 			}
 		} else {
-			resp.Diagnostics.AddWarning("Union has no partners or children", "The union has no partners or children. Removing from state.")
+			resp.Diagnostics.AddWarning("Union has no partners and children", "The union has no partners and children. Removing from state.")
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -64,7 +64,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func (r *Resource) findExistingUnion(ctx context.Context, partners types.Set) (string, diag.Diagnostics) {
+func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners types.Set) (string, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Attempt to find an existing union for partners in the state
@@ -80,14 +80,23 @@ func (r *Resource) findExistingUnion(ctx context.Context, partners types.Set) (s
 
 	// If there is only one partner, check if it has a union
 	if len(partnerIds) == 1 {
-		profile, err := r.client.GetProfile(ctx, partnerIds[0])
+		profileResponse, err := r.batchClient.GetProfile(ctx, partnerIds[0])
 		if err != nil {
 			diags.AddError("Error reading partner", err.Error())
 			return "", diags
 		}
 
-		if len(profile.Unions) > 0 {
-			return profile.Unions[0], diags
+		if profileResponse.Deleted && r.autoUpdateMergedProfiles {
+			var d diag.Diagnostics
+			profileResponse, d = r.findMergedProfile(ctx, profileResponse)
+			diags = append(diags, d...)
+			if diags.HasError() {
+				return "", diags
+			}
+		}
+
+		if len(profileResponse.Unions) > 0 {
+			return profileResponse.Unions[0], diags
 		}
 	}
 
@@ -102,21 +111,56 @@ func (r *Resource) findExistingUnion(ctx context.Context, partners types.Set) (s
 		return "", diags
 	}
 
+	partner1 := &profiles.Results[0]
+	if partner1.Deleted && r.autoUpdateMergedProfiles {
+		var d diag.Diagnostics
+		partner1, d = r.findMergedProfile(ctx, partner1)
+		diags = append(diags, d...)
+		if diags.HasError() {
+			return "", diags
+		}
+	}
+
+	partner2 := &profiles.Results[1]
+	if partner2.Deleted && r.autoUpdateMergedProfiles {
+		var d diag.Diagnostics
+		partner2, d = r.findMergedProfile(ctx, partner2)
+		diags = append(diags, d...)
+		if diags.HasError() {
+			return "", diags
+		}
+	}
+
 	// Check if the partners have overlapping unions
 	// Add first partner unions to a map
 	unionMap := make(map[string]struct{})
-	for _, union := range profiles.Results[0].Unions {
+	for _, union := range partner1.Unions {
 		unionMap[union] = struct{}{}
 	}
 
 	// Check if the second partner has any unions that are in the first partner
-	for _, union := range profiles.Results[1].Unions {
+	for _, union := range partner2.Unions {
 		if _, ok := unionMap[union]; ok {
 			return union, diags
 		}
 	}
 
 	return "", diags
+}
+
+func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geni.ProfileResponse) (*geni.ProfileResponse, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
+		var err error
+		profileResponse, err = r.batchClient.GetProfile(ctx, profileResponse.MergedInto)
+		if err != nil {
+			diags.AddError("Error reading profile", err.Error())
+			return nil, diags
+		}
+	}
+
+	return profileResponse, diags
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
