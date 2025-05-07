@@ -96,7 +96,24 @@ func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners ty
 		}
 
 		if len(profileResponse.Unions) > 0 {
-			return profileResponse.Unions[0], diags
+			// Find the union where the current profile is a partner
+			for _, unionId := range profileResponse.Unions {
+				unionResponse, err := r.batchClient.GetUnion(ctx, unionId)
+				if err != nil {
+					diags.AddError("Error reading union", err.Error())
+					return "", diags
+				}
+
+				// Check if the profile is a partner in the union
+				for _, partnerId := range unionResponse.Partners {
+					if partnerId == profileResponse.Id {
+						return unionId, diags
+					}
+				}
+			}
+
+			// Could not find the partner id, return an empty result
+			return "", diags
 		}
 	}
 
