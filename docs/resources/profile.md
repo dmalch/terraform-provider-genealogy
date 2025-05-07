@@ -241,3 +241,4 @@ Optional:
 - `first_name` (String) The first name of the person.
 - `last_name` (String) The last name of the person.
 - `middle_name` (String) The middle name of the person.
+- `nicknames` (Set of String) The nicknames of the person.

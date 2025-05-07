@@ -1,3 +1,8 @@
+## 0.14.0 (Unreleased)
+
+FEATURES:
+* Implemented support for nicknames as a new optional field in profiles.
+
 ## 0.13.2
 
 IMPROVEMENTS:
