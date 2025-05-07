@@ -1,3 +1,8 @@
+## 0.14.1 (Unreleased)
+
+IMPROVEMENTS:
+* Optimized the automatic updating of unions for merged profiles during state refresh.
+
 ## 0.14.0
 
 FEATURES:
