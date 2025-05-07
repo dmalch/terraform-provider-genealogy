@@ -3,6 +3,7 @@ package profile
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	. "github.com/onsi/gomega"
 
@@ -83,6 +84,7 @@ func TestValueFrom(t *testing.T) {
 			LastName:      types.StringPointerValue(givenProfile.Names["en"].LastName),
 			BirthLastName: types.StringPointerValue(givenProfile.Names["en"].MaidenName),
 			DisplayName:   types.StringPointerValue(givenProfile.Names["en"].DisplayName),
+			Nicknames:     types.SetNull(types.StringType),
 		}))
 		Expect(actualValue.CreatedAt.ValueString()).To(Equal(givenProfile.CreatedAt))
 	})
@@ -98,6 +100,7 @@ func TestNameValueFrom(t *testing.T) {
 				LastName:    ptr("Doe"),
 				MaidenName:  ptr("Smith"),
 				DisplayName: ptr("John A Doe"),
+				Nicknames:   ptr("A,B"),
 			},
 			"fr": {
 				FirstName:   ptr("Jean"),
@@ -105,6 +108,7 @@ func TestNameValueFrom(t *testing.T) {
 				LastName:    ptr("Dupont"),
 				MaidenName:  ptr("Bernard"),
 				DisplayName: ptr("Jean B Bernard"),
+				Nicknames:   ptr("C,D"),
 			},
 		}
 
@@ -115,6 +119,7 @@ func TestNameValueFrom(t *testing.T) {
 				LastName:      types.StringPointerValue(ptr("Doe")),
 				BirthLastName: types.StringPointerValue(ptr("Smith")),
 				DisplayName:   types.StringPointerValue(ptr("John A Doe")),
+				Nicknames:     types.SetValueMust(types.StringType, []attr.Value{types.StringValue("A"), types.StringValue("B")}),
 			},
 			"fr": {
 				FistName:      types.StringPointerValue(ptr("Jean")),
@@ -122,6 +127,7 @@ func TestNameValueFrom(t *testing.T) {
 				LastName:      types.StringPointerValue(ptr("Dupont")),
 				BirthLastName: types.StringPointerValue(ptr("Bernard")),
 				DisplayName:   types.StringPointerValue(ptr("Jean B Bernard")),
+				Nicknames:     types.SetValueMust(types.StringType, []attr.Value{types.StringValue("C"), types.StringValue("D")}),
 			},
 		}
 
