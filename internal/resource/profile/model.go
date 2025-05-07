@@ -31,6 +31,7 @@ type NameModel struct {
 	LastName      types.String `tfsdk:"last_name"`
 	BirthLastName types.String `tfsdk:"birth_last_name"`
 	DisplayName   types.String `tfsdk:"display_name"`
+	Nicknames     types.Set    `tfsdk:"nicknames"`
 }
 
 func (m NameModel) AttributeTypes() map[string]attr.Type {
@@ -44,5 +45,8 @@ func NameAttributeTypes() map[string]attr.Type {
 		"last_name":       types.StringType,
 		"birth_last_name": types.StringType,
 		"display_name":    types.StringType,
+		"nicknames": types.SetType{
+			ElemType: types.StringType,
+		},
 	}
 }

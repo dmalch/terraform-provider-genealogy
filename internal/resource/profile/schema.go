@@ -63,6 +63,11 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 							Optional:    true,
 							Description: "The display name of the person.",
 						},
+						"nicknames": schema.SetAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+							Description: "The nicknames of the person.",
+						},
 					},
 				},
 				Description: "Nested maps of locales to name fields to values.",

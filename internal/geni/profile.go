@@ -140,6 +140,8 @@ type NameElement struct {
 	MaidenName *string `json:"maiden_name"`
 	// DisplayName is the profile's display name
 	DisplayName *string `json:"display_name"`
+	// Nicknames is the profile's comma-separated list of nicknames
+	Nicknames *string `json:"nicknames"`
 }
 
 // EventElement is the response for an event.
@@ -344,7 +346,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 

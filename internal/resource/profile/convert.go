@@ -2,6 +2,7 @@ package profile
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -69,17 +70,29 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 
 	nameModels := make(map[string]NameModel, len(profileNames))
 
+	var d diag.Diagnostics
 	for locale, name := range profileNames {
+		nicknames := types.SetNull(types.StringType)
+		if name.Nicknames != nil {
+			nicknamesList := strings.Split(*name.Nicknames, ",")
+			var diags diag.Diagnostics
+			nicknames, diags = types.SetValueFrom(ctx, types.StringType, nicknamesList)
+			d.Append(diags...)
+		}
+
 		nameModels[locale] = NameModel{
 			FistName:      types.StringPointerValue(name.FirstName),
 			MiddleName:    types.StringPointerValue(name.MiddleName),
 			LastName:      types.StringPointerValue(name.LastName),
 			BirthLastName: types.StringPointerValue(name.MaidenName),
 			DisplayName:   types.StringPointerValue(name.DisplayName),
+			Nicknames:     nicknames,
 		}
 	}
 
-	return types.MapValueFrom(ctx, types.ObjectType{AttrTypes: NameAttributeTypes()}, nameModels)
+	nameMap, diags := types.MapValueFrom(ctx, types.ObjectType{AttrTypes: NameAttributeTypes()}, nameModels)
+	d.Append(diags...)
+	return nameMap, d
 }
 
 func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
@@ -129,12 +142,17 @@ func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.Nam
 	var profileNames = make(map[string]geni.NameElement, len(nameModels))
 
 	for locale, nameModel := range nameModels {
+		nicknamesSlice, d := convertToSlice(ctx, nameModel.Nicknames)
+		diags = append(diags, d...)
+		nicknamesCsv := strings.Join(nicknamesSlice, ",")
+
 		profileNames[locale] = geni.NameElement{
 			FirstName:   nameModel.FistName.ValueStringPointer(),
 			MiddleName:  nameModel.MiddleName.ValueStringPointer(),
 			LastName:    nameModel.LastName.ValueStringPointer(),
 			MaidenName:  nameModel.BirthLastName.ValueStringPointer(),
 			DisplayName: nameModel.DisplayName.ValueStringPointer(),
+			Nicknames:   &nicknamesCsv,
 		}
 	}
 

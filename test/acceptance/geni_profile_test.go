@@ -66,13 +66,135 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: profileWithDetails(testAccessToken),
+				Config: `
+				provider "geni" {
+				  access_token = "` + testAccessToken + `"
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+						middle_name = "Johnson"
+						birth_last_name = "Smith"
+						display_name = "John Doe"
+						nicknames = ["Johnson","Joe"]
+					}
+				  }
+				  about = "This is a test profile"
+				  public = true
+				  alive = false
+				  gender     = "male"
+				  birth      = {
+					name = "Birth of John Doe"
+					date = {
+					  range = "between"
+					  year = 1980
+					  month = 1
+					  day = 1
+					  circa = true
+					  end_year = 1980
+					  end_month = 1
+					  end_day = 1
+					  end_circa = true
+					}
+					location = {
+					  city = "New York"
+					  country = "USA"
+					  place_name = "Hospital"
+					  state = "New York"
+					  street_address1 = "123 Main St"
+					  street_address2 = "Apt 1"
+					  street_address3 = "Floor 2"
+					  latitude = 55.8948313,
+					  longitude = 44.0386238,
+					  //postal_code = "606302",
+					}
+				  }
+				  baptism = {
+					name = "Baptism of John Doe"
+					date = {
+					  range = "between"
+					  year = 1980
+					  month = 1
+					  day = 1
+					  circa = true
+					  end_year = 1980
+					  end_month = 1
+					  end_day = 1
+					  end_circa = true
+					}
+					location = {
+					  city = "New York"
+					  country = "USA"
+					  place_name = "Church"
+					  state = "New York"
+					  street_address1 = "456 Main St"
+					  street_address2 = "Apt 1"
+					  street_address3 = "Floor 2"
+					}
+				  }
+				  death = {
+					name = "Death of John Doe at Hospital"
+					date = {
+					  range = "between"
+					  year = 1999
+					  month = 1
+					  day = 1
+					  circa = true
+					  end_year = 1999
+					  end_month = 2
+					  end_day = 1
+					  end_circa = true
+					}
+					location = {
+					  city = "New York"
+					  country = "USA"
+					  place_name = "Hospital"
+					  state = "New York"
+					  street_address1 = "123 Main St"
+					  street_address2 = "Apt 1"
+					  street_address3 = "Floor 2"
+					}
+				  }
+				  burial = {
+					name = "Burial of John Doe"
+					date = {
+					  range = "between"
+					  year = 1999
+					  month = 1
+					  day = 1
+					  circa = true
+					  end_year = 1999
+					  end_month = 2
+					  end_day = 1
+					  end_circa = true
+					}
+					location = {
+					  city = "New York"
+					  country = "USA"
+					  place_name = "Cemetery"
+					  state = "New York"
+					  street_address1 = "111 Main St"
+					  street_address2 = "Apt 1"
+					  street_address3 = "Floor 2"
+					}
+				  }
+				}
+				`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.StringExact("Johnson")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("birth_last_name"), knownvalue.StringExact("Smith")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("display_name"), knownvalue.StringExact("John Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("nicknames"),
+						knownvalue.SetExact([]knownvalue.Check{
+							knownvalue.StringExact("Johnson"),
+							knownvalue.StringExact("Joe"),
+						})),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.StringExact("This is a test profile")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
@@ -82,126 +204,6 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 			},
 		},
 	})
-}
-
-func profileWithDetails(testAccessToken string) string {
-	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
-		resource "geni_profile" "test" {
-		  names = {
-			"en-US" = {
-				first_name = "John"
-				last_name = "Doe"
-			    middle_name = "Johnson"
-			    birth_last_name = "Smith"
-			    display_name = "John Doe"
-			}
-		  }
-		  about = "This is a test profile"
-		  public = true
-		  alive = false
-		  gender     = "male"
-		  birth      = {
-			name = "Birth of John Doe"
-			date = {
-			  range = "between"
-			  year = 1980
-			  month = 1
-			  day = 1
-			  circa = true
-			  end_year = 1980
-			  end_month = 1
-			  end_day = 1
-			  end_circa = true
-			}
-			location = {
-			  city = "New York"
-			  country = "USA"
-			  place_name = "Hospital"
-			  state = "New York"
-			  street_address1 = "123 Main St"
-			  street_address2 = "Apt 1"
-			  street_address3 = "Floor 2"
-			  latitude = 55.8948313,
-			  longitude = 44.0386238,
-			  //postal_code = "606302",
-			}
-		  }
-		  baptism = {
-			name = "Baptism of John Doe"
-			date = {
-			  range = "between"
-			  year = 1980
-			  month = 1
-			  day = 1
-			  circa = true
-			  end_year = 1980
-			  end_month = 1
-			  end_day = 1
-			  end_circa = true
-			}
-			location = {
-			  city = "New York"
-			  country = "USA"
-			  place_name = "Church"
-			  state = "New York"
-			  street_address1 = "456 Main St"
-			  street_address2 = "Apt 1"
-			  street_address3 = "Floor 2"
-			}
-		  }
-		  death = {
-			name = "Death of John Doe at Hospital"
-			date = {
-			  range = "between"
-			  year = 1999
-			  month = 1
-			  day = 1
-			  circa = true
-			  end_year = 1999
-			  end_month = 2
-			  end_day = 1
-			  end_circa = true
-			}
-			location = {
-			  city = "New York"
-			  country = "USA"
-			  place_name = "Hospital"
-			  state = "New York"
-			  street_address1 = "123 Main St"
-			  street_address2 = "Apt 1"
-			  street_address3 = "Floor 2"
-			}
-		  }
-		  burial = {
-			name = "Burial of John Doe"
-			date = {
-			  range = "between"
-			  year = 1999
-			  month = 1
-			  day = 1
-			  circa = true
-			  end_year = 1999
-			  end_month = 2
-			  end_day = 1
-			  end_circa = true
-			}
-			location = {
-			  city = "New York"
-			  country = "USA"
-			  place_name = "Cemetery"
-			  state = "New York"
-			  street_address1 = "111 Main St"
-			  street_address2 = "Apt 1"
-			  street_address3 = "Floor 2"
-			}
-		  }
-		}
-		`
 }
 
 func TestAccProfile_createProfileWithDeathDetails(t *testing.T) {
@@ -479,6 +481,8 @@ func TestAccProfile_createProfileWithDifferentSetOfNamesInDifferentLanguages(t *
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("first_name"), knownvalue.StringExact("Иван")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("middle_name"), knownvalue.StringExact("Иванович")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("last_name"), knownvalue.StringExact("Иванов")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("ru").AtMapKey("nicknames"),
+						knownvalue.SetExact([]knownvalue.Check{knownvalue.StringExact("Иван"), knownvalue.StringExact("Ваня")})),
 				},
 			},
 		},
@@ -505,6 +509,7 @@ func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) stri
 				last_name = "Иванов"
 				birth_last_name = "Петров"
 				display_name = "Иван Иванович Иванов"
+				nicknames = ["Иван", "Ваня"]
 			}
 		  }
 		}
