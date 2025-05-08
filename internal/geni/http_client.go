@@ -19,6 +19,7 @@ import (
 )
 
 var ErrResourceNotFound = fmt.Errorf("resource not found")
+var ErrAccessDenied = fmt.Errorf("access denied")
 
 type errCode429WithRetry struct {
 	statusCode        int
@@ -184,6 +185,11 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				if res.StatusCode == http.StatusUnauthorized {
 					tflog.Warn(ctx, "Received 401 Unauthorized, retrying...")
 					return nil, newErrWithRetry(res.StatusCode, 1)
+				}
+
+				if res.StatusCode == http.StatusForbidden {
+					tflog.Warn(ctx, "Received 403 Forbidden.")
+					return nil, ErrAccessDenied
 				}
 
 				if res.StatusCode == http.StatusNotFound {

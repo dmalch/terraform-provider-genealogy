@@ -1,3 +1,8 @@
+## 0.14.2
+
+BUG FIXES:
+* Fixed the deletion of profiles that were already removed in Geni.
+
 ## 0.14.1
 
 IMPROVEMENTS:
