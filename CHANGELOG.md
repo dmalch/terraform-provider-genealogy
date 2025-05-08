@@ -1,3 +1,8 @@
+## 0.14.3
+
+BUG FIXES:
+* Fixed status refresh of profiles that were already removed in Geni.
+
 ## 0.14.2
 
 BUG FIXES:

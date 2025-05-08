@@ -50,6 +50,10 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 					return
 				}
 			}
+			if profileResponse.Deleted && profileResponse.MergedInto == "" {
+				resp.State.RemoveResource(ctx)
+				return
+			}
 		} else {
 			resp.State.RemoveResource(ctx)
 			return
