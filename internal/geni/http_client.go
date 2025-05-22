@@ -164,7 +164,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			secondsUntilRetry, err := strconv.Atoi(apiRateWindow)
 			if err == nil {
 				if apiRateLimitNumber, err := strconv.Atoi(apiRateLimit); err == nil {
-					newLimit := rate.Every(time.Duration(secondsUntilRetry) * time.Second / time.Duration(apiRateLimitNumber))
+					newLimit := rate.Every(time.Duration(secondsUntilRetry+5) * time.Second / time.Duration(apiRateLimitNumber))
 					if c.limiter.Limit() != newLimit {
 						tflog.Debug(ctx, "Setting rate limit", map[string]interface{}{"limit": newLimit, "seconds_until_retry": secondsUntilRetry, "api_rate_limit": apiRateLimit})
 						c.limiter.SetLimit(newLimit)
