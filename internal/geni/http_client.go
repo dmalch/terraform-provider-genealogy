@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -142,7 +142,14 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			tflog.Debug(ctx, "Sending request", map[string]interface{}{"method": req.Method, "url": req.URL.String()})
 			res, err := c.client.Do(req)
 			if err != nil {
-				slog.Error("Error sending request", "error", err)
+				var dnsErr *net.DNSError
+				if errors.As(err, &dnsErr) {
+					tflog.Error(ctx, "DNS lookup failed", map[string]interface{}{"error": err})
+					if dnsErr.IsNotFound {
+						return nil, newErrWithRetry(res.StatusCode, 1)
+					}
+				}
+				tflog.Error(ctx, "Error sending request", map[string]interface{}{"error": err})
 				return nil, err
 			}
 			defer func(Body io.ReadCloser) {
