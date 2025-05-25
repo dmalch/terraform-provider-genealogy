@@ -2,7 +2,7 @@
 
 IMPROVEMENTS:
 
-* Retry logic for Geni API requests has been improved to handle DNS resolution errors more effectively.
+* Retry logic for Geni API requests has been improved to handle DNS resolution and broken pipe errors more effectively.
 
 ## 0.14.4
 

@@ -149,6 +149,14 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 						return nil, newErrWithRetry(res.StatusCode, 1)
 					}
 				}
+
+				var netErr *net.OpError
+				if errors.As(err, &netErr) {
+					if strings.Contains(strings.ToLower(netErr.Error()), "broken pipe") {
+						return nil, newErrWithRetry(res.StatusCode, 1)
+					}
+				}
+
 				tflog.Error(ctx, "Error sending request", map[string]interface{}{"error": err})
 				return nil, err
 			}
