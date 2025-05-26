@@ -1,4 +1,4 @@
-## 0.14.5 (Unreleased)
+## 0.14.5
 
 IMPROVEMENTS:
 
