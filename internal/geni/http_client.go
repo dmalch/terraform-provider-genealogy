@@ -146,7 +146,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				if errors.As(err, &dnsErr) {
 					tflog.Error(ctx, "DNS lookup failed", map[string]interface{}{"error": err})
 					if dnsErr.IsNotFound {
-						return nil, newErrWithRetry(res.StatusCode, 1)
+						return nil, newErrWithRetry(500, 1)
 					}
 				}
 
@@ -154,14 +154,14 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				if errors.As(err, &netOpErr) {
 					if strings.Contains(strings.ToLower(netOpErr.Error()), "broken pipe") {
 						tflog.Error(ctx, "Broken pipe error", map[string]interface{}{"error": err})
-						return nil, newErrWithRetry(res.StatusCode, 1)
+						return nil, newErrWithRetry(500, 1)
 					}
 				}
 
 				var netErr net.Error
 				if errors.As(err, &netErr) && netErr.Timeout() {
 					tflog.Error(ctx, "Network timeout error", map[string]interface{}{"error": err})
-					return nil, newErrWithRetry(res.StatusCode, 1)
+					return nil, newErrWithRetry(504, 1)
 				}
 
 				tflog.Error(ctx, "Error sending request", map[string]interface{}{"error": err})
