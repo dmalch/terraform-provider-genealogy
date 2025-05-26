@@ -1,3 +1,9 @@
+## 0.14.6 (Unreleased)
+
+IMPROVEMENTS:
+
+* Retry logic for Geni API requests has been improved to handle network timeouts and other transient errors more effectively.
+
 ## 0.14.5
 
 IMPROVEMENTS:

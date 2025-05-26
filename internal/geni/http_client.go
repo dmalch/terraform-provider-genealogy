@@ -150,11 +150,18 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 					}
 				}
 
-				var netErr *net.OpError
-				if errors.As(err, &netErr) {
-					if strings.Contains(strings.ToLower(netErr.Error()), "broken pipe") {
+				var netOpErr *net.OpError
+				if errors.As(err, &netOpErr) {
+					if strings.Contains(strings.ToLower(netOpErr.Error()), "broken pipe") {
+						tflog.Error(ctx, "Broken pipe error", map[string]interface{}{"error": err})
 						return nil, newErrWithRetry(res.StatusCode, 1)
 					}
+				}
+
+				var netErr net.Error
+				if errors.As(err, &netErr) && netErr.Timeout() {
+					tflog.Error(ctx, "Network timeout error", map[string]interface{}{"error": err})
+					return nil, newErrWithRetry(res.StatusCode, 1)
 				}
 
 				tflog.Error(ctx, "Error sending request", map[string]interface{}{"error": err})
