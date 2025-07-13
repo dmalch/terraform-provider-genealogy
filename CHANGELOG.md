@@ -1,4 +1,13 @@
-## 0.14.6 (Unreleased)
+## 0.14.8 (Unreleased)
+
+
+## 0.14.7
+
+BUG FIXES:
+
+* Fixed an issue where the `Profile` resource was not correctly removing events.
+
+## 0.14.6
 
 IMPROVEMENTS:
 
