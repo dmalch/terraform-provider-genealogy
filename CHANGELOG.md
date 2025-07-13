@@ -1,6 +1,3 @@
-## 0.14.8 (Unreleased)
-
-
 ## 0.14.7
 
 BUG FIXES:
