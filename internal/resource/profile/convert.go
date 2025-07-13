@@ -100,15 +100,27 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 
 	birth, diags := event.ElementFrom(ctx, resourceModel.Birth)
 	d.Append(diags...)
+	if birth == nil {
+		birth = &geni.EventElement{}
+	}
 
 	baptism, diags := event.ElementFrom(ctx, resourceModel.Baptism)
 	d.Append(diags...)
+	if baptism == nil {
+		baptism = &geni.EventElement{}
+	}
 
 	death, diags := event.ElementFrom(ctx, resourceModel.Death)
 	d.Append(diags...)
+	if death == nil {
+		death = &geni.EventElement{}
+	}
 
 	burial, diags := event.ElementFrom(ctx, resourceModel.Burial)
 	d.Append(diags...)
+	if burial == nil {
+		burial = &geni.EventElement{}
+	}
 
 	currentResidence, diags := event.LocationObjectValueFrom(ctx, resourceModel.CurrentResidence)
 	d.Append(diags...)
