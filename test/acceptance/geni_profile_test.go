@@ -1071,9 +1071,9 @@ func TestAccProfile_updateProfileDate(t *testing.T) {
 	})
 }
 
-func TestAccProfile_removeProfileBirthEvent(t *testing.T) {
+func TestAccProfile_removeProfileEvents(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		IsUnitTest: true,
+		//IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"geni": providerserver.NewProtocol6WithError(internal.New()),
 		},
