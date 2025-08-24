@@ -1169,3 +1169,67 @@ func TestAccProfile_removeProfileEvents(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = {
+							first_name = "John"
+							last_name = "Doe"
+						}
+					  }
+					  alive  = false
+					  public = true
+					  cause_of_death = "natural"
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("cause_of_death"), knownvalue.StringExact("natural")),
+				},
+			},
+			{
+				Config: `
+					provider "geni" {
+					  access_token = "` + testAccessToken + `"
+					  use_sandbox_env = true
+					}
+			
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = {
+							first_name = "John"
+							last_name = "Doe"
+						}
+					  }
+					  alive  = false
+					  public = true
+					}
+					`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("cause_of_death"), knownvalue.Null()),
+				},
+			},
+		},
+	})
+}

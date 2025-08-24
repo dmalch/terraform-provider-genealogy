@@ -28,7 +28,7 @@ type ProfileRequest struct {
 	// Death is the death event info
 	Death *EventElement `json:"death,omitempty"`
 	// CauseOfDeath is the cause of death
-	CauseOfDeath *string `json:"cause_of_death,omitempty"`
+	CauseOfDeath *string `json:"cause_of_death"`
 	// Burial is the burial event info
 	Burial *EventElement `json:"burial,omitempty"`
 	// IsAlive is a boolean that indicates whether the profile is living
