@@ -1,5 +1,8 @@
-## 0.14.8 (Unreleased)
+## 0.14.8
 
+BUG FIXES:
+
+* Fixed an issue where the `Profile` resource was not correctly removing `cause_of_death` attribute.
 
 ## 0.14.7
 
