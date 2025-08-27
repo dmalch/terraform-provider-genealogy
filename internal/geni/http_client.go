@@ -152,8 +152,13 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 
 				var netOpErr *net.OpError
 				if errors.As(err, &netOpErr) {
-					if strings.Contains(strings.ToLower(netOpErr.Error()), "broken pipe") {
+					lowerErr := strings.ToLower(netOpErr.Error())
+					if strings.Contains(lowerErr, "broken pipe") {
 						tflog.Error(ctx, "Broken pipe error", map[string]interface{}{"error": err})
+						return nil, newErrWithRetry(500, 1)
+					}
+					if strings.Contains(lowerErr, "connection reset by peer") {
+						tflog.Error(ctx, "Connection reset by peer error", map[string]interface{}{"error": err})
 						return nil, newErrWithRetry(500, 1)
 					}
 				}
