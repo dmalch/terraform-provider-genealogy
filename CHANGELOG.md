@@ -1,4 +1,8 @@
-## 0.14.9 (Unreleased)
+## 0.14.9
+
+IMPROVEMENTS:
+
+* Retry logic for Geni API requests now handles "connection reset by peer" errors as retryable, improving resilience to transient network issues.
 
 ## 0.14.8
 
