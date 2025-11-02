@@ -79,7 +79,7 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	cacheFilePath, err := tokenCacheFilePath()
+	cacheFilePath, err := tokenCacheFilePath(cfg.UseSandboxEnv.ValueBool())
 	if err != nil {
 		resp.Diagnostics.AddError("error getting token cache file path", err.Error())
 		return
@@ -122,13 +122,17 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 }
 
-func tokenCacheFilePath() (string, error) {
+func tokenCacheFilePath(useSandboxEnv bool) (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("error getting user home directory: %w", err)
 	}
 
 	cacheFilePath := path.Join(homeDir, ".genealogy", "geni_token.json")
+	if useSandboxEnv {
+		cacheFilePath = path.Join(homeDir, ".genealogy", "geni_sandbox_token.json")
+	}
+
 	return cacheFilePath, nil
 }
 
