@@ -4,12 +4,16 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 // Update updates the resource.
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan ResourceModel
+	var plan, state ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -18,6 +22,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Check if about fields were removed in the plan
+	if !plan.About.Equal(state.About) {
+		removedAboutKeys := findRemovedKeys(state.About, plan.About)
+
+		for _, removedAboutKey := range removedAboutKeys {
+			profileRequest.DetailStrings[removedAboutKey] = geni.DetailsString{}
+		}
 	}
 
 	projectIds, diags := convertToSlice(ctx, plan.Projects)
@@ -47,4 +60,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
+
+func findRemovedKeys(stateAbout types.Map, planAbout types.Map) []string {
+	removedKeys := []string{}
+	for locale, _ := range stateAbout.Elements() {
+		if _, ok := planAbout.Elements()[locale]; !ok {
+			removedKeys = append(removedKeys, locale)
+		}
+	}
+	return removedKeys
 }

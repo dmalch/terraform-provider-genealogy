@@ -32,9 +32,11 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 		aboutMeMap["en-US"] = *profile.AboutMe
 	}
 
-	detailStrings, diags := types.MapValueFrom(ctx, types.StringType, aboutMeMap)
-	d.Append(diags...)
-	profileModel.About = detailStrings
+	if len(aboutMeMap) > 0 {
+		detailStrings, diags := types.MapValueFrom(ctx, types.StringType, aboutMeMap)
+		d.Append(diags...)
+		profileModel.About = detailStrings
+	}
 
 	profileModel.Public = types.BoolValue(profile.Public)
 	profileModel.Alive = types.BoolValue(profile.IsAlive)
