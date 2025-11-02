@@ -1,4 +1,9 @@
-## 0.15.1 (Unreleased)
+## 0.15.1
+
+BUG FIXES:
+
+* Fixed the build issue in the previous release.
+
 ## 0.15.0
 
 FEATURES:
