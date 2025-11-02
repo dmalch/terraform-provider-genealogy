@@ -1,4 +1,8 @@
-## 0.14.10 (Unreleased)
+## 0.14.10
+
+IMPROVEMENTS:
+
+* Maintenance update to dependencies to ensure compatibility and security.
 
 ## 0.14.9
 
