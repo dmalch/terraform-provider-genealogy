@@ -1,4 +1,16 @@
-## 0.14.11 (Unreleased)
+## 0.15.0
+
+FEATURES:
+
+* Profile: added support for localized "about" text. The `about` attribute for the `Profile` resource is now a map of locale -> string and is backed by the Geni API's `detail_strings` field. The provider converts between `detail_strings` and the Terraform `about` map and falls back to `en-US` when necessary.
+
+IMPROVEMENTS:
+
+* Provider: token cache path now respects `use_sandbox_env` and uses a separate cache file (`~/.genealogy/geni_sandbox_token.json`) when sandbox mode is enabled.
+
+BREAKING CHANGES:
+
+* The `about` attribute type changed from a single string to a map (locale -> string). Review your state or code that references `geni_profile.about` to ensure it handles the new map shape.
 
 ## 0.14.10
 
