@@ -17,7 +17,7 @@ type ResourceModel struct {
 	Unions           types.Set    `tfsdk:"unions"`
 	Projects         types.Set    `tfsdk:"projects"`
 	CurrentResidence types.Object `tfsdk:"current_residence"`
-	About            types.String `tfsdk:"about"`
+	About            types.Map    `tfsdk:"about"`
 	Public           types.Bool   `tfsdk:"public"`
 	Alive            types.Bool   `tfsdk:"alive"`
 	Deleted          types.Bool   `tfsdk:"deleted"`

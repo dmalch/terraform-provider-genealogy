@@ -73,7 +73,9 @@ func TestValueFrom(t *testing.T) {
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.Id))
 		Expect(actualValue.Gender.ValueString()).To(Equal(*givenProfile.Gender))
-		Expect(actualValue.About.ValueString()).To(Equal(*givenProfile.AboutMe))
+		var actualAbout = make(map[string]string)
+		Expect(actualValue.About.ElementsAs(t.Context(), &actualAbout, false).HasError()).To(BeFalse())
+		Expect(actualAbout).To(HaveKeyWithValue("en-US", *givenProfile.AboutMe))
 		Expect(actualValue.Public.ValueBool()).To(Equal(givenProfile.Public))
 		Expect(actualValue.Alive.ValueBool()).To(Equal(givenProfile.IsAlive))
 		var actualNames = make(map[string]NameModel)
@@ -87,6 +89,29 @@ func TestValueFrom(t *testing.T) {
 			Nicknames:     types.SetNull(types.StringType),
 		}))
 		Expect(actualValue.CreatedAt.ValueString()).To(Equal(givenProfile.CreatedAt))
+	})
+
+	t.Run("when about me in multiple languages is defiled", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenProfile := &geni.ProfileResponse{
+			DetailStrings: map[string]geni.DetailsString{
+				"en-US": {
+					AboutMe: ptr("This is a test profile in English"),
+				},
+				"fr-FR": {
+					AboutMe: ptr("Ceci est un profil de test en français"),
+				},
+			},
+		}
+
+		actualValue := &ResourceModel{}
+		diags := ValueFrom(t.Context(), givenProfile, actualValue)
+
+		Expect(diags.HasError()).To(BeFalse())
+		var actualAbout = make(map[string]string)
+		Expect(actualValue.About.ElementsAs(t.Context(), &actualAbout, false).HasError()).To(BeFalse())
+		Expect(actualAbout).To(HaveKeyWithValue("en-US", *givenProfile.DetailStrings["en-US"].AboutMe))
+		Expect(actualAbout).To(HaveKeyWithValue("fr-FR", *givenProfile.DetailStrings["fr-FR"].AboutMe))
 	})
 }
 

@@ -114,8 +114,9 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Description: "Profile's death cause",
 			},
 			"current_residence": event.LocationSchema("Event's location."),
-			"about": schema.StringAttribute{
+			"about": schema.MapAttribute{
 				Optional:    true,
+				ElementType: types.StringType,
 				Description: "Profile's about me section.",
 			},
 			"public": schema.BoolAttribute{

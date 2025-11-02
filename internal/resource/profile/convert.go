@@ -20,7 +20,22 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	}
 
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
-	profileModel.About = types.StringPointerValue(profile.AboutMe)
+
+	aboutMeMap := make(map[string]string)
+	for locale, localeDetails := range profile.DetailStrings {
+		if localeDetails.AboutMe != nil {
+			aboutMeMap[locale] = *localeDetails.AboutMe
+		}
+	}
+	// Fallback to AboutMe if DetailStrings is empty
+	if len(aboutMeMap) == 0 && profile.AboutMe != nil && *profile.AboutMe != "" {
+		aboutMeMap["en-US"] = *profile.AboutMe
+	}
+
+	detailStrings, diags := types.MapValueFrom(ctx, types.StringType, aboutMeMap)
+	d.Append(diags...)
+	profileModel.About = detailStrings
+
 	profileModel.Public = types.BoolValue(profile.Public)
 	profileModel.Alive = types.BoolValue(profile.IsAlive)
 
@@ -131,6 +146,19 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 		d.Append(diags...)
 	}
 
+	convertedDetails := make(map[string]geni.DetailsString)
+	if len(resourceModel.About.Elements()) > 0 {
+		var aboutMeMap map[string]*string
+		diags := resourceModel.About.ElementsAs(ctx, &aboutMeMap, false)
+		d.Append(diags...)
+
+		for locale, detailsString := range aboutMeMap {
+			convertedDetails[locale] = geni.DetailsString{
+				AboutMe: detailsString,
+			}
+		}
+	}
+
 	profileRequest := &geni.ProfileRequest{
 		Names:            convertedNames,
 		Gender:           resourceModel.Gender.ValueStringPointer(),
@@ -140,7 +168,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 		Burial:           burial,
 		CauseOfDeath:     resourceModel.CauseOfDeath.ValueStringPointer(),
 		CurrentResidence: event.LocationElementFrom(currentResidence),
-		AboutMe:          resourceModel.About.ValueStringPointer(),
+		DetailStrings:    convertedDetails,
 		Public:           resourceModel.Public.ValueBool(),
 		IsAlive:          resourceModel.Alive.ValueBool(),
 	}

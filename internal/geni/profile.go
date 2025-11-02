@@ -12,6 +12,11 @@ import (
 	"sync"
 )
 
+type DetailsString struct {
+	// AboutMe is the profile's about me section
+	AboutMe *string `json:"about_me"`
+}
+
 type ProfileRequest struct {
 	// DisplayName is the profile's display name
 	DisplayName *string `json:"display_name,omitempty"`
@@ -39,6 +44,8 @@ type ProfileRequest struct {
 	CurrentResidence *LocationElement `json:"current_residence"`
 	// AboutMe is the profile's about me section
 	AboutMe *string `json:"about_me"`
+	// DetailStrings are nested maps of locales to details fields (e.g. about me) to values
+	DetailStrings map[string]DetailsString `json:"detail_strings"`
 	// Occupation is the profile's occupation
 	Occupation string `json:"occupation,omitempty"`
 	// Suffix is the profile's suffix
@@ -98,6 +105,8 @@ type ProfileResponse struct {
 	CurrentResidence *LocationElement `json:"current_residence"`
 	// AboutMe is the profile's about me section
 	AboutMe *string `json:"about_me,omitempty"`
+	// DetailStrings are nested maps of locales to details fields (e.g. about me) to values
+	DetailStrings map[string]DetailsString `json:"detail_strings,omitempty"`
 	// Occupation is the profile's occupation
 	Occupation string `json:"occupation,omitempty"`
 	// Suffix is the profile's suffix
@@ -346,7 +355,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,detail_strings,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 
