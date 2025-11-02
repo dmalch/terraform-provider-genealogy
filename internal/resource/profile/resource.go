@@ -12,6 +12,9 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 )
 
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithUpgradeState = &Resource{}
+
 type Resource struct {
 	resource.ResourceWithConfigure
 	client                   *geni.Client
