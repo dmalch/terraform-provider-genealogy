@@ -1,4 +1,8 @@
-## 0.15.2 (Unreleased)
+## 0.15.2
+
+FEATURES:
+
+* Profile: added a state upgrade path to automatically migrate prior state where `about` was a single string into the new `about` map shape. When upgrading, the previous `about` string is moved into the `"en-US"` locale key. Empty values are converted into a null map.
 
 ## 0.15.1
 
