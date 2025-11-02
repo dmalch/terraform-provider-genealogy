@@ -83,7 +83,9 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 						nicknames = ["Johnson","Joe"]
 					}
 				  }
-				  about = "This is a test profile"
+				  about = {
+					"en-US": "This is a test profile"
+				  }
 				  public = true
 				  alive = false
 				  gender     = "male"
@@ -195,7 +197,7 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 							knownvalue.StringExact("Johnson"),
 							knownvalue.StringExact("Joe"),
 						})),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.StringExact("This is a test profile")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("en-US"), knownvalue.StringExact("This is a test profile")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("name"), knownvalue.StringExact("Birth of John Doe")),
@@ -230,7 +232,9 @@ func TestAccProfile_createProfileWithDeathDetails(t *testing.T) {
 						    display_name = "John Doe"
 						}
 					  }
-					  about = "This is a test profile"
+					  about = {
+						"en-US": "This is a test profile"
+					  }
 					  public = true
 					  alive = false
 					  gender= "male"
@@ -289,7 +293,7 @@ func TestAccProfile_createProfileWithDeathDetails(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.StringExact("Johnson")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("birth_last_name"), knownvalue.StringExact("Smith")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("display_name"), knownvalue.StringExact("John Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.StringExact("This is a test profile")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("en-US"), knownvalue.StringExact("This is a test profile")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("death").AtMapKey("name"), knownvalue.StringExact("Death of John Doe at Hospital")),
@@ -1228,6 +1232,144 @@ func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("cause_of_death"), knownvalue.Null()),
+				},
+			},
+		},
+	})
+}
+
+func TestAccProfile_createProfileWithAboutSectionInDifferentLanguages(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		//IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				provider "geni" {
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
+				  about = {
+					"en-US": "This is a test profile"
+					"ru": "Это тестовый профиль"
+					"de": "Dies ist ein Testprofil"
+					"fr": "Ceci est un profil de test"
+				  }
+				  public = true
+				  alive  = false
+				  gender = "male"
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("en-US"), knownvalue.StringExact("This is a test profile")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("ru"), knownvalue.StringExact("Это тестовый профиль")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("de"), knownvalue.StringExact("Dies ist ein Testprofil")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("fr"), knownvalue.StringExact("Ceci est un profil de test")),
+				},
+			},
+		},
+	})
+}
+
+func TestAccProfile_removeProfileAboutSection(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		IsUnitTest: true,
+		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
+			"geni": providerserver.NewProtocol6WithError(internal.New()),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				provider "geni" {
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
+				  about = {
+					"en-US": "This is a test profile"
+					"ru": "Это тестовый профиль"
+					"de": "Dies ist ein Testprofil"
+					"fr": "Ceci est un profil de test"
+				  }
+				  public = true
+				  alive  = false
+				  gender = "male"
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("en-US"), knownvalue.StringExact("This is a test profile")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("ru"), knownvalue.StringExact("Это тестовый профиль")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("de"), knownvalue.StringExact("Dies ist ein Testprofil")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("fr"), knownvalue.StringExact("Ceci est un profil de test")),
+				},
+			},
+			{
+				Config: `
+				provider "geni" {
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
+				  about = {
+					"en-US": "This is a test profile"
+				  }
+				  public = true
+				  alive  = false
+				  gender = "male"
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about").AtMapKey("en-US"), knownvalue.StringExact("This is a test profile")),
+				},
+			},
+			{
+				Config: `
+				provider "geni" {
+				  use_sandbox_env = true
+				}
+		
+				resource "geni_profile" "test" {
+				  names = {
+					"en-US" = {
+						first_name = "John"
+						last_name = "Doe"
+					}
+				  }
+				  public = true
+				  alive  = false
+				  gender = "male"
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
 				},
 			},
 		},
