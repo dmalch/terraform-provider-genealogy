@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -71,6 +72,10 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 						},
 					},
 				},
+				Validators: []validator.Map{
+					// Keys must be locales
+					mapvalidator.KeysAre(stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z]{2}(-[A-Z]{2})?$`), "must be a valid locale code")),
+				},
 				Description: "Nested maps of locales to name fields to values.",
 			},
 			"unions": schema.SetAttribute{
@@ -118,6 +123,12 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			"about": schema.MapAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
+				Validators: []validator.Map{
+					// Do not allow trailing spaces or newlines
+					mapvalidator.ValueStringsAre(stringvalidator.RegexMatches(regexp.MustCompile(`^[\S\s]*\S+$`), "cannot have trailing whitespaces or newlines")),
+					// Keys must be locales
+					mapvalidator.KeysAre(stringvalidator.RegexMatches(regexp.MustCompile(`^[a-z]{2}(-[A-Z]{2})?$`), "must be a valid locale code")),
+				},
 				Description: "Profile's about me section.",
 			},
 			"public": schema.BoolAttribute{

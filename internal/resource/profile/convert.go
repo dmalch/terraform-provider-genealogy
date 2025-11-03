@@ -21,20 +21,10 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 
-	aboutMeMap := make(map[string]string)
-	for locale, localeDetails := range profile.DetailStrings {
-		if localeDetails.AboutMe != nil {
-			aboutMeMap[locale] = *localeDetails.AboutMe
-		}
-	}
-	// Fallback to AboutMe if DetailStrings is empty
-	if len(aboutMeMap) == 0 && profile.AboutMe != nil && *profile.AboutMe != "" {
-		aboutMeMap["en-US"] = *profile.AboutMe
-	}
+	detailStrings, diags := detailStringsValueFrom(ctx, profile)
+	d.Append(diags...)
 
-	if len(aboutMeMap) > 0 {
-		detailStrings, diags := types.MapValueFrom(ctx, types.StringType, aboutMeMap)
-		d.Append(diags...)
+	if len(detailStrings.Elements()) > 0 {
 		profileModel.About = detailStrings
 	}
 
@@ -78,6 +68,21 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	}
 
 	return d
+}
+
+func detailStringsValueFrom(ctx context.Context, profile *geni.ProfileResponse) (basetypes.MapValue, diag.Diagnostics) {
+	aboutMeMap := make(map[string]string)
+	for locale, localeDetails := range profile.DetailStrings {
+		if localeDetails.AboutMe != nil {
+			aboutMeMap[locale] = *localeDetails.AboutMe
+		}
+	}
+	// Fallback to AboutMe if DetailStrings is empty
+	if len(aboutMeMap) == 0 && profile.AboutMe != nil && *profile.AboutMe != "" {
+		aboutMeMap["en-US"] = *profile.AboutMe
+	}
+
+	return types.MapValueFrom(ctx, types.StringType, aboutMeMap)
 }
 
 func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement) (basetypes.MapValue, diag.Diagnostics) {
@@ -240,6 +245,13 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	currentResidence, diags := event.UpdateComputedFieldsInLocationObject(ctx, profileModel.CurrentResidence, profile.CurrentResidence)
 	d.Append(diags...)
 	profileModel.CurrentResidence = currentResidence
+
+	detailStrings, diags := detailStringsValueFrom(ctx, profile)
+	d.Append(diags...)
+
+	if len(detailStrings.Elements()) > 0 {
+		profileModel.About = detailStrings
+	}
 
 	profileModel.Deleted = types.BoolValue(profile.Deleted)
 	profileModel.MergedInto = types.StringValue(profile.MergedInto)
