@@ -1,4 +1,8 @@
-## 0.15.3  (Unreleased)
+## 0.15.3
+
+IMPROVEMENTS:
+
+* Profile: added validation of the `names` and `about` map to ensure locale keys are formatted correctly as per BCP 47 standards.
 
 ## 0.15.2
 
