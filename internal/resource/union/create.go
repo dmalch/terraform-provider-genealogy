@@ -139,4 +139,10 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	// Set data returned by API in identity
+	identity := ResourceIdentityModel{
+		ID: plan.ID,
+	}
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 }

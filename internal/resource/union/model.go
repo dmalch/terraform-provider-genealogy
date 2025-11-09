@@ -11,3 +11,7 @@ type ResourceModel struct {
 	Marriage types.Object `tfsdk:"marriage"`
 	Divorce  types.Object `tfsdk:"divorce"`
 }
+
+type ResourceIdentityModel struct {
+	ID types.String `tfsdk:"id"`
+}

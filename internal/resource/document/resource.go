@@ -12,6 +12,9 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 )
 
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithIdentity = &Resource{} // new interface
+
 type Resource struct {
 	resource.ResourceWithConfigure
 	client           *geni.Client
@@ -27,6 +30,9 @@ func NewResource() resource.Resource {
 // Metadata provides the resource type name.
 func (r *Resource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "geni_document"
+	resp.ResourceBehavior = resource.ResourceBehavior{
+		MutableIdentity: true,
+	}
 }
 
 func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

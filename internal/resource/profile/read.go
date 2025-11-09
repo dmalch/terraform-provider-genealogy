@@ -22,9 +22,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 	// Read identity data
 	var identityData ResourceIdentityModel
-	resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if !req.Identity.Raw.IsNull() {
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	profileResponse, err := r.getProfile(ctx, state.ID.ValueString())
@@ -90,10 +92,8 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
 
 	// Set data returned by API in identity
-	identity := ResourceIdentityModel{
-		ID: types.StringValue(profileResponse.Id),
-	}
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+	identityData.ID = types.StringValue(profileResponse.Id)
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 
 func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {

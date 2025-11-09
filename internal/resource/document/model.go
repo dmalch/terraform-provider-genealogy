@@ -20,3 +20,7 @@ type ResourceModel struct {
 	Labels      types.Set    `tfsdk:"labels"`
 	CreatedAt   types.String `tfsdk:"created_at"`
 }
+
+type ResourceIdentityModel struct {
+	ID types.String `tfsdk:"id"`
+}

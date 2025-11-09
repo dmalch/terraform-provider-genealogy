@@ -20,6 +20,15 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
+	// Read identity data
+	var identityData ResourceIdentityModel
+	if !req.Identity.Raw.IsNull() {
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	unionResponse, err := r.batchClient.GetUnion(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
@@ -62,6 +71,10 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+
+	// Set data returned by API in identity
+	identityData.ID = types.StringValue(unionResponse.Id)
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 
 func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners types.Set) (string, diag.Diagnostics) {
@@ -181,5 +194,5 @@ func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geni.
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
 }
