@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Update updates the resource.
@@ -13,6 +14,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Read identity data
+	var identityData ResourceIdentityModel
+	if !req.Identity.Raw.IsNull() {
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	documentRequest, diags := RequestFrom(ctx, plan)
@@ -85,4 +95,8 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	// Set data returned by API in identity
+	identityData.ID = types.StringValue(documentResponse.Id)
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }

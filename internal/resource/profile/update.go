@@ -18,6 +18,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
+	// Read identity data
+	var identityData ResourceIdentityModel
+	if !req.Identity.Raw.IsNull() {
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	profileRequest, diags := RequestFrom(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -60,6 +69,10 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	// Set data returned by API in identity
+	identityData.ID = types.StringValue(profileResponse.Id)
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 
 func findRemovedKeys(stateAbout types.Map, planAbout types.Map) []string {

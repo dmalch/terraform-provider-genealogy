@@ -18,6 +18,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
+	// Read identity data
+	var identityData ResourceIdentityModel
+	if !req.Identity.Raw.IsNull() {
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Check if parents were updated
 	if !plan.Partners.Equal(state.Partners) {
 		planPartnerIds, diags := convertToSlice(ctx, plan.Partners)
@@ -132,4 +141,8 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	// Set data returned by API in identity
+	identityData.ID = plan.ID
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
