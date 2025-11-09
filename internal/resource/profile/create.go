@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Create creates the resource.
@@ -47,4 +48,10 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	// Set data returned by API in identity
+	identity := ResourceIdentityModel{
+		ID: types.StringValue(profileResponse.Id),
+	}
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 }

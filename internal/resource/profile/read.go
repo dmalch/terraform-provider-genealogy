@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
@@ -15,6 +16,13 @@ import (
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Read identity data
+	var identityData ResourceIdentityModel
+	resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -80,6 +88,12 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
+
+	// Set data returned by API in identity
+	identity := ResourceIdentityModel{
+		ID: types.StringValue(profileResponse.Id),
+	}
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 }
 
 func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {
@@ -91,5 +105,5 @@ func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.Prof
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
 }

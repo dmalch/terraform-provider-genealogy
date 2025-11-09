@@ -70,3 +70,7 @@ func NameAttributeTypes() map[string]attr.Type {
 		},
 	}
 }
+
+type ResourceIdentityModel struct {
+	ID types.String `tfsdk:"id"`
+}

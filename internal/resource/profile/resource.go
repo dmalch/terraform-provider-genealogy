@@ -13,6 +13,7 @@ import (
 )
 
 var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithIdentity = &Resource{} // new interface
 var _ resource.ResourceWithUpgradeState = &Resource{}
 
 type Resource struct {
@@ -31,6 +32,9 @@ func NewProfileResource() resource.Resource {
 // Metadata provides the resource type name.
 func (r *Resource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "geni_profile"
+	resp.ResourceBehavior = resource.ResourceBehavior{
+		MutableIdentity: true,
+	}
 }
 
 func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

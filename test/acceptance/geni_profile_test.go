@@ -41,7 +41,6 @@ func TestAccProfile_createProfile(t *testing.T) {
 func profile(testAccessToken string) string {
 	return `
 		provider "geni" {
-		  access_token = "` + testAccessToken + `"
 		  use_sandbox_env = true
 		}
 
@@ -68,7 +67,6 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 			{
 				Config: `
 				provider "geni" {
-				  access_token = "` + testAccessToken + `"
 				  use_sandbox_env = true
 				}
 		
@@ -218,7 +216,6 @@ func TestAccProfile_createProfileWithDeathDetails(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-					  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -325,7 +322,6 @@ func TestAccProfile_createProfileWithFixedBirthDate(t *testing.T) {
 func profileWithFixedBirthDate(testAccessToken string) string {
 	return `
 		provider "geni" {
-		  access_token = "` + testAccessToken + `"
 		  use_sandbox_env = true
 		}
 
@@ -370,7 +366,6 @@ func TestAccProfile_createProfileWithEmptyBirthLocation(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-					  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -619,7 +614,6 @@ func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-						access_token = "` + testAccessToken + `"
 						use_sandbox_env = true
 					}
 					resource "geni_profile" "test" {
@@ -639,7 +633,6 @@ func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-						access_token = "` + testAccessToken + `"
 						use_sandbox_env = true
 					}
 					resource "geni_profile" "test" {
@@ -670,7 +663,6 @@ func TestAccProfile_updateProfilePublicStatus(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-						access_token = "` + testAccessToken + `"
 						use_sandbox_env = true
 					}
 					resource "geni_profile" "test" {
@@ -690,7 +682,6 @@ func TestAccProfile_updateProfilePublicStatus(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-						access_token = "` + testAccessToken + `"
 						use_sandbox_env = true
 					}
 					resource "geni_profile" "test" {
@@ -721,7 +712,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 			{
 				Config: `
 				provider "geni" {
-				  access_token = "` + testAccessToken + `"
 				  use_sandbox_env = true
 				}
 		
@@ -755,7 +745,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 			{
 				Config: `
 				provider "geni" {
-				  access_token = "` + testAccessToken + `"
 				  use_sandbox_env = true
 				}
 		
@@ -797,7 +786,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 			{
 				Config: `
 				provider "geni" {
-				  access_token = "` + testAccessToken + `"
 				  use_sandbox_env = true
 				}
 		
@@ -826,7 +814,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 			{
 				Config: `
 				provider "geni" {
-				  access_token = "` + testAccessToken + `"
 				  use_sandbox_env = true
 				}
 		
@@ -863,7 +850,6 @@ func TestAccProfile_updateProfileLocation(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-		  			  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -916,7 +902,6 @@ func TestAccProfile_updateProfileLocation(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-		  			  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -974,7 +959,6 @@ func TestAccProfile_updateProfileDate(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-		  			  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -1028,7 +1012,6 @@ func TestAccProfile_updateProfileDate(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-		  			  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -1085,7 +1068,6 @@ func TestAccProfile_removeProfileEvents(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-		  			  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -1147,7 +1129,6 @@ func TestAccProfile_removeProfileEvents(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-		  			  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -1184,7 +1165,6 @@ func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-					  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
@@ -1211,7 +1191,6 @@ func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
 			{
 				Config: `
 					provider "geni" {
-					  access_token = "` + testAccessToken + `"
 					  use_sandbox_env = true
 					}
 			
