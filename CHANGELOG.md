@@ -1,4 +1,8 @@
-## 0.15.4 (Unreleased)
+## 0.16.0
+
+FEATURES:
+
+* Resources: added identity handling for `geni_profile`, `geni_document`, and `geni_union`. Resources now implement the Terraform Plugin Framework identity APIs, expose an identity schema (id) required for import, and persist identity data returned by the API.
 
 ## 0.15.3
 
