@@ -46,7 +46,7 @@ type ResourceModelV0 struct {
 }
 
 type NameModel struct {
-	FistName      types.String `tfsdk:"first_name"`
+	FirstName     types.String `tfsdk:"first_name"`
 	MiddleName    types.String `tfsdk:"middle_name"`
 	LastName      types.String `tfsdk:"last_name"`
 	BirthLastName types.String `tfsdk:"birth_last_name"`

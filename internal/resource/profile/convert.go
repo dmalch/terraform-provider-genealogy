@@ -103,7 +103,7 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 		}
 
 		nameModels[locale] = NameModel{
-			FistName:      types.StringPointerValue(name.FirstName),
+			FirstName:      types.StringPointerValue(name.FirstName),
 			MiddleName:    types.StringPointerValue(name.MiddleName),
 			LastName:      types.StringPointerValue(name.LastName),
 			BirthLastName: types.StringPointerValue(name.MaidenName),
@@ -194,7 +194,7 @@ func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.Nam
 		nicknamesCsv := strings.Join(nicknamesSlice, ",")
 
 		profileNames[locale] = geni.NameElement{
-			FirstName:   nameModel.FistName.ValueStringPointer(),
+			FirstName:   nameModel.FirstName.ValueStringPointer(),
 			MiddleName:  nameModel.MiddleName.ValueStringPointer(),
 			LastName:    nameModel.LastName.ValueStringPointer(),
 			MaidenName:  nameModel.BirthLastName.ValueStringPointer(),

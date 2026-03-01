@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -139,7 +140,7 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 				options.prepareBulkRequestFrom(req, c.urlMap)
 			}
 
-			tflog.Debug(ctx, "Sending request", map[string]interface{}{"method": req.Method, "url": req.URL.String()})
+			tflog.Debug(ctx, "Sending request", map[string]interface{}{"method": req.Method, "url": redactURL(req.URL)})
 			res, err := c.client.Do(req)
 			if err != nil {
 				var dnsErr *net.DNSError
@@ -254,6 +255,16 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, opts ...func(
 			tflog.Debug(ctx, "Retrying request", map[string]interface{}{"attempt": n + 1, "error": err})
 		}),
 	)
+}
+
+func redactURL(u *url.URL) string {
+	redacted := *u
+	q := redacted.Query()
+	if q.Has("access_token") {
+		q.Set("access_token", "REDACTED")
+		redacted.RawQuery = q.Encode()
+	}
+	return redacted.String()
 }
 
 func (c *Client) addStandardHeadersAndQueryParams(req *http.Request) error {

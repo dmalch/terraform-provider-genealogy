@@ -29,6 +29,7 @@ type GeniProvider struct {
 
 var (
 	initClientOnce = sync.Once{}
+	initClientErr  error
 	client         *geni.Client
 	batchClient    *genibatch.Client
 	cacheClient    *genicache.Client
@@ -102,11 +103,19 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	initClientOnce.Do(func() {
 		client = geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
 		batchClient = genibatch.NewClient(client)
-		cacheClient = genicache.NewClient(client, batchClient)
+		cacheClient, initClientErr = genicache.NewClient(client, batchClient)
+		if initClientErr != nil {
+			return
+		}
 		go batchClient.UnionBulkProcessor(context.Background())
 		go batchClient.ProfileBulkProcessor(context.Background())
 		go batchClient.DocumentBulkProcessor(context.Background())
 	})
+
+	if initClientErr != nil {
+		resp.Diagnostics.AddError("error initializing cache client", initClientErr.Error())
+		return
+	}
 
 	resp.ResourceData = &config.ClientData{
 		Client:                   client,

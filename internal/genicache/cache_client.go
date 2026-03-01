@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -30,18 +31,17 @@ type Client struct {
 	documentCacheInitialized bool
 }
 
-func NewClient(client *geni.Client, batchClient *genibatch.Client) *Client {
+func NewClient(client *geni.Client, batchClient *genibatch.Client) (*Client, error) {
 	cache, err := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
 	if err != nil {
-		tflog.Error(context.Background(), "Error creating cache", map[string]interface{}{"error": err})
-		panic(err)
+		return nil, fmt.Errorf("error creating cache: %w", err)
 	}
 
 	return &Client{
 		client:      client,
 		batchClient: batchClient,
 		cache:       cache,
-	}
+	}, nil
 }
 
 func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {

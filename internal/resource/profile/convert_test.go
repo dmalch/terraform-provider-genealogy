@@ -81,7 +81,7 @@ func TestValueFrom(t *testing.T) {
 		var actualNames = make(map[string]NameModel)
 		Expect(actualValue.Names.ElementsAs(t.Context(), &actualNames, false).HasError()).To(BeFalse())
 		Expect(actualNames).To(HaveKeyWithValue("en", NameModel{
-			FistName:      types.StringPointerValue(givenProfile.Names["en"].FirstName),
+			FirstName:      types.StringPointerValue(givenProfile.Names["en"].FirstName),
 			MiddleName:    types.StringPointerValue(givenProfile.Names["en"].MiddleName),
 			LastName:      types.StringPointerValue(givenProfile.Names["en"].LastName),
 			BirthLastName: types.StringPointerValue(givenProfile.Names["en"].MaidenName),
@@ -139,7 +139,7 @@ func TestNameValueFrom(t *testing.T) {
 
 		expectedNames := map[string]NameModel{
 			"en": {
-				FistName:      types.StringPointerValue(ptr("John")),
+				FirstName:      types.StringPointerValue(ptr("John")),
 				MiddleName:    types.StringPointerValue(ptr("A")),
 				LastName:      types.StringPointerValue(ptr("Doe")),
 				BirthLastName: types.StringPointerValue(ptr("Smith")),
@@ -147,7 +147,7 @@ func TestNameValueFrom(t *testing.T) {
 				Nicknames:     types.SetValueMust(types.StringType, []attr.Value{types.StringValue("A"), types.StringValue("B")}),
 			},
 			"fr": {
-				FistName:      types.StringPointerValue(ptr("Jean")),
+				FirstName:      types.StringPointerValue(ptr("Jean")),
 				MiddleName:    types.StringPointerValue(ptr("B")),
 				LastName:      types.StringPointerValue(ptr("Dupont")),
 				BirthLastName: types.StringPointerValue(ptr("Bernard")),
