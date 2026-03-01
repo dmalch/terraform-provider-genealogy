@@ -56,6 +56,16 @@ golangci-lint run
 
 Configured in `.golangci.yml`. Notable enabled linters: `errcheck`, `forcetypeassert`, `godot`, `staticcheck`, `unparam`, `unused`, `usetesting`. All issues reported (no per-linter limits).
 
+## Releasing
+
+Releases are triggered by pushing a `v*` tag (e.g., `v0.16.1`). GitHub Actions runs GoReleaser (`.github/workflows/release.yaml`) to produce cross-platform builds signed with GPG.
+
+Steps:
+1. Update `CHANGELOG.md`: remove "(Unreleased)" from the current section, add entries, and add a new `## X.Y.Z (Unreleased)` header above it.
+2. Commit and tag: `git tag v0.X.Y`
+3. Push commit and tag: `git push && git push --tags`
+4. Verify: `gh run list --workflow=release.yaml`
+
 ## Go Version
 
 Go 1.24.1 with vendored dependencies (`vendor/`).

@@ -1,4 +1,10 @@
-## 0.16.1 (Unreleased)
+## 0.16.2 (Unreleased)
+
+## 0.16.1
+
+IMPROVEMENTS:
+
+* Maintenance update to dependencies (`golang.org/x/oauth2`, `golang.org/x/crypto`, `terraform-plugin-framework`, `terraform-plugin-testing`, `terraform-plugin-log`, `labstack/echo`, `onsi/gomega`, `cloudflare/circl`) and CI actions (`actions/checkout`, `actions/setup-go`, `golangci-lint-action`, `goreleaser-action`) to ensure compatibility and security.
 
 ## 0.16.0
 
