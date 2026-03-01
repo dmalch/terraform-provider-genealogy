@@ -1,4 +1,12 @@
-## 0.16.2 (Unreleased)
+## 0.16.3 (Unreleased)
+
+## 0.16.2
+
+BUG FIXES:
+
+* Provider: redact `access_token` from debug log output to prevent credential leakage.
+* Provider: replace panic with a returned error when cache initialization fails.
+* Profile: fix `FistName` typo in internal `NameModel` struct field (renamed to `FirstName`).
 
 ## 0.16.1
 
