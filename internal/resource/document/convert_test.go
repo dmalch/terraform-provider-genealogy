@@ -125,3 +125,109 @@ func TestRequestFrom(t *testing.T) {
 		Expect(documentRequest.Labels).To(HaveValue(Equal("label1,label2")))
 	})
 }
+
+func TestUpdateComputedFields(t *testing.T) {
+	t.Run("Sets ID when null", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.DocumentResponse{
+			Id:          "doc-123",
+			ContentType: ptr("text/plain"),
+			Tags:        []string{"profile-1"},
+			Labels:      []string{"label1"},
+			CreatedAt:   "1719709400",
+		}
+
+		model := &ResourceModel{
+			ID:          types.StringNull(),
+			ContentType: types.StringNull(),
+			Profiles:    types.SetNull(types.StringType),
+			Labels:      types.SetNull(types.StringType),
+			Location:    types.ObjectNull(event.LocationModelAttributeTypes()),
+			CreatedAt:   types.StringNull(),
+		}
+
+		diags := UpdateComputedFields(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.ID.ValueString()).To(Equal("doc-123"))
+		Expect(model.ContentType.ValueString()).To(Equal("text/plain"))
+		Expect(model.Profiles.Elements()).To(HaveLen(1))
+		Expect(model.Labels.Elements()).To(HaveLen(1))
+		Expect(model.CreatedAt.ValueString()).To(Equal("1719709400"))
+	})
+
+	t.Run("Does not overwrite existing ID", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.DocumentResponse{
+			Id:          "doc-new",
+			ContentType: ptr("text/html"),
+			Tags:        []string{},
+			Labels:      []string{},
+			CreatedAt:   "1719709500",
+		}
+
+		model := &ResourceModel{
+			ID:          types.StringValue("doc-existing"),
+			ContentType: types.StringValue("text/plain"),
+			Profiles:    types.SetValueMust(types.StringType, []attr.Value{types.StringValue("profile-1")}),
+			Labels:      types.SetNull(types.StringType),
+			Location:    types.ObjectNull(event.LocationModelAttributeTypes()),
+			CreatedAt:   types.StringValue("1719709400"),
+		}
+
+		diags := UpdateComputedFields(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		// Existing values should not be overwritten
+		Expect(model.ID.ValueString()).To(Equal("doc-existing"))
+		Expect(model.ContentType.ValueString()).To(Equal("text/plain"))
+		Expect(model.Profiles.Elements()).To(HaveLen(1))
+		Expect(model.CreatedAt.ValueString()).To(Equal("1719709400"))
+	})
+
+	t.Run("Deduplicates labels in computed fields", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.DocumentResponse{
+			Id:     "doc-456",
+			Tags:   []string{},
+			Labels: []string{"label1", "label1", "label2"},
+		}
+
+		model := &ResourceModel{
+			ID:       types.StringValue("doc-456"),
+			Labels:   types.SetNull(types.StringType),
+			Profiles: types.SetValueMust(types.StringType, []attr.Value{}),
+			Location: types.ObjectNull(event.LocationModelAttributeTypes()),
+		}
+
+		diags := UpdateComputedFields(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Labels.Elements()).To(HaveLen(2))
+	})
+}
+
+func TestFilterOutDuplicateLabelsFrom(t *testing.T) {
+	t.Run("Returns empty slice for empty input", func(t *testing.T) {
+		RegisterTestingT(t)
+		Expect(filterOutDuplicateLabelsFrom([]string{})).To(BeEmpty())
+	})
+
+	t.Run("Returns same slice when no duplicates", func(t *testing.T) {
+		RegisterTestingT(t)
+		result := filterOutDuplicateLabelsFrom([]string{"a", "b", "c"})
+		Expect(result).To(Equal([]string{"a", "b", "c"}))
+	})
+
+	t.Run("Removes duplicates preserving order", func(t *testing.T) {
+		RegisterTestingT(t)
+		result := filterOutDuplicateLabelsFrom([]string{"a", "b", "a", "c", "b"})
+		Expect(result).To(Equal([]string{"a", "b", "c"}))
+	})
+
+	t.Run("Handles all same values", func(t *testing.T) {
+		RegisterTestingT(t)
+		result := filterOutDuplicateLabelsFrom([]string{"x", "x", "x"})
+		Expect(result).To(Equal([]string{"x"}))
+	})
+}
