@@ -1,11 +1,19 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "gomod"
+    directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      go_modules:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
-    directory: "/" # to check for workflow files in .github/workflows
+    directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github_actions:
+        patterns:
+          - "*"
