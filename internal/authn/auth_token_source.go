@@ -2,6 +2,8 @@ package authn
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -32,9 +34,17 @@ func (a *authTokenSource) Token() (*oauth2.Token, error) {
 	signal.Notify(sigIntCh, os.Interrupt)
 	defer signal.Stop(sigIntCh)
 
+	// Generate a cryptographically random state to protect against CSRF.
+	stateBytes := make([]byte, 16)
+	if _, err := rand.Read(stateBytes); err != nil {
+		return nil, fmt.Errorf("failed to generate OAuth2 state: %w", err)
+	}
+	state := hex.EncodeToString(stateBytes)
+
 	// Start a local server to handle the callback
 	callbackHandler := &callback{
-		shutdownCh: make(chan error),
+		expectedState: state,
+		shutdownCh:    make(chan error),
 	}
 
 	e := echo.New()
@@ -48,7 +58,7 @@ func (a *authTokenSource) Token() (*oauth2.Token, error) {
 		}
 	}()
 
-	authURL := a.config.AuthCodeURL("", oauth2.AccessTypeOffline,
+	authURL := a.config.AuthCodeURL(state, oauth2.AccessTypeOffline,
 		oauth2.SetAuthURLParam("response_type", "token"),
 		oauth2.SetAuthURLParam("display", "mobile"),
 	)
@@ -94,12 +104,19 @@ func (a *authTokenSource) Token() (*oauth2.Token, error) {
 }
 
 type callback struct {
-	accessToken string
-	expiresIn   string
-	shutdownCh  chan error
+	expectedState string
+	accessToken   string
+	expiresIn     string
+	shutdownCh    chan error
 }
 
 func (handler *callback) handle(c echo.Context) error {
+	if state := c.QueryParam("state"); state != handler.expectedState {
+		_, _ = fmt.Fprintln(c.Response().Writer, "OAuth2 state mismatch. Possible CSRF attack. Please try again.")
+		handler.shutdownCh <- errors.New("OAuth2 state parameter mismatch")
+		return nil
+	}
+
 	accessToken := c.QueryParam("access_token")
 	if accessToken != "" {
 		handler.accessToken = accessToken
