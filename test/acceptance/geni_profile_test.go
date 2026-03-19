@@ -4,25 +4,19 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-
-	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
 func TestAccProfile_createProfile(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profile(testAccessToken),
+				Config: profile(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
@@ -34,16 +28,18 @@ func TestAccProfile_createProfile(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
 				},
 			},
+			{
+				ResourceName:            "geni_profile.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"names"},
+			},
 		},
 	})
 }
 
-func profile(testAccessToken string) string {
+func profile() string {
 	return `
-		provider "geni" {
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "test" {
 		  names = {
 			"en-US" = {
@@ -59,17 +55,11 @@ func profile(testAccessToken string) string {
 
 func TestAccProfile_createProfileWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
@@ -208,17 +198,11 @@ func TestAccProfile_createProfileWithDetails(t *testing.T) {
 
 func TestAccProfile_createProfileWithDeathDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -304,13 +288,11 @@ func TestAccProfile_createProfileWithDeathDetails(t *testing.T) {
 
 func TestAccProfile_createProfileWithFixedBirthDate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profileWithFixedBirthDate(testAccessToken),
+				Config: profileWithFixedBirthDate(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 				},
@@ -319,12 +301,8 @@ func TestAccProfile_createProfileWithFixedBirthDate(t *testing.T) {
 	})
 }
 
-func profileWithFixedBirthDate(testAccessToken string) string {
+func profileWithFixedBirthDate() string {
 	return `
-		provider "geni" {
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "test" {
 		  names = {
 			"en-US" = {
@@ -358,17 +336,11 @@ func profileWithFixedBirthDate(testAccessToken string) string {
 
 func TestAccProfile_createProfileWithEmptyBirthLocation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -393,13 +365,11 @@ func TestAccProfile_createProfileWithEmptyBirthLocation(t *testing.T) {
 
 func TestAccProfile_createProfileWithNamesInOtherLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profileWithNamesInOtherLanguages(testAccessToken),
+				Config: profileWithNamesInOtherLanguages(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
@@ -409,13 +379,8 @@ func TestAccProfile_createProfileWithNamesInOtherLanguages(t *testing.T) {
 	})
 }
 
-func profileWithNamesInOtherLanguages(accessToken string) string {
+func profileWithNamesInOtherLanguages() string {
 	return `
-		provider "geni" {
-		  access_token = "` + accessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "test" {
 		  gender     = "male"
 		  alive = false
@@ -441,20 +406,18 @@ func profileWithNamesInOtherLanguages(accessToken string) string {
 
 func TestAccProfile_createProfileAndAddNamesInOtherLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profile(testAccessToken),
+				Config: profile(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
 				},
 			},
 			{
-				Config: profileWithNamesInOtherLanguages(testAccessToken),
+				Config: profileWithNamesInOtherLanguages(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
@@ -466,13 +429,11 @@ func TestAccProfile_createProfileAndAddNamesInOtherLanguages(t *testing.T) {
 
 func TestAccProfile_createProfileWithDifferentSetOfNamesInDifferentLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profileWithDifferentSetOfNamesInDifferentLanguages(testAccessToken),
+				Config: profileWithDifferentSetOfNamesInDifferentLanguages(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
@@ -488,13 +449,8 @@ func TestAccProfile_createProfileWithDifferentSetOfNamesInDifferentLanguages(t *
 	})
 }
 
-func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) string {
+func profileWithDifferentSetOfNamesInDifferentLanguages() string {
 	return `
-		provider "geni" {
-		  access_token = "` + accessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "test" {
 		  alive = false
 		  public = true
@@ -517,13 +473,11 @@ func profileWithDifferentSetOfNamesInDifferentLanguages(accessToken string) stri
 
 func TestAccProfile_updateProfileWithDifferentSetOfNamesInDifferentLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profileWithOneName(testAccessToken),
+				Config: profileWithOneName(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
@@ -531,7 +485,7 @@ func TestAccProfile_updateProfileWithDifferentSetOfNamesInDifferentLanguages(t *
 				},
 			},
 			{
-				Config: profileWithDifferentSetOfNamesInDifferentLanguages(testAccessToken),
+				Config: profileWithDifferentSetOfNamesInDifferentLanguages(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
@@ -545,13 +499,8 @@ func TestAccProfile_updateProfileWithDifferentSetOfNamesInDifferentLanguages(t *
 	})
 }
 
-func profileWithOneName(accessToken string) string {
+func profileWithOneName() string {
 	return `
-		provider "geni" {
-		  access_token = "` + accessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "test" {
 		  alive = false
 		  public = true
@@ -566,13 +515,11 @@ func profileWithOneName(accessToken string) string {
 
 func TestAccProfile_createProfileWithEmptyMiddleName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: profileWithEmptyMiddleName(testAccessToken),
+				Config: profileWithEmptyMiddleName(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("middle_name"), knownvalue.Null()),
@@ -583,13 +530,8 @@ func TestAccProfile_createProfileWithEmptyMiddleName(t *testing.T) {
 	})
 }
 
-func profileWithEmptyMiddleName(accessToken string) string {
+func profileWithEmptyMiddleName() string {
 	return `
-		provider "geni" {
-		  access_token = "` + accessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "test" {
 		  alive = false
 		  public = true
@@ -606,16 +548,11 @@ func profileWithEmptyMiddleName(accessToken string) string {
 
 func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-						use_sandbox_env = true
-					}
 					resource "geni_profile" "test" {
 						names = {
 							"en-US" = {
@@ -632,9 +569,6 @@ func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-						use_sandbox_env = true
-					}
 					resource "geni_profile" "test" {
 						names = {
 							"en-US" = {
@@ -655,16 +589,11 @@ func TestAccProfile_updateProfileAliveStatus(t *testing.T) {
 
 func TestAccProfile_updateProfilePublicStatus(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-						use_sandbox_env = true
-					}
 					resource "geni_profile" "test" {
 						names = {
 							"en-US" = {
@@ -681,9 +610,6 @@ func TestAccProfile_updateProfilePublicStatus(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-						use_sandbox_env = true
-					}
 					resource "geni_profile" "test" {
 						names = {
 							"en-US" = {
@@ -704,17 +630,11 @@ func TestAccProfile_updateProfilePublicStatus(t *testing.T) {
 
 func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  alive = false
 				  public = true
@@ -744,10 +664,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 			},
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  alive = false
 				  public = true
@@ -778,17 +694,11 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt1(t *testing.T) {
 
 func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
@@ -813,10 +723,6 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 			},
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
@@ -842,17 +748,11 @@ func TestAccProfile_createProfileWithMiddleNameAndRemoveIt2(t *testing.T) {
 
 func TestAccProfile_updateProfileLocation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -901,10 +801,6 @@ func TestAccProfile_updateProfileLocation(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -951,17 +847,11 @@ func TestAccProfile_updateProfileLocation(t *testing.T) {
 
 func TestAccProfile_updateProfileDate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -1011,10 +901,6 @@ func TestAccProfile_updateProfileDate(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -1060,17 +946,11 @@ func TestAccProfile_updateProfileDate(t *testing.T) {
 
 func TestAccProfile_removeProfileEvents(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -1128,10 +1008,6 @@ func TestAccProfile_removeProfileEvents(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -1157,17 +1033,11 @@ func TestAccProfile_removeProfileEvents(t *testing.T) {
 
 func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -1190,10 +1060,6 @@ func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -1219,17 +1085,11 @@ func TestAccProfile_removeProfileDeathDetails(t *testing.T) {
 
 func TestAccProfile_createProfileWithAboutSectionInDifferentLanguages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
@@ -1263,17 +1123,11 @@ func TestAccProfile_createProfileWithAboutSectionInDifferentLanguages(t *testing
 
 func TestAccProfile_removeProfileAboutSection(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
@@ -1303,10 +1157,6 @@ func TestAccProfile_removeProfileAboutSection(t *testing.T) {
 			},
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {
@@ -1330,10 +1180,6 @@ func TestAccProfile_removeProfileAboutSection(t *testing.T) {
 			},
 			{
 				Config: `
-				provider "geni" {
-				  use_sandbox_env = true
-				}
-		
 				resource "geni_profile" "test" {
 				  names = {
 					"en-US" = {

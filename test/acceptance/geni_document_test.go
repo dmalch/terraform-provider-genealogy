@@ -3,31 +3,20 @@ package acceptance
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-
-	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
 func TestAccDocument_createTextDocument(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  text = "This is a test document."
@@ -42,24 +31,23 @@ func TestAccDocument_createTextDocument(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("source_url"), knownvalue.Null()),
 				},
 			},
+			{
+				ResourceName:            "geni_document.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"text"},
+			},
 		},
 	})
 }
 
 func TestAccDocument_createTextDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  text = "This is a test document."
@@ -117,18 +105,11 @@ func TestAccDocument_createTextDocumentWithDetails(t *testing.T) {
 
 func TestAccDocument_updateTextDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  text = "This is a test document."
@@ -148,11 +129,6 @@ func TestAccDocument_updateTextDocumentWithDetails(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  text = "This is an updated test document."
@@ -218,18 +194,11 @@ func TestAccDocument_updateTextDocumentWithDetails(t *testing.T) {
 
 func TestAccDocument_createPngDocument(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  file = filebase64("${path.module}/assets/cs-white-fff.png")
@@ -252,23 +221,16 @@ func TestAccDocument_createPngDocument(t *testing.T) {
 
 func TestAccDocument_createPngDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  file = filebase64("${path.module}/assets/cs-white-fff.png")
 					  file_name = "cs-white-fff.png"
-					  content_type = "image/png"	
+					  content_type = "image/png"
 					  description = "This is a test document description."
 					  date = {
 						  year = 1980
@@ -322,18 +284,11 @@ func TestAccDocument_createPngDocumentWithDetails(t *testing.T) {
 
 func TestAccDocument_updatePngDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  file = filebase64("${path.module}/assets/cs-white-fff.png")
@@ -355,11 +310,6 @@ func TestAccDocument_updatePngDocumentWithDetails(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  file = filebase64("${path.module}/assets/cs-white-fff.png")
@@ -426,18 +376,11 @@ func TestAccDocument_updatePngDocumentWithDetails(t *testing.T) {
 
 func TestAccDocument_createUrlDocument(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"
@@ -458,18 +401,11 @@ func TestAccDocument_createUrlDocument(t *testing.T) {
 
 func TestAccDocument_createUrlDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"
@@ -526,18 +462,11 @@ func TestAccDocument_createUrlDocumentWithDetails(t *testing.T) {
 
 func TestAccDocument_createUrlDocumentWithProfile(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-
 					resource "geni_profile" "test" {
 					  names = {
 						"en-US" = {
@@ -548,7 +477,7 @@ func TestAccDocument_createUrlDocumentWithProfile(t *testing.T) {
 					  alive = false
 					  public = true
 					}
-			
+
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"
@@ -576,18 +505,11 @@ func TestAccDocument_createUrlDocumentWithProfile(t *testing.T) {
 
 func TestAccDocument_updateUrlDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"
@@ -607,11 +529,6 @@ func TestAccDocument_updateUrlDocumentWithDetails(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"
@@ -676,18 +593,11 @@ func TestAccDocument_updateUrlDocumentWithDetails(t *testing.T) {
 
 func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-
 					resource "geni_profile" "test_1" {
 					  names = {
 						"en-US" = {
@@ -709,7 +619,7 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 					  alive = true
 					  public = false
 					}
-			
+
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"
@@ -735,11 +645,6 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 			},
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-
 					resource "geni_profile" "test_1" {
 					  names = {
 						"en-US" = {
@@ -761,7 +666,7 @@ func TestAccDocument_updateUrlDocumentWithProfiles(t *testing.T) {
 					  alive = true
 					  public = false
 					}
-			
+
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  source_url = "https://example.com"

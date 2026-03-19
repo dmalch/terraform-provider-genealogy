@@ -5,26 +5,20 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-
-	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
 func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartners(testAccessToken),
+				Config: unionWithTwoPartners(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -35,17 +29,17 @@ func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {
 						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
 				},
 			},
+			{
+				ResourceName:      "geni_union.doe_family",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func unionWithTwoPartners(testAccessToken string) string {
+func unionWithTwoPartners() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "husband" {
 		  names = {
 			"en-US" = {
@@ -56,7 +50,7 @@ func unionWithTwoPartners(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "wife" {
 		  names = {
 			"en-US" = {
@@ -67,7 +61,7 @@ func unionWithTwoPartners(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.husband.id,
@@ -79,13 +73,11 @@ func unionWithTwoPartners(testAccessToken string) string {
 
 func TestAccUnion_createUnionWithTwoPartnersAndChild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersAndChild(testAccessToken),
+				Config: unionWithTwoPartnersAndChild(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -104,13 +96,8 @@ func TestAccUnion_createUnionWithTwoPartnersAndChild(t *testing.T) {
 	})
 }
 
-func unionWithTwoPartnersAndChild(testAccessToken string) string {
+func unionWithTwoPartnersAndChild() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "husband" {
 		  names = {
 			"en-US" = {
@@ -121,7 +108,7 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "wife" {
 		  names = {
 			"en-US" = {
@@ -132,7 +119,7 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "child" {
 		  names = {
 			"en-US" = {
@@ -143,13 +130,13 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.husband.id,
 			geni_profile.wife.id,
 		  ]
-		
+
 		  children = [
 			geni_profile.child.id,
 		  ]
@@ -159,13 +146,11 @@ func unionWithTwoPartnersAndChild(testAccessToken string) string {
 
 func TestAccUnion_createUnionWithTwoPartnersTwoChildren(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersTwoChildren(testAccessToken),
+				Config: unionWithTwoPartnersTwoChildren(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -187,13 +172,8 @@ func TestAccUnion_createUnionWithTwoPartnersTwoChildren(t *testing.T) {
 	})
 }
 
-func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
+func unionWithTwoPartnersTwoChildren() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "husband" {
 		  names = {
 			"en-US" = {
@@ -204,7 +184,7 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "wife" {
 		  names = {
 			"en-US" = {
@@ -215,7 +195,7 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "child1" {
 		  names = {
 			"en-US" = {
@@ -226,7 +206,7 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "child2" {
 		  names = {
 			"en-US" = {
@@ -237,13 +217,13 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.husband.id,
 			geni_profile.wife.id,
 		  ]
-		
+
 		  children = [
 			geni_profile.child1.id,
 			geni_profile.child2.id,
@@ -254,13 +234,11 @@ func unionWithTwoPartnersTwoChildren(testAccessToken string) string {
 
 func TestAccUnion_createUnionWithOneParentAndChild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithOneParentAndChild(testAccessToken),
+				Config: unionWithOneParentAndChild(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.mother", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_profile.child", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
@@ -276,13 +254,8 @@ func TestAccUnion_createUnionWithOneParentAndChild(t *testing.T) {
 	})
 }
 
-func unionWithOneParentAndChild(testAccessToken string) string {
+func unionWithOneParentAndChild() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "mother" {
 		  names = {
 			"en-US" = {
@@ -293,7 +266,7 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "child" {
 		  names = {
 			"en-US" = {
@@ -304,12 +277,12 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.mother.id,
 		  ]
-		
+
 		  children = [
 			geni_profile.child.id,
 		  ]
@@ -319,13 +292,11 @@ func unionWithOneParentAndChild(testAccessToken string) string {
 
 func TestAccUnion_createUnionWithTwoSiblingsWithoutParents(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoSiblingsWithoutParents(testAccessToken),
+				Config: unionWithTwoSiblingsWithoutParents(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
 					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Bob")),
@@ -340,13 +311,8 @@ func TestAccUnion_createUnionWithTwoSiblingsWithoutParents(t *testing.T) {
 	})
 }
 
-func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
+func unionWithTwoSiblingsWithoutParents() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "sibling1" {
 		  names = {
 			"en-US" = {
@@ -357,7 +323,7 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "sibling2" {
 		  names = {
 			"en-US" = {
@@ -368,7 +334,7 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  children = [
 			geni_profile.sibling1.id,
@@ -380,13 +346,11 @@ func unionWithTwoSiblingsWithoutParents(testAccessToken string) string {
 
 func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoSiblingsWithoutParents(testAccessToken),
+				Config: unionWithTwoSiblingsWithoutParents(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.sibling1", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Alice")),
 					statecheck.ExpectKnownValue("geni_profile.sibling2", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Bob")),
@@ -399,11 +363,6 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 			},
 			{
 				Config: `
-				provider "geni" {
-				  access_token = "` + testAccessToken + `"
-				  use_sandbox_env = true
-				}
-
 				resource "geni_profile" "sibling1" {
 				  names = {
 					"en-US" = {
@@ -414,7 +373,7 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 				  alive = false
 				  public = true
 				}
-				
+
 				resource "geni_profile" "sibling2" {
 				  names = {
 					"en-US" = {
@@ -425,7 +384,7 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "mother" {
 				  names = {
 					"en-US" = {
@@ -447,7 +406,7 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 				  alive = false
 				  public = true
 				}
-				
+
 				resource "geni_union" "doe_family" {
 				  partners = [
 					geni_profile.mother.id,
@@ -475,26 +434,19 @@ func TestAccUnion_createUnionWithTwoSiblingsAndAddParentsInTheSecondStep(t *test
 
 func TestAccUnion_failToCreateUnionWithOneParent(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      unionWithOneParent(testAccessToken),
+				Config:      unionWithOneParent(),
 				ExpectError: regexp.MustCompile(`Insufficient Attribute Configuration`),
 			},
 		},
 	})
 }
 
-func unionWithOneParent(testAccessToken string) string {
+func unionWithOneParent() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "mother" {
 		  names = {
 			"en-US" = {
@@ -505,7 +457,7 @@ func unionWithOneParent(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.mother.id,
@@ -516,26 +468,19 @@ func unionWithOneParent(testAccessToken string) string {
 
 func TestAccUnion_failToCreateUnionWithOneChild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      unionWithOneChild(testAccessToken),
+				Config:      unionWithOneChild(),
 				ExpectError: regexp.MustCompile(`Insufficient Attribute Configuration`),
 			},
 		},
 	})
 }
 
-func unionWithOneChild(testAccessToken string) string {
+func unionWithOneChild() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "child" {
 		  names = {
 			"en-US" = {
@@ -546,7 +491,7 @@ func unionWithOneChild(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  children = [
 			geni_profile.child.id,
@@ -557,26 +502,19 @@ func unionWithOneChild(testAccessToken string) string {
 
 func TestAccUnion_failToCreateUnionWithThreePartners(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      unionWithThreePartners(testAccessToken),
+				Config:      unionWithThreePartners(),
 				ExpectError: regexp.MustCompile(`Too Many Partners`),
 			},
 		},
 	})
 }
 
-func unionWithThreePartners(testAccessToken string) string {
+func unionWithThreePartners() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "partner1" {
 		  names = {
 			"en-US" = {
@@ -587,7 +525,7 @@ func unionWithThreePartners(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "partner2" {
 		  names = {
 			"en-US" = {
@@ -598,7 +536,7 @@ func unionWithThreePartners(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "partner3" {
 		  names = {
 			"en-US" = {
@@ -609,7 +547,7 @@ func unionWithThreePartners(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.partner1.id,
@@ -622,13 +560,11 @@ func unionWithThreePartners(testAccessToken string) string {
 
 func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartners(testAccessToken),
+				Config: unionWithTwoPartners(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -642,11 +578,6 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 			{
 				// Try to add a third partner to the union
 				Config: `
-				provider "geni" {
-				  access_token = "` + testAccessToken + `"
-				  use_sandbox_env = true
-				}
-
 				resource "geni_profile" "husband" {
 				  names = {
 					"en-US" = {
@@ -657,7 +588,7 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-			
+
 				resource "geni_profile" "wife" {
 				  names = {
 					"en-US" = {
@@ -668,7 +599,7 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "partner3" {
 				  names = {
 					"en-US" = {
@@ -679,7 +610,7 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-				
+
 				resource "geni_union" "doe_family" {
 				  partners = [
 					geni_profile.husband.id,
@@ -692,7 +623,7 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 			},
 			{
 				// Revert back to the original state
-				Config: unionWithTwoPartners(testAccessToken),
+				Config: unionWithTwoPartners(),
 			},
 		},
 	})
@@ -700,13 +631,11 @@ func TestAccUnion_failToAddThirdPartnerToUnion(t *testing.T) {
 
 func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersAndChild(testAccessToken),
+				Config: unionWithTwoPartnersAndChild(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
@@ -715,11 +644,6 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 			{
 				// Try to remove a partner from the union
 				Config: `
-				provider "geni" {
-				  access_token = "` + testAccessToken + `"
-				  use_sandbox_env = true
-				}
-
 				resource "geni_profile" "husband" {
 				  names = {
 					"en-US" = {
@@ -730,7 +654,7 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "wife" {
 				  names = {
 					"en-US" = {
@@ -741,7 +665,7 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "child" {
 				  names = {
 					"en-US" = {
@@ -752,12 +676,12 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-				
+
 				resource "geni_union" "doe_family" {
 				  partners = [
 					geni_profile.husband.id,
 				  ]
-				
+
 				  children = [
 					geni_profile.child.id,
 				  ]
@@ -771,13 +695,11 @@ func TestAccUnion_failToRemovePartnerFromUnion(t *testing.T) {
 
 func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersAndChild(testAccessToken),
+				Config: unionWithTwoPartnersAndChild(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
@@ -786,11 +708,6 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 			{
 				// Try to remove a child from the union
 				Config: `
-				provider "geni" {
-				  access_token = "` + testAccessToken + `"
-				  use_sandbox_env = true
-				}
-
 				resource "geni_profile" "husband" {
 				  names = {
 					"en-US" = {
@@ -801,7 +718,7 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "wife" {
 				  names = {
 					"en-US" = {
@@ -812,7 +729,7 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "child" {
 				  names = {
 					"en-US" = {
@@ -823,7 +740,7 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-				
+
 				resource "geni_union" "doe_family" {
 				  partners = [
 					geni_profile.husband.id,
@@ -839,13 +756,11 @@ func TestAccUnion_failToRemoveChildrenFromUnion(t *testing.T) {
 
 func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersAndChild(testAccessToken),
+				Config: unionWithTwoPartnersAndChild(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
@@ -854,11 +769,6 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 			{
 				// Add another child to the union
 				Config: `
-				provider "geni" {
-				  access_token = "` + testAccessToken + `"
-				  use_sandbox_env = true
-				}
-
 				resource "geni_profile" "husband" {
 				  names = {
 					"en-US" = {
@@ -869,7 +779,7 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "wife" {
 				  names = {
 					"en-US" = {
@@ -880,7 +790,7 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "child1" {
 				  names = {
 					"en-US" = {
@@ -891,7 +801,7 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-		
+
 				resource "geni_profile" "child2" {
 				  names = {
 					"en-US" = {
@@ -902,13 +812,13 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 				  alive = false
 				  public = true
 				}
-				
+
 				resource "geni_union" "doe_family" {
 				  partners = [
 					geni_profile.husband.id,
 					geni_profile.wife.id,
 				  ]
-				
+
 				  children = [
 					geni_profile.child1.id,
 					geni_profile.child2.id,
@@ -926,13 +836,11 @@ func TestAccUnion_addAnotherChildToUnion(t *testing.T) {
 
 func TestAccUnion_createUnionWithTwoPartnersAndDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersAndDetails(testAccessToken),
+				Config: unionWithTwoPartnersAndDetails(),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -947,13 +855,8 @@ func TestAccUnion_createUnionWithTwoPartnersAndDetails(t *testing.T) {
 	})
 }
 
-func unionWithTwoPartnersAndDetails(testAccessToken string) string {
+func unionWithTwoPartnersAndDetails() string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "husband" {
 		  names = {
 			"en-US" = {
@@ -964,7 +867,7 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "wife" {
 		  names = {
 			"en-US" = {
@@ -975,7 +878,7 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.husband.id,
@@ -1035,13 +938,11 @@ func unionWithTwoPartnersAndDetails(testAccessToken string) string {
 
 func TestAccUnion_updateUnionDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: unionWithTwoPartnersAndMarriageDetails(testAccessToken, "1980"),
+				Config: unionWithTwoPartnersAndMarriageDetails("1980"),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -1055,7 +956,7 @@ func TestAccUnion_updateUnionDetails(t *testing.T) {
 				},
 			},
 			{
-				Config: unionWithTwoPartnersAndMarriageDetails(testAccessToken, "1981"),
+				Config: unionWithTwoPartnersAndMarriageDetails("1981"),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
@@ -1072,13 +973,8 @@ func TestAccUnion_updateUnionDetails(t *testing.T) {
 	})
 }
 
-func unionWithTwoPartnersAndMarriageDetails(testAccessToken string, year string) string {
+func unionWithTwoPartnersAndMarriageDetails(year string) string {
 	return `
-		provider "geni" {
-		  access_token = "` + testAccessToken + `"
-		  use_sandbox_env = true
-		}
-
 		resource "geni_profile" "husband" {
 		  names = {
 			"en-US" = {
@@ -1089,7 +985,7 @@ func unionWithTwoPartnersAndMarriageDetails(testAccessToken string, year string)
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_profile" "wife" {
 		  names = {
 			"en-US" = {
@@ -1100,7 +996,7 @@ func unionWithTwoPartnersAndMarriageDetails(testAccessToken string, year string)
 		  alive = false
 		  public = true
 		}
-		
+
 		resource "geni_union" "doe_family" {
 		  partners = [
 			geni_profile.husband.id,

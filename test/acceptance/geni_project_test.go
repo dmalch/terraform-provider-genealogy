@@ -3,30 +3,18 @@ package acceptance
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-
-	"github.com/dmalch/terraform-provider-genealogy/internal"
 )
 
 func TestAccProject_getProject(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					data "geni_project" "test" {
 					  id = "project-6"
 					}
@@ -39,18 +27,10 @@ func TestAccProject_getProject(t *testing.T) {
 
 func TestAccProject_addProfileToProject(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					data "geni_project" "test" {
 					  id = "project-6"
 					}
@@ -79,22 +59,14 @@ func TestAccProject_addProfileToProject(t *testing.T) {
 
 func TestAccProject_addProfileToTwoProject(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					data "geni_project" "test-6" {
 					  id = "project-6"
 					}
-			
+
 					data "geni_project" "test-8" {
 					  id = "project-8"
 					}
@@ -124,22 +96,14 @@ func TestAccProject_addProfileToTwoProject(t *testing.T) {
 
 func TestAccProject_addDocumentToProject(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		//IsUnitTest: true,
-		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"geni": providerserver.NewProtocol6WithError(internal.New()),
-		},
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					provider "geni" {
-					  access_token = "` + testAccessToken + `"
-					  use_sandbox_env = true
-					}
-			
 					data "geni_project" "test" {
 					  id = "project-6"
 					}
-			
+
 					resource "geni_document" "test" {
 					  title = "Test Document"
 					  text = "This is a test document."
