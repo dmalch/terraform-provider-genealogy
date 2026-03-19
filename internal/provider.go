@@ -49,11 +49,11 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 			"access_token": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
-				Description: "The Access Token for the Geni API, if not provided the provider will attempt to do a browser-based OAuth login flow",
+				Description: "The Access Token for the Geni API. Can also be set with the GENI_ACCESS_TOKEN environment variable. If not provided, the provider will attempt to do a browser-based OAuth login flow.",
 			},
 			"use_sandbox_env": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Whether to use the Geni Sandbox environment",
+				Description: "Whether to use the Geni Sandbox environment. Can also be set with the GENI_USE_SANDBOX environment variable.",
 			},
 			"use_profile_cache": schema.BoolAttribute{
 				Optional:    true,
@@ -80,7 +80,18 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	cacheFilePath, err := tokenCacheFilePath(cfg.UseSandboxEnv.ValueBool())
+	// Resolve configuration with environment variable fallbacks.
+	accessToken := cfg.AccessToken.ValueString()
+	if accessToken == "" {
+		accessToken = os.Getenv("GENI_ACCESS_TOKEN")
+	}
+
+	useSandboxEnv := cfg.UseSandboxEnv.ValueBool()
+	if cfg.UseSandboxEnv.IsNull() {
+		useSandboxEnv = os.Getenv("GENI_USE_SANDBOX") == "true"
+	}
+
+	cacheFilePath, err := tokenCacheFilePath(useSandboxEnv)
 	if err != nil {
 		resp.Diagnostics.AddError("error getting token cache file path", err.Error())
 		return
@@ -90,18 +101,18 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		authn.NewCachingTokenSource(
 			cacheFilePath,
 			authn.NewAuthTokenSource(&oauth2.Config{
-				ClientID: clientId(cfg.UseSandboxEnv.ValueBool()),
+				ClientID: clientId(useSandboxEnv),
 				Endpoint: oauth2.Endpoint{
-					AuthURL: geni.BaseUrl(cfg.UseSandboxEnv.ValueBool()) + "platform/oauth/authorize",
+					AuthURL: geni.BaseUrl(useSandboxEnv) + "platform/oauth/authorize",
 				},
 			})))
 
-	if cfg.AccessToken.ValueString() != "" {
-		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: cfg.AccessToken.ValueString()})
+	if accessToken != "" {
+		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
 	}
 
 	initClientOnce.Do(func() {
-		client = geni.NewClient(tokenSource, cfg.UseSandboxEnv.ValueBool())
+		client = geni.NewClient(tokenSource, useSandboxEnv)
 		batchClient = genibatch.NewClient(client)
 		cacheClient, initClientErr = genicache.NewClient(client, batchClient)
 		if initClientErr != nil {
