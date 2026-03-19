@@ -1,4 +1,18 @@
-## 0.16.3 (Unreleased)
+## 0.16.4 (Unreleased)
+
+## 0.16.3
+
+SECURITY:
+
+* Provider: generate a cryptographically random OAuth2 state parameter and validate it in the callback to prevent CSRF attacks.
+* CI: add explicit read-only permissions to the CI workflow.
+
+IMPROVEMENTS:
+
+* Provider: support `GENI_ACCESS_TOKEN` and `GENI_USE_SANDBOX` environment variables as fallbacks for provider configuration, following the standard Terraform provider pattern.
+* Testing: extract shared test helpers, add `CheckDestroy` verification for profiles and documents, add import state tests for all resource types, and read access token from environment variable instead of requiring source code edits.
+* Testing: add unit tests for OAuth2 callback state validation, event converters, provider utils, and union validator.
+* Maintenance: dependency updates (`google.golang.org/grpc`, `terraform-plugin-framework`, `terraform-plugin-go`, `terraform-plugin-testing`, `setup-terraform`, `setup-go`, `ghaction-import-gpg`) and grouped Dependabot updates by ecosystem.
 
 ## 0.16.2
 
