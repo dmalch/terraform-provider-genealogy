@@ -1122,3 +1122,65 @@ func unionWithBiologicalFosterAndAdoptedChildren() string {
 		}
 		`
 }
+
+func TestAccUnion_addFosterChildToExistingUnion(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: create union with one biological child
+				Config: unionWithTwoPartnersAndChild(),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
+				},
+			},
+			{
+				// Step 2: add a foster child to the existing union
+				Config: `
+				resource "geni_profile" "husband" {
+				  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+				  alive = false
+				  public = true
+				}
+
+				resource "geni_profile" "wife" {
+				  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+				  alive = false
+				  public = true
+				}
+
+				resource "geni_profile" "child" {
+				  names = { "en-US" = { first_name = "Alice", last_name = "Doe" } }
+				  alive = false
+				  public = true
+				}
+
+				resource "geni_profile" "foster" {
+				  names = { "en-US" = { first_name = "Dan", last_name = "Doe" } }
+				  alive = false
+				  public = true
+				}
+
+				resource "geni_union" "doe_family" {
+				  partners = [geni_profile.husband.id, geni_profile.wife.id]
+				  children = [geni_profile.child.id]
+				  foster_children = [geni_profile.foster.id]
+				}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("foster_children"), knownvalue.SetSizeExact(1)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("foster_children")},
+						"geni_profile.foster", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+			{
+				ResourceName:      "geni_union.doe_family",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
