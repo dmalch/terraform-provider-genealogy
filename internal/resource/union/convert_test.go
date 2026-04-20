@@ -301,6 +301,28 @@ func TestHashMapFrom(t *testing.T) {
 	})
 }
 
+func TestModifierFor(t *testing.T) {
+	RegisterTestingT(t)
+	plan := ResourceModel{
+		Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("bio-1")}),
+		FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("foster-1")}),
+		AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("adopted-1")}),
+	}
+
+	foster, err := convertToSlice(t.Context(), plan.FosterChildren)
+	Expect(err.HasError()).To(BeFalse())
+	adopted, err := convertToSlice(t.Context(), plan.AdoptedChildren)
+	Expect(err.HasError()).To(BeFalse())
+
+	fosterSet := hashMapFrom(foster)
+	adoptedSet := hashMapFrom(adopted)
+
+	Expect(modifierFor("foster-1", fosterSet, adoptedSet)).To(Equal("foster"))
+	Expect(modifierFor("adopted-1", fosterSet, adoptedSet)).To(Equal("adopt"))
+	Expect(modifierFor("bio-1", fosterSet, adoptedSet)).To(Equal(""))
+	Expect(modifierFor("unknown", fosterSet, adoptedSet)).To(Equal(""))
+}
+
 func TestConvertToSlice(t *testing.T) {
 	t.Run("Converts a set to a slice", func(t *testing.T) {
 		RegisterTestingT(t)

@@ -105,6 +105,19 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, d
 	return &unionRequest, d
 }
 
+// modifierFor returns the relationship_modifier value to send when adding
+// childId to a union. "adopt" and "foster" correspond to the matching
+// subset memberships; biological children return "".
+func modifierFor(childId string, fosterChildren, adoptedChildren map[string]struct{}) string {
+	if _, ok := fosterChildren[childId]; ok {
+		return "foster"
+	}
+	if _, ok := adoptedChildren[childId]; ok {
+		return "adopt"
+	}
+	return ""
+}
+
 func hashMapFrom(slice []string) map[string]struct{} {
 	hashMap := make(map[string]struct{}, len(slice))
 	for _, elem := range slice {
