@@ -1013,3 +1013,112 @@ func unionWithTwoPartnersAndMarriageDetails(year string) string {
 		}
 		`
 }
+
+func TestAccUnion_createUnionWithBiologicalFosterAndAdoptedChildren(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithBiologicalFosterAndAdoptedChildren(),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("children"), knownvalue.SetSizeExact(1)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("foster_children"), knownvalue.SetSizeExact(1)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("adopted_children"), knownvalue.SetSizeExact(1)),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("children")},
+						"geni_profile.bio_child", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("foster_children")},
+						"geni_profile.foster_child", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("adopted_children")},
+						"geni_profile.adopted_child", tfjsonpath.New("id"), compare.ValuesSame()),
+				},
+			},
+			{
+				// Fresh Read from the API; verifies the sets actually persisted
+				// on Geni rather than being copies of the plan kept in state.
+				ResourceName:      "geni_union.doe_family",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func unionWithBiologicalFosterAndAdoptedChildren() string {
+	return `
+		resource "geni_profile" "husband" {
+		  names = {
+			"en-US" = {
+				first_name = "John"
+				last_name = "Doe"
+			}
+		  }
+		  alive = false
+		  public = true
+		}
+
+		resource "geni_profile" "wife" {
+		  names = {
+			"en-US" = {
+				first_name = "Jane"
+				last_name = "Doe"
+			}
+		  }
+		  alive = false
+		  public = true
+		}
+
+		resource "geni_profile" "bio_child" {
+		  names = {
+			"en-US" = {
+				first_name = "Alice"
+				last_name = "Doe"
+			}
+		  }
+		  alive = false
+		  public = true
+		}
+
+		resource "geni_profile" "foster_child" {
+		  names = {
+			"en-US" = {
+				first_name = "Bob"
+				last_name = "Doe"
+			}
+		  }
+		  alive = false
+		  public = true
+		}
+
+		resource "geni_profile" "adopted_child" {
+		  names = {
+			"en-US" = {
+				first_name = "Carol"
+				last_name = "Doe"
+			}
+		  }
+		  alive = false
+		  public = true
+		}
+
+		resource "geni_union" "doe_family" {
+		  partners = [
+			geni_profile.husband.id,
+			geni_profile.wife.id,
+		  ]
+
+		  children = [
+			geni_profile.bio_child.id,
+		  ]
+
+		  foster_children = [
+			geni_profile.foster_child.id,
+		  ]
+
+		  adopted_children = [
+			geni_profile.adopted_child.id,
+		  ]
+		}
+		`
+}
