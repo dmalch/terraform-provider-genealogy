@@ -26,3 +26,6 @@ go.work.sum
 
 # compiled binary files
 /bin/*
+
+# Playwright MCP snapshots and console logs
+.playwright-mcp/

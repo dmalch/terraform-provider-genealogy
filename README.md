@@ -16,7 +16,7 @@ terraform {
   required_providers {
     geni = {
       source  = "dmalch/genealogy"
-      version = "~> 0.11"
+      version = "~> 0.16"
     }
   }
 }
@@ -28,13 +28,19 @@ provider "geni" {
 ## Configuration
 
 * `access_token`: (Optional) The access token used to authenticate against Geni.com. If not provided, the provider will
-  attempt to do a client-side OAuth flow to obtain one.
-* `use_sandbox_env`: (Optional) Use the Geni sandbox environment. Default is `false`.
+  attempt a browser-based OAuth flow to obtain one. Falls back to the `GENI_ACCESS_TOKEN` environment variable.
+* `use_sandbox_env`: (Optional) Use the Geni sandbox environment. Default is `false`. Falls back to the
+  `GENI_USE_SANDBOX` environment variable (set to `true` to enable).
 * `use_profile_cache` (Optional) Whether to use the profile cache for faster lookups. It preloads all profiles managed
   by the current user, which may be slow for those with many profiles. Not recommended for use with the `-target` flag.
 * `use_document_cache` (Optional) Whether to use the document cache for faster lookups. It preloads all documents
   uploaded by the current user, which may be slow for those with many documents. Not recommended for use with the
   `-target` flag.
+* `auto_update_merged_profiles` (Optional) When a managed profile has been merged into another on Geni, automatically
+  refresh its id in state on the next read instead of failing.
+
+OAuth tokens are cached under `~/.genealogy/` (`geni_token.json` for production, `geni_sandbox_token.json` for the
+sandbox), so subsequent runs reuse the login until the token expires.
 
 ## Resources
 
@@ -69,6 +75,11 @@ resource "geni_profile" "father" {
       middle_name = "Pérez"
       last_name   = "García"
     }
+  }
+
+  about = {
+    "en-US" = "Born in Springfield; lifelong amateur historian."
+    "ru"    = "Родился в Спрингфилде; увлечённый историк-любитель."
   }
 }
 
@@ -113,6 +124,12 @@ resource "geni_document" "example" {
   ]
 }
 ```
+
+A document can be created from exactly one of `source_url`, `text` (inline
+text content), or `file` (base64-encoded bytes, paired with `file_name` and
+`content_type`). Note that Geni's public API does not support in-place edits
+to a text body, so changing `text`, `file`, or `source_url` on an existing
+document forces Terraform to destroy and recreate it.
 
 ## Data Sources
 
