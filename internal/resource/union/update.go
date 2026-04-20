@@ -75,6 +75,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		}
 	}
 
+	// Warn on modifier changes: Geni has no endpoint to re-tag an existing child.
+	for _, m := range childrenWithChangedModifier(ctx, plan, state) {
+		resp.Diagnostics.AddAttributeWarning(path.Root(fieldChildren),
+			"Cannot change relationship modifier",
+			"Profile "+m.id+" cannot be moved from "+m.from+" to "+m.to+
+				" via the Geni API. Re-tag the relationship on Geni.com, then re-run terraform.",
+		)
+	}
+
 	// Check if any of the three child sets were updated
 	if !plan.Children.Equal(state.Children) ||
 		!plan.FosterChildren.Equal(state.FosterChildren) ||

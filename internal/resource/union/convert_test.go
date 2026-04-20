@@ -323,6 +323,71 @@ func TestModifierFor(t *testing.T) {
 	Expect(modifierFor("unknown", fosterSet, adoptedSet)).To(Equal(""))
 }
 
+func TestChildrenWithChangedModifier(t *testing.T) {
+	t.Run("Returns empty when plan and state agree", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("bio-1")}),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("foster-1")}),
+			AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("adopted-1")}),
+		}
+		state := plan
+		Expect(childrenWithChangedModifier(t.Context(), plan, state)).To(BeEmpty())
+	})
+
+	t.Run("Flags a child that moved from biological to foster", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		state := ResourceModel{
+			Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		moved := childrenWithChangedModifier(t.Context(), plan, state)
+		Expect(moved).To(HaveLen(1))
+		Expect(moved[0].id).To(Equal("kid-1"))
+		Expect(moved[0].from).To(Equal("biological"))
+		Expect(moved[0].to).To(Equal("foster"))
+	})
+
+	t.Run("Flags a child that moved from foster to adopted", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+		}
+		state := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		moved := childrenWithChangedModifier(t.Context(), plan, state)
+		Expect(moved).To(HaveLen(1))
+		Expect(moved[0].from).To(Equal("foster"))
+		Expect(moved[0].to).To(Equal("adopted"))
+	})
+
+	t.Run("Does not flag a new child that is not in state", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		state := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		Expect(childrenWithChangedModifier(t.Context(), plan, state)).To(BeEmpty())
+	})
+}
+
 func TestConvertToSlice(t *testing.T) {
 	t.Run("Converts a set to a slice", func(t *testing.T) {
 		RegisterTestingT(t)

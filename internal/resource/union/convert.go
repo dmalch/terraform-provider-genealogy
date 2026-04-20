@@ -105,6 +105,44 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, d
 	return &unionRequest, d
 }
 
+type childModifierChange struct {
+	id   string
+	from string
+	to   string
+}
+
+// childrenWithChangedModifier returns any child ids that exist in both
+// plan and state but moved between the biological / foster / adopted
+// buckets. Geni's public API has no endpoint to change a child's
+// relationship modifier on an existing edge, so these changes cannot be
+// applied and the caller should surface a warning.
+func childrenWithChangedModifier(ctx context.Context, plan, state ResourceModel) []childModifierChange {
+	planLabel := labelsFor(ctx, plan)
+	stateLabel := labelsFor(ctx, state)
+
+	var out []childModifierChange
+	for id, to := range planLabel {
+		if from, ok := stateLabel[id]; ok && from != to {
+			out = append(out, childModifierChange{id: id, from: from, to: to})
+		}
+	}
+	return out
+}
+
+func labelsFor(ctx context.Context, m ResourceModel) map[string]string {
+	labels := make(map[string]string)
+	add := func(set types.Set, label string) {
+		ids, _ := convertToSlice(ctx, set)
+		for _, id := range ids {
+			labels[id] = label
+		}
+	}
+	add(m.Children, "biological")
+	add(m.FosterChildren, "foster")
+	add(m.AdoptedChildren, "adopted")
+	return labels
+}
+
 // modifierFor returns the relationship_modifier value to send when adding
 // childId to a union. "adopt" and "foster" correspond to the matching
 // subset memberships; biological children return "".
