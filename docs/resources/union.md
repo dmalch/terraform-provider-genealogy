@@ -17,8 +17,10 @@ description: |-
 
 ### Optional
 
-- `children` (Set of String) List of children IDs.
+- `adopted_children` (Set of String) List of adopted children IDs. Must be disjoint from children and foster_children.
+- `children` (Set of String) List of biological children IDs. Must be disjoint from foster_children and adopted_children.
 - `divorce` (Attributes) Divorce event information. (see [below for nested schema](#nestedatt--divorce))
+- `foster_children` (Set of String) List of foster children IDs. Must be disjoint from children and adopted_children.
 - `id` (String) The unique identifier for the union. This is a string that starts with 'union-' followed by a number.
 - `marriage` (Attributes) Marriage event information. (see [below for nested schema](#nestedatt--marriage))
 - `partners` (Set of String) List of partner IDs.
