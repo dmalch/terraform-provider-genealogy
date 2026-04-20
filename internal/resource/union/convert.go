@@ -17,10 +17,38 @@ func ValueFrom(ctx context.Context, union *geni.UnionResponse, unionModel *Resou
 		unionModel.ID = types.StringValue(union.Id)
 	}
 
+	tagged := make(map[string]struct{}, len(union.FosterChildren)+len(union.AdoptedChildren))
+	for _, id := range union.FosterChildren {
+		tagged[id] = struct{}{}
+	}
+	for _, id := range union.AdoptedChildren {
+		tagged[id] = struct{}{}
+	}
+
 	if len(union.Children) > 0 {
-		children, diags := types.SetValueFrom(ctx, types.StringType, union.Children)
+		biological := make([]string, 0, len(union.Children))
+		for _, id := range union.Children {
+			if _, isTagged := tagged[id]; !isTagged {
+				biological = append(biological, id)
+			}
+		}
+		if len(biological) > 0 {
+			children, diags := types.SetValueFrom(ctx, types.StringType, biological)
+			d.Append(diags...)
+			unionModel.Children = children
+		}
+	}
+
+	if len(union.FosterChildren) > 0 {
+		foster, diags := types.SetValueFrom(ctx, types.StringType, union.FosterChildren)
 		d.Append(diags...)
-		unionModel.Children = children
+		unionModel.FosterChildren = foster
+	}
+
+	if len(union.AdoptedChildren) > 0 {
+		adopted, diags := types.SetValueFrom(ctx, types.StringType, union.AdoptedChildren)
+		d.Append(diags...)
+		unionModel.AdoptedChildren = adopted
 	}
 
 	if len(union.Partners) > 0 {

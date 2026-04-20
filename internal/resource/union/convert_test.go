@@ -98,6 +98,60 @@ func TestValueFrom(t *testing.T) {
 		Expect(model.Marriage.IsNull()).To(BeTrue())
 		Expect(model.Divorce.IsNull()).To(BeTrue())
 	})
+
+	t.Run("Splits API children into biological, foster, and adopted buckets", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:              "union-split",
+			Partners:        []string{"profile-1", "profile-2"},
+			Children:        []string{"profile-3", "profile-4", "profile-5", "profile-6"},
+			FosterChildren:  []string{"profile-4"},
+			AdoptedChildren: []string{"profile-5"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+
+		bio, d := convertToSlice(t.Context(), model.Children)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(bio).To(ConsistOf("profile-3", "profile-6"))
+
+		foster, d := convertToSlice(t.Context(), model.FosterChildren)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(foster).To(ConsistOf("profile-4"))
+
+		adopted, d := convertToSlice(t.Context(), model.AdoptedChildren)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(adopted).To(ConsistOf("profile-5"))
+	})
+
+	t.Run("Leaves foster and adopted null when the response has no subsets", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:       "union-bio-only",
+			Children: []string{"profile-3"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Children.Elements()).To(HaveLen(1))
+		Expect(model.FosterChildren.IsNull()).To(BeTrue())
+		Expect(model.AdoptedChildren.IsNull()).To(BeTrue())
+	})
 }
 
 func TestUpdateComputedFields(t *testing.T) {
