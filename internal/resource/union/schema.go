@@ -18,6 +18,8 @@ import (
 
 const fieldPartners = "partners"
 const fieldChildren = "children"
+const fieldFosterChildren = "foster_children"
+const fieldAdoptedChildren = "adopted_children"
 
 var unionIdFormat = regexp.MustCompile(`^union-(g)?\d+$`)
 
@@ -40,7 +42,17 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 			fieldChildren: schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Description: "List of children IDs.",
+				Description: "List of biological children IDs. Must be disjoint from foster_children and adopted_children.",
+			},
+			fieldFosterChildren: schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of foster children IDs. Must be disjoint from children and adopted_children.",
+			},
+			fieldAdoptedChildren: schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "List of adopted children IDs. Must be disjoint from children and foster_children.",
 			},
 			"marriage": event.Schema(event.SchemaOptions{
 				NameComputed:        true,
