@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 // Update updates the resource.
@@ -73,38 +75,78 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		}
 	}
 
-	// Check if children were updated
-	if !plan.Children.Equal(state.Children) {
-		planChildIds, diags := convertToSlice(ctx, plan.Children)
+	// Warn on modifier changes: Geni has no endpoint to re-tag an existing child.
+	for _, m := range childrenWithChangedModifier(ctx, plan, state) {
+		resp.Diagnostics.AddAttributeWarning(path.Root(fieldChildren),
+			"Cannot change relationship modifier",
+			"Profile "+m.id+" cannot be moved from "+m.from+" to "+m.to+
+				" via the Geni API. Re-tag the relationship on Geni.com, then re-run terraform.",
+		)
+	}
+
+	// Check if any of the three child sets were updated
+	if !plan.Children.Equal(state.Children) ||
+		!plan.FosterChildren.Equal(state.FosterChildren) ||
+		!plan.AdoptedChildren.Equal(state.AdoptedChildren) {
+
+		planBio, diags := convertToSlice(ctx, plan.Children)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		knownPlanChildIds := hashMapFrom(planChildIds)
-
-		stateChildIds, diags := convertToSlice(ctx, state.Children)
+		planFoster, diags := convertToSlice(ctx, plan.FosterChildren)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		knownStateChildIds := hashMapFrom(stateChildIds)
+		planAdopted, diags := convertToSlice(ctx, plan.AdoptedChildren)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
-		for _, childId := range stateChildIds {
+		stateBio, diags := convertToSlice(ctx, state.Children)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		stateFoster, diags := convertToSlice(ctx, state.FosterChildren)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		stateAdopted, diags := convertToSlice(ctx, state.AdoptedChildren)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		planAll := append(append(append([]string{}, planBio...), planFoster...), planAdopted...)
+		stateAll := append(append(append([]string{}, stateBio...), stateFoster...), stateAdopted...)
+
+		knownPlanAll := hashMapFrom(planAll)
+		knownStateAll := hashMapFrom(stateAll)
+
+		for _, childId := range stateAll {
 			// If the child is not in the plan, fail the update because we can't remove
 			// children from a union using the API
-			if _, ok := knownPlanChildIds[childId]; !ok {
+			if _, ok := knownPlanAll[childId]; !ok {
 				resp.Diagnostics.AddAttributeWarning(path.Root(fieldChildren), "Cannot remove children", "Children cannot be removed from a union using terraform unless the profile is deleted")
 			}
 		}
 
-		for _, childId := range planChildIds {
+		fosterSet := hashMapFrom(planFoster)
+		adoptedSet := hashMapFrom(planAdopted)
+
+		for _, childId := range planAll {
 			// If the child is not in the state, we need to add it
-			if _, ok := knownStateChildIds[childId]; !ok {
+			if _, ok := knownStateAll[childId]; !ok {
 				// It is impossible to add an existing profile to a union using the API, so we
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
 
-				tmpProfile, err := r.client.AddChild(ctx, plan.ID.ValueString())
+				modifier := modifierFor(childId, fosterSet, adoptedSet)
+				tmpProfile, err := r.client.AddChild(ctx, plan.ID.ValueString(), geni.WithModifier(modifier))
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return

@@ -98,6 +98,60 @@ func TestValueFrom(t *testing.T) {
 		Expect(model.Marriage.IsNull()).To(BeTrue())
 		Expect(model.Divorce.IsNull()).To(BeTrue())
 	})
+
+	t.Run("Splits API children into biological, foster, and adopted buckets", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:              "union-split",
+			Partners:        []string{"profile-1", "profile-2"},
+			Children:        []string{"profile-3", "profile-4", "profile-5", "profile-6"},
+			FosterChildren:  []string{"profile-4"},
+			AdoptedChildren: []string{"profile-5"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+
+		bio, d := convertToSlice(t.Context(), model.Children)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(bio).To(ConsistOf("profile-3", "profile-6"))
+
+		foster, d := convertToSlice(t.Context(), model.FosterChildren)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(foster).To(ConsistOf("profile-4"))
+
+		adopted, d := convertToSlice(t.Context(), model.AdoptedChildren)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(adopted).To(ConsistOf("profile-5"))
+	})
+
+	t.Run("Leaves foster and adopted null when the response has no subsets", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:       "union-bio-only",
+			Children: []string{"profile-3"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Children.Elements()).To(HaveLen(1))
+		Expect(model.FosterChildren.IsNull()).To(BeTrue())
+		Expect(model.AdoptedChildren.IsNull()).To(BeTrue())
+	})
 }
 
 func TestUpdateComputedFields(t *testing.T) {
@@ -244,6 +298,93 @@ func TestHashMapFrom(t *testing.T) {
 		result := hashMapFrom([]string{})
 
 		Expect(result).To(BeEmpty())
+	})
+}
+
+func TestModifierFor(t *testing.T) {
+	RegisterTestingT(t)
+	plan := ResourceModel{
+		Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("bio-1")}),
+		FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("foster-1")}),
+		AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("adopted-1")}),
+	}
+
+	foster, err := convertToSlice(t.Context(), plan.FosterChildren)
+	Expect(err.HasError()).To(BeFalse())
+	adopted, err := convertToSlice(t.Context(), plan.AdoptedChildren)
+	Expect(err.HasError()).To(BeFalse())
+
+	fosterSet := hashMapFrom(foster)
+	adoptedSet := hashMapFrom(adopted)
+
+	Expect(modifierFor("foster-1", fosterSet, adoptedSet)).To(Equal("foster"))
+	Expect(modifierFor("adopted-1", fosterSet, adoptedSet)).To(Equal("adopt"))
+	Expect(modifierFor("bio-1", fosterSet, adoptedSet)).To(Equal(""))
+	Expect(modifierFor("unknown", fosterSet, adoptedSet)).To(Equal(""))
+}
+
+func TestChildrenWithChangedModifier(t *testing.T) {
+	t.Run("Returns empty when plan and state agree", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("bio-1")}),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("foster-1")}),
+			AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("adopted-1")}),
+		}
+		state := plan
+		Expect(childrenWithChangedModifier(t.Context(), plan, state)).To(BeEmpty())
+	})
+
+	t.Run("Flags a child that moved from biological to foster", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		state := ResourceModel{
+			Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		moved := childrenWithChangedModifier(t.Context(), plan, state)
+		Expect(moved).To(HaveLen(1))
+		Expect(moved[0].id).To(Equal("kid-1"))
+		Expect(moved[0].from).To(Equal("biological"))
+		Expect(moved[0].to).To(Equal("foster"))
+	})
+
+	t.Run("Flags a child that moved from foster to adopted", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+		}
+		state := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		moved := childrenWithChangedModifier(t.Context(), plan, state)
+		Expect(moved).To(HaveLen(1))
+		Expect(moved[0].from).To(Equal("foster"))
+		Expect(moved[0].to).To(Equal("adopted"))
+	})
+
+	t.Run("Does not flag a new child that is not in state", func(t *testing.T) {
+		RegisterTestingT(t)
+		plan := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("kid-1")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		state := ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+		}
+		Expect(childrenWithChangedModifier(t.Context(), plan, state)).To(BeEmpty())
 	})
 }
 

@@ -82,7 +82,7 @@ func TestValueFrom(t *testing.T) {
 		var actualNames = make(map[string]NameModel)
 		Expect(actualValue.Names.ElementsAs(t.Context(), &actualNames, false).HasError()).To(BeFalse())
 		Expect(actualNames).To(HaveKeyWithValue("en", NameModel{
-			FirstName:      types.StringPointerValue(givenProfile.Names["en"].FirstName),
+			FirstName:     types.StringPointerValue(givenProfile.Names["en"].FirstName),
 			MiddleName:    types.StringPointerValue(givenProfile.Names["en"].MiddleName),
 			LastName:      types.StringPointerValue(givenProfile.Names["en"].LastName),
 			BirthLastName: types.StringPointerValue(givenProfile.Names["en"].MaidenName),
@@ -221,12 +221,12 @@ func TestUpdateComputedFields(t *testing.T) {
 		}
 
 		model := &ResourceModel{
-			Birth: types.ObjectNull(event.EventModelAttributeTypes()),
-			Baptism: types.ObjectNull(event.EventModelAttributeTypes()),
-			Death:  types.ObjectNull(event.EventModelAttributeTypes()),
-			Burial: types.ObjectNull(event.EventModelAttributeTypes()),
+			Birth:            types.ObjectNull(event.EventModelAttributeTypes()),
+			Baptism:          types.ObjectNull(event.EventModelAttributeTypes()),
+			Death:            types.ObjectNull(event.EventModelAttributeTypes()),
+			Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
 			CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
-			About: types.MapNull(types.StringType),
+			About:            types.MapNull(types.StringType),
 		}
 
 		diags := UpdateComputedFields(t.Context(), givenProfile, model)
@@ -338,7 +338,7 @@ func TestNameValueFrom(t *testing.T) {
 
 		expectedNames := map[string]NameModel{
 			"en": {
-				FirstName:      types.StringPointerValue(ptr("John")),
+				FirstName:     types.StringPointerValue(ptr("John")),
 				MiddleName:    types.StringPointerValue(ptr("A")),
 				LastName:      types.StringPointerValue(ptr("Doe")),
 				BirthLastName: types.StringPointerValue(ptr("Smith")),
@@ -346,7 +346,7 @@ func TestNameValueFrom(t *testing.T) {
 				Nicknames:     types.SetValueMust(types.StringType, []attr.Value{types.StringValue("A"), types.StringValue("B")}),
 			},
 			"fr": {
-				FirstName:      types.StringPointerValue(ptr("Jean")),
+				FirstName:     types.StringPointerValue(ptr("Jean")),
 				MiddleName:    types.StringPointerValue(ptr("B")),
 				LastName:      types.StringPointerValue(ptr("Dupont")),
 				BirthLastName: types.StringPointerValue(ptr("Bernard")),

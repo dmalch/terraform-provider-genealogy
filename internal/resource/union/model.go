@@ -5,11 +5,13 @@ import (
 )
 
 type ResourceModel struct {
-	ID       types.String `tfsdk:"id"`
-	Children types.Set    `tfsdk:"children"`
-	Partners types.Set    `tfsdk:"partners"`
-	Marriage types.Object `tfsdk:"marriage"`
-	Divorce  types.Object `tfsdk:"divorce"`
+	ID              types.String `tfsdk:"id"`
+	Children        types.Set    `tfsdk:"children"`
+	FosterChildren  types.Set    `tfsdk:"foster_children"`
+	AdoptedChildren types.Set    `tfsdk:"adopted_children"`
+	Partners        types.Set    `tfsdk:"partners"`
+	Marriage        types.Object `tfsdk:"marriage"`
+	Divorce         types.Object `tfsdk:"divorce"`
 }
 
 type ResourceIdentityModel struct {

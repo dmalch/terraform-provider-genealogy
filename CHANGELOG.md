@@ -1,5 +1,10 @@
 ## 0.16.4 (Unreleased)
 
+FEATURES:
+
+* Union: added `foster_children` and `adopted_children` attributes on `geni_union` that map to Geni's `relationship_modifier=foster|adopt` edges. Each child appears in exactly one of `children`, `foster_children`, or `adopted_children`; the three sets must be disjoint. The provider passes the correct modifier through to `AddChild`/`AddSibling` on create and update, and splits the API's subset arrays back out on read so drift surfaces naturally.
+* Union: changing a child's relationship modifier between applies (e.g. moving an id from `foster_children` to `adopted_children`) now emits an attribute warning — Geni has no API to re-tag an existing edge, so the change must be made on Geni.com first.
+
 ## 0.16.3
 
 SECURITY:

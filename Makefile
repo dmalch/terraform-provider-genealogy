@@ -3,6 +3,9 @@ YELLOW:=\033[0;33m
 WHITE:=\033[0;37m
 NC:=\033[0m # No Color
 
+GOLANGCI_LINT_VERSION := v2.11.4
+GOLANGCI_LINT := bin/golangci-lint
+
 .PHONY: build-local
 build-local:
 	@echo "${WHITE}=====================${NC}"
@@ -37,3 +40,20 @@ docs:
 	@echo "${YELLOW}Generating docs...${NC}"
 	tfplugindocs generate --provider-name geni
 	@echo "${YELLOW}Generating docs...${NC} ${GREEN}Done${NC}"
+
+$(GOLANGCI_LINT):
+	@echo "${WHITE}=====================${NC}"
+	@echo "${YELLOW}Installing golangci-lint ${GOLANGCI_LINT_VERSION}...${NC}"
+	@GOBIN=$(CURDIR)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	@echo "${YELLOW}Installing golangci-lint...${NC} ${GREEN}Done${NC}"
+
+.PHONY: lint
+lint: $(GOLANGCI_LINT)
+	@echo "${WHITE}=====================${NC}"
+	@echo "${YELLOW}Linting...${NC}"
+	$(GOLANGCI_LINT) run
+	@echo "${YELLOW}Linting...${NC} ${GREEN}Done${NC}"
+
+.PHONY: lint-fix
+lint-fix: $(GOLANGCI_LINT)
+	$(GOLANGCI_LINT) run --fix

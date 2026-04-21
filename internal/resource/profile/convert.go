@@ -103,7 +103,7 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 		}
 
 		nameModels[locale] = NameModel{
-			FirstName:      types.StringPointerValue(name.FirstName),
+			FirstName:     types.StringPointerValue(name.FirstName),
 			MiddleName:    types.StringPointerValue(name.MiddleName),
 			LastName:      types.StringPointerValue(name.LastName),
 			BirthLastName: types.StringPointerValue(name.MaidenName),

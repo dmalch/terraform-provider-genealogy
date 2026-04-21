@@ -252,7 +252,7 @@ func escapeStringToUTF(s string) string {
 	var sb strings.Builder
 	for _, r := range s {
 		if r > 127 {
-			sb.WriteString(fmt.Sprintf("\\u%04x", r))
+			fmt.Fprintf(&sb, "\\u%04x", r)
 		} else {
 			sb.WriteRune(r)
 		}
@@ -526,7 +526,7 @@ func (c *Client) AddPartner(ctx context.Context, profileId string) (*ProfileResp
 	return &profile, nil
 }
 
-func (c *Client) AddChild(ctx context.Context, profileId string) (*ProfileResponse, error) {
+func (c *Client) AddChild(ctx context.Context, profileId string, opts ...AddOption) (*ProfileResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-child"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -535,6 +535,9 @@ func (c *Client) AddChild(ctx context.Context, profileId string) (*ProfileRespon
 	}
 
 	c.addProfileFieldsQueryParams(req)
+	for _, opt := range opts {
+		opt(req)
+	}
 
 	body, err := c.doRequest(ctx, req)
 	if err != nil {
@@ -553,7 +556,7 @@ func (c *Client) AddChild(ctx context.Context, profileId string) (*ProfileRespon
 	return &profile, nil
 }
 
-func (c *Client) AddSibling(ctx context.Context, profileId string) (*ProfileResponse, error) {
+func (c *Client) AddSibling(ctx context.Context, profileId string, opts ...AddOption) (*ProfileResponse, error) {
 	url := BaseUrl(c.useSandboxEnv) + "api/" + profileId + "/add-sibling"
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -562,6 +565,9 @@ func (c *Client) AddSibling(ctx context.Context, profileId string) (*ProfileResp
 	}
 
 	c.addProfileFieldsQueryParams(req)
+	for _, opt := range opts {
+		opt(req)
+	}
 
 	body, err := c.doRequest(ctx, req)
 	if err != nil {

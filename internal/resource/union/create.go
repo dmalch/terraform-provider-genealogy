@@ -48,20 +48,39 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	// Set the children. If the union already exists and has children, we can set
 	// them by calling the union/add-child API. If not, we can use profile/add-child
 	// on a parent profile.
-	if len(plan.Children.Elements()) > 0 {
+	childrenIds, diags := convertToSlice(ctx, plan.Children)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	fosterIds, diags := convertToSlice(ctx, plan.FosterChildren)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	adoptedIds, diags := convertToSlice(ctx, plan.AdoptedChildren)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-		childrenIds, diags := convertToSlice(ctx, plan.Children)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	allChildrenIds := make([]string, 0, len(childrenIds)+len(fosterIds)+len(adoptedIds))
+	allChildrenIds = append(allChildrenIds, childrenIds...)
+	allChildrenIds = append(allChildrenIds, fosterIds...)
+	allChildrenIds = append(allChildrenIds, adoptedIds...)
 
+	fosterSet := hashMapFrom(fosterIds)
+	adoptedSet := hashMapFrom(adoptedIds)
+
+	if len(allChildrenIds) > 0 {
 		var skipNextIteration bool
-		for i, childId := range childrenIds {
+		for i, childId := range allChildrenIds {
 			if skipNextIteration {
 				skipNextIteration = false
 				continue
 			}
+
+			modifier := modifierFor(childId, fosterSet, adoptedSet)
 
 			var tmpProfile *geni.ProfileResponse
 
@@ -71,7 +90,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				// we need to create a temporary child profile and then merge it with the
 				// existing child profile.
 				var err error
-				tmpProfile, err = r.client.AddChild(ctx, plan.ID.ValueString())
+				tmpProfile, err = r.client.AddChild(ctx, plan.ID.ValueString(), geni.WithModifier(modifier))
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return
@@ -83,19 +102,19 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0])
+					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0], geni.WithModifier(modifier))
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 						return
 					}
-				} else if len(partnerIds) == 0 && len(childrenIds) > 1 {
-					// If there are no partners, we can add a child as a sibling to the first child
-					// in the union using the union/add-sibling API.
+				} else if len(partnerIds) == 0 && len(allChildrenIds) > 1 {
+					// If there are no partners, we can add a child as a sibling to the next child
+					// in the union using the profile/add-sibling API.
 					// It is impossible to add an existing child profile to a sibling using the API,
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddSibling(ctx, childrenIds[i+1])
+					tmpProfile, err = r.client.AddSibling(ctx, allChildrenIds[i+1], geni.WithModifier(modifier))
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 						return
