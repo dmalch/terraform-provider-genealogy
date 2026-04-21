@@ -1,9 +1,17 @@
-## 0.16.4 (Unreleased)
+## 0.16.5 (Unreleased)
+
+## 0.16.4
 
 FEATURES:
 
 * Union: added `foster_children` and `adopted_children` attributes on `geni_union` that map to Geni's `relationship_modifier=foster|adopt` edges. Each child appears in exactly one of `children`, `foster_children`, or `adopted_children`; the three sets must be disjoint. The provider passes the correct modifier through to `AddChild`/`AddSibling` on create and update, and splits the API's subset arrays back out on read so drift surfaces naturally.
 * Union: changing a child's relationship modifier between applies (e.g. moving an id from `foster_children` to `adopted_children`) now emits an attribute warning — Geni has no API to re-tag an existing edge, so the change must be made on Geni.com first.
+
+IMPROVEMENTS:
+
+* Tooling: upgrade `golangci-lint` to v2.11.4 and migrate `.golangci.yml` to the v2 schema. The pinned binary is installed locally via `make lint` (into `bin/`) and in CI via `golangci-lint-action`, so the tool version no longer drifts.
+* CI: add a linting step to the `ci.yaml` workflow that was previously build+test only.
+* Code quality: fixed pre-existing lint findings surfaced by the upgrade (forcetypeassert on a schema downcast, gofmt drift in the profile package, an unused blank in a range clause, and a `WriteString(fmt.Sprintf(...))` callsite in the geni client).
 
 ## 0.16.3
 
