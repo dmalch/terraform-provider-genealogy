@@ -252,7 +252,7 @@ func escapeStringToUTF(s string) string {
 	var sb strings.Builder
 	for _, r := range s {
 		if r > 127 {
-			sb.WriteString(fmt.Sprintf("\\u%04x", r))
+			fmt.Fprintf(&sb, "\\u%04x", r)
 		} else {
 			sb.WriteRune(r)
 		}

@@ -51,7 +51,11 @@ func validatorTestConfigFull(t *testing.T, partners, children, fosterChildren, a
 		Divorce:         types.ObjectNull(event.EventModelAttributeTypes()),
 	}
 
-	objVal, diags := types.ObjectValueFrom(ctx, schemaResp.Schema.Type().(types.ObjectType).AttrTypes, model)
+	objType, ok := schemaResp.Schema.Type().(types.ObjectType)
+	if !ok {
+		t.Fatalf("schema type is not an object: %T", schemaResp.Schema.Type())
+	}
+	objVal, diags := types.ObjectValueFrom(ctx, objType.AttrTypes, model)
 	if diags.HasError() {
 		t.Fatalf("failed to create object value: %v", diags)
 	}

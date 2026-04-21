@@ -77,7 +77,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 func findRemovedKeys(stateAbout types.Map, planAbout types.Map) []string {
 	removedKeys := []string{}
-	for locale, _ := range stateAbout.Elements() {
+	for locale := range stateAbout.Elements() {
 		if _, ok := planAbout.Elements()[locale]; !ok {
 			removedKeys = append(removedKeys, locale)
 		}
