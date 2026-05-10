@@ -256,17 +256,25 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 			return
 		}
 
-		idToResponse := make(map[string]*geni.UnionResponse)
-		for _, result := range res.Results {
-			idToResponse[result.Id] = &result
-		}
+		fulfillUnionRequests(batch, res.Results)
+	}
+}
 
-		for _, req := range batch {
-			if result, ok := idToResponse[req.Id]; ok {
-				req.Response <- result
-			} else {
-				req.Error <- fmt.Errorf("union %s not found in the response", req.Id)
-			}
+// fulfillUnionRequests dispatches per-request results from a bulk union response.
+// IDs absent from the bulk results are treated as not-found, because the Geni bulk
+// endpoint silently omits missing IDs from its response — that absence is the domain
+// signal that the union no longer exists.
+func fulfillUnionRequests(batch []unionAsyncRequest, results []geni.UnionResponse) {
+	idToResponse := make(map[string]*geni.UnionResponse, len(results))
+	for i := range results {
+		idToResponse[results[i].Id] = &results[i]
+	}
+
+	for _, req := range batch {
+		if result, ok := idToResponse[req.Id]; ok {
+			req.Response <- result
+		} else {
+			req.Error <- fmt.Errorf("union %s not found in the response: %w", req.Id, geni.ErrResourceNotFound)
 		}
 	}
 }
@@ -307,17 +315,24 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 			return
 		}
 
-		idToResponse := make(map[string]*geni.ProfileResponse)
-		for _, result := range res.Results {
-			idToResponse[result.Id] = &result
-		}
+		fulfillProfileRequests(batch, res.Results)
+	}
+}
 
-		for _, req := range batch {
-			if result, ok := idToResponse[req.Id]; ok {
-				req.Response <- result
-			} else {
-				req.Error <- fmt.Errorf("profile %s not found in the response", req.Id)
-			}
+// fulfillProfileRequests dispatches per-request results from a bulk profile response.
+// IDs absent from the bulk results are treated as not-found, because the Geni bulk
+// endpoint silently omits missing IDs from its response.
+func fulfillProfileRequests(batch []profileAsyncRequest, results []geni.ProfileResponse) {
+	idToResponse := make(map[string]*geni.ProfileResponse, len(results))
+	for i := range results {
+		idToResponse[results[i].Id] = &results[i]
+	}
+
+	for _, req := range batch {
+		if result, ok := idToResponse[req.Id]; ok {
+			req.Response <- result
+		} else {
+			req.Error <- fmt.Errorf("profile %s not found in the response: %w", req.Id, geni.ErrResourceNotFound)
 		}
 	}
 }
@@ -358,17 +373,24 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 			return
 		}
 
-		idToResponse := make(map[string]*geni.DocumentResponse)
-		for _, result := range res.Results {
-			idToResponse[result.Id] = &result
-		}
+		fulfillDocumentRequests(batch, res.Results)
+	}
+}
 
-		for _, req := range batch {
-			if result, ok := idToResponse[req.Id]; ok {
-				req.Response <- result
-			} else {
-				req.Error <- fmt.Errorf("document %s not found in the response", req.Id)
-			}
+// fulfillDocumentRequests dispatches per-request results from a bulk document response.
+// IDs absent from the bulk results are treated as not-found, because the Geni bulk
+// endpoint silently omits missing IDs from its response.
+func fulfillDocumentRequests(batch []documentAsyncRequest, results []geni.DocumentResponse) {
+	idToResponse := make(map[string]*geni.DocumentResponse, len(results))
+	for i := range results {
+		idToResponse[results[i].Id] = &results[i]
+	}
+
+	for _, req := range batch {
+		if result, ok := idToResponse[req.Id]; ok {
+			req.Response <- result
+		} else {
+			req.Error <- fmt.Errorf("document %s not found in the response: %w", req.Id, geni.ErrResourceNotFound)
 		}
 	}
 }

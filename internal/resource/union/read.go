@@ -3,6 +3,7 @@ package union
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -194,5 +195,44 @@ func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geni.
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resp.Diagnostics.Append(validateUnionImportID(ctx, req.ID, r.batchClient.GetUnion)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
+}
+
+// validateUnionImportID round-trips the API to confirm the imported union
+// exists on Geni. See GitHub issue #80 for why this validation is required. On
+// success, state population is left to the framework's follow-up Read so that
+// schema-aware null defaults for collection fields are preserved.
+func validateUnionImportID(
+	ctx context.Context,
+	id string,
+	fetch func(context.Context, string) (*geni.UnionResponse, error),
+) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	response, err := fetch(ctx, id)
+	if err != nil {
+		if errors.Is(err, geni.ErrResourceNotFound) {
+			diags.AddError(
+				"Union not found",
+				fmt.Sprintf("No Geni union with ID %q exists.", id),
+			)
+			return diags
+		}
+		diags.AddError("Error reading union for import", err.Error())
+		return diags
+	}
+	// The Geni single-resource endpoint sometimes returns 200 with an empty
+	// body for IDs that do not exist (observed on sandbox), instead of 404.
+	// Treat a missing Id field as the same domain signal as ErrResourceNotFound.
+	if response == nil || response.Id == "" {
+		diags.AddError(
+			"Union not found",
+			fmt.Sprintf("No Geni union with ID %q exists.", id),
+		)
+	}
+	return diags
 }
