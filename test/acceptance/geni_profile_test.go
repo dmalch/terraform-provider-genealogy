@@ -26,13 +26,16 @@ func TestAccProfile_createProfile(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("about"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("public"), knownvalue.Bool(true)),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("alive"), knownvalue.Bool(false)),
+					statecheck.ExpectIdentity("geni_profile.test", map[string]knownvalue.Check{
+						"id": knownvalue.NotNull(),
+					}),
+					statecheck.ExpectIdentityValueMatchesState("geni_profile.test", tfjsonpath.New("id")),
 				},
 			},
 			{
-				ResourceName:            "geni_profile.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"names"},
+				ResourceName:    "geni_profile.test",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 			},
 		},
 	})
