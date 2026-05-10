@@ -195,7 +195,21 @@ func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geni.
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resp.Diagnostics.Append(validateUnionImportID(ctx, req.ID, r.batchClient.GetUnion)...)
+	// Plannable imports (Terraform 1.12+ `import { identity = { id = "..." } }`)
+	// pass the ID via the typed Identity field instead of the legacy string ID.
+	importID := req.ID
+	if req.Identity != nil && !req.Identity.Raw.IsNull() {
+		var identity ResourceIdentityModel
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if identity.ID.ValueString() != "" {
+			importID = identity.ID.ValueString()
+		}
+	}
+
+	resp.Diagnostics.Append(validateUnionImportID(ctx, importID, r.batchClient.GetUnion)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

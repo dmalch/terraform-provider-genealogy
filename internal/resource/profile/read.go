@@ -106,7 +106,21 @@ func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.Prof
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resp.Diagnostics.Append(validateProfileImportID(ctx, req.ID, r.getProfile)...)
+	// Plannable imports (Terraform 1.12+ `import { identity = { id = "..." } }`)
+	// pass the ID via the typed Identity field instead of the legacy string ID.
+	importID := req.ID
+	if req.Identity != nil && !req.Identity.Raw.IsNull() {
+		var identity ResourceIdentityModel
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if identity.ID.ValueString() != "" {
+			importID = identity.ID.ValueString()
+		}
+	}
+
+	resp.Diagnostics.Append(validateProfileImportID(ctx, importID, r.getProfile)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
