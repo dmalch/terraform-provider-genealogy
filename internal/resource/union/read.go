@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -194,46 +195,44 @@ func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geni.
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	state, identity, diags := resolveUnionImport(ctx, req.ID, r.batchClient.GetUnion)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(validateUnionImportID(ctx, req.ID, r.batchClient.GetUnion)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
 }
 
-// resolveUnionImport validates that the imported union exists on Geni and produces
-// the state and identity values to write. See GitHub issue #80 for why this
-// validation is required.
-func resolveUnionImport(
+// validateUnionImportID round-trips the API to confirm the imported union
+// exists on Geni. See GitHub issue #80 for why this validation is required. On
+// success, state population is left to the framework's follow-up Read so that
+// schema-aware null defaults for collection fields are preserved.
+func validateUnionImportID(
 	ctx context.Context,
 	id string,
 	fetch func(context.Context, string) (*geni.UnionResponse, error),
-) (ResourceModel, ResourceIdentityModel, diag.Diagnostics) {
-	var state ResourceModel
-	var identity ResourceIdentityModel
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	unionResponse, err := fetch(ctx, id)
+	response, err := fetch(ctx, id)
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			diags.AddError(
 				"Union not found",
 				fmt.Sprintf("No Geni union with ID %q exists.", id),
 			)
-			return state, identity, diags
+			return diags
 		}
 		diags.AddError("Error reading union for import", err.Error())
-		return state, identity, diags
+		return diags
 	}
-
-	diags.Append(ValueFrom(ctx, unionResponse, &state)...)
-	if diags.HasError() {
-		return state, identity, diags
+	// The Geni single-resource endpoint sometimes returns 200 with an empty
+	// body for IDs that do not exist (observed on sandbox), instead of 404.
+	// Treat a missing Id field as the same domain signal as ErrResourceNotFound.
+	if response == nil || response.Id == "" {
+		diags.AddError(
+			"Union not found",
+			fmt.Sprintf("No Geni union with ID %q exists.", id),
+		)
 	}
-
-	identity.ID = types.StringValue(unionResponse.Id)
-	return state, identity, diags
+	return diags
 }

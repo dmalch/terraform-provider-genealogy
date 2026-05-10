@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -105,46 +106,44 @@ func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.Prof
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	state, identity, diags := resolveProfileImport(ctx, req.ID, r.getProfile)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(validateProfileImportID(ctx, req.ID, r.getProfile)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
 }
 
-// resolveProfileImport validates that the imported profile exists on Geni and
-// produces the state and identity values to write. See GitHub issue #80 for why
-// this validation is required.
-func resolveProfileImport(
+// validateProfileImportID round-trips the API to confirm the imported profile
+// exists on Geni. See GitHub issue #80 for why this validation is required. On
+// success, state population is left to the framework's follow-up Read so that
+// schema-aware null defaults for collection fields are preserved.
+func validateProfileImportID(
 	ctx context.Context,
 	id string,
 	fetch func(context.Context, string) (*geni.ProfileResponse, error),
-) (ResourceModel, ResourceIdentityModel, diag.Diagnostics) {
-	var state ResourceModel
-	var identity ResourceIdentityModel
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	profileResponse, err := fetch(ctx, id)
+	response, err := fetch(ctx, id)
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			diags.AddError(
 				"Profile not found",
 				fmt.Sprintf("No Geni profile with ID %q exists.", id),
 			)
-			return state, identity, diags
+			return diags
 		}
 		diags.AddError("Error reading profile for import", err.Error())
-		return state, identity, diags
+		return diags
 	}
-
-	diags.Append(ValueFrom(ctx, profileResponse, &state)...)
-	if diags.HasError() {
-		return state, identity, diags
+	// The Geni single-resource endpoint sometimes returns 200 with an empty
+	// body for IDs that do not exist (observed on sandbox), instead of 404.
+	// Treat a missing Id field as the same domain signal as ErrResourceNotFound.
+	if response == nil || response.Id == "" {
+		diags.AddError(
+			"Profile not found",
+			fmt.Sprintf("No Geni profile with ID %q exists.", id),
+		)
 	}
-
-	identity.ID = types.StringValue(profileResponse.Id)
-	return state, identity, diags
+	return diags
 }
