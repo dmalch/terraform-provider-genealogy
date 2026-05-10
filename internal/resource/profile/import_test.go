@@ -5,44 +5,43 @@ import (
 	"errors"
 	"testing"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
-func TestResolveProfileImport_NotFoundProducesError(t *testing.T) {
-	fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
-		return nil, geni.ErrResourceNotFound
-	}
+func TestResolveProfileImport(t *testing.T) {
+	t.Run("Not-found from fetch produces an error diagnostic", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
+			return nil, geni.ErrResourceNotFound
+		}
 
-	_, _, diags := resolveProfileImport(context.Background(), "profile-missing", fetch)
+		_, _, diags := resolveProfileImport(t.Context(), "profile-missing", fetch)
 
-	if !diags.HasError() {
-		t.Fatal("expected error diagnostic when fetch returns ErrResourceNotFound, got none")
-	}
-}
+		Expect(diags.HasError()).To(BeTrue())
+	})
 
-func TestResolveProfileImport_TransportErrorSurfaced(t *testing.T) {
-	fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
-		return nil, errors.New("network exploded")
-	}
+	t.Run("Transport error is surfaced as an error diagnostic", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
+			return nil, errors.New("network exploded")
+		}
 
-	_, _, diags := resolveProfileImport(context.Background(), "profile-x", fetch)
+		_, _, diags := resolveProfileImport(t.Context(), "profile-x", fetch)
 
-	if !diags.HasError() {
-		t.Fatal("expected error diagnostic when fetch returns a non-not-found error, got none")
-	}
-}
+		Expect(diags.HasError()).To(BeTrue())
+	})
 
-func TestResolveProfileImport_HappyPathPopulatesIdentity(t *testing.T) {
-	fetch := func(_ context.Context, id string) (*geni.ProfileResponse, error) {
-		return &geni.ProfileResponse{Id: id}, nil
-	}
+	t.Run("Happy path populates identity from the fetched response", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, id string) (*geni.ProfileResponse, error) {
+			return &geni.ProfileResponse{Id: id}, nil
+		}
 
-	_, identity, diags := resolveProfileImport(context.Background(), "profile-42", fetch)
+		_, identity, diags := resolveProfileImport(t.Context(), "profile-42", fetch)
 
-	if diags.HasError() {
-		t.Fatalf("expected no diagnostics on happy path, got: %v", diags)
-	}
-	if identity.ID.ValueString() != "profile-42" {
-		t.Fatalf("expected identity.ID=profile-42, got %q", identity.ID.ValueString())
-	}
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(identity.ID.ValueString()).To(Equal("profile-42"))
+	})
 }

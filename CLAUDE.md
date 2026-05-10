@@ -49,8 +49,16 @@ golangci-lint run
 - Acceptance tests are in `test/acceptance/` and require `TF_ACC=1`
 - Tests use `terraform-plugin-testing` framework with `ProtoV6ProviderFactories`
 - A valid access token must be set in `test/acceptance/const_test.go` to run acceptance tests
-- Unit tests for conversion logic live alongside implementation (e.g., `internal/resource/profile/convert_test.go`)
+- Unit tests live alongside implementation (e.g., `internal/resource/profile/convert_test.go`)
 - CI runs acceptance tests against Terraform 1.11.x with a 10-minute timeout
+
+### Unit test conventions
+
+- Use `gomega` with a dot-import: `. "github.com/onsi/gomega"` and `Expect(...).To(...)` matchers — not `testify` or bare `t.Fatal`.
+- Name the top-level test after the function under test (e.g. `TestValueFrom`, `TestResolveDocumentImport`); use `t.Run("Behavioral scenario description", ...)` for each case.
+- Call `RegisterTestingT(t)` at the start of every `t.Run` sub-test (Gomega needs it per goroutine).
+- Use `t.Context()` rather than `context.Background()`.
+- Tests live in the same package as the code under test (no `_test` package) so unexported domain functions are directly callable.
 
 ## Linting
 

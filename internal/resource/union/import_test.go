@@ -5,44 +5,43 @@ import (
 	"errors"
 	"testing"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
-func TestResolveUnionImport_NotFoundProducesError(t *testing.T) {
-	fetch := func(_ context.Context, _ string) (*geni.UnionResponse, error) {
-		return nil, geni.ErrResourceNotFound
-	}
+func TestResolveUnionImport(t *testing.T) {
+	t.Run("Not-found from fetch produces an error diagnostic", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, _ string) (*geni.UnionResponse, error) {
+			return nil, geni.ErrResourceNotFound
+		}
 
-	_, _, diags := resolveUnionImport(context.Background(), "union-missing", fetch)
+		_, _, diags := resolveUnionImport(t.Context(), "union-missing", fetch)
 
-	if !diags.HasError() {
-		t.Fatal("expected error diagnostic when fetch returns ErrResourceNotFound, got none")
-	}
-}
+		Expect(diags.HasError()).To(BeTrue())
+	})
 
-func TestResolveUnionImport_TransportErrorSurfaced(t *testing.T) {
-	fetch := func(_ context.Context, _ string) (*geni.UnionResponse, error) {
-		return nil, errors.New("network exploded")
-	}
+	t.Run("Transport error is surfaced as an error diagnostic", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, _ string) (*geni.UnionResponse, error) {
+			return nil, errors.New("network exploded")
+		}
 
-	_, _, diags := resolveUnionImport(context.Background(), "union-x", fetch)
+		_, _, diags := resolveUnionImport(t.Context(), "union-x", fetch)
 
-	if !diags.HasError() {
-		t.Fatal("expected error diagnostic when fetch returns a non-not-found error, got none")
-	}
-}
+		Expect(diags.HasError()).To(BeTrue())
+	})
 
-func TestResolveUnionImport_HappyPathPopulatesIdentity(t *testing.T) {
-	fetch := func(_ context.Context, id string) (*geni.UnionResponse, error) {
-		return &geni.UnionResponse{Id: id}, nil
-	}
+	t.Run("Happy path populates identity from the fetched response", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, id string) (*geni.UnionResponse, error) {
+			return &geni.UnionResponse{Id: id}, nil
+		}
 
-	_, identity, diags := resolveUnionImport(context.Background(), "union-42", fetch)
+		_, identity, diags := resolveUnionImport(t.Context(), "union-42", fetch)
 
-	if diags.HasError() {
-		t.Fatalf("expected no diagnostics on happy path, got: %v", diags)
-	}
-	if identity.ID.ValueString() != "union-42" {
-		t.Fatalf("expected identity.ID=union-42, got %q", identity.ID.ValueString())
-	}
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(identity.ID.ValueString()).To(Equal("union-42"))
+	})
 }

@@ -5,51 +5,45 @@ import (
 	"errors"
 	"testing"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
-func TestResolveDocumentImport_NotFoundProducesError(t *testing.T) {
-	fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
-		return nil, geni.ErrResourceNotFound
-	}
+func TestResolveDocumentImport(t *testing.T) {
+	t.Run("Not-found from fetch produces an error diagnostic", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
+			return nil, geni.ErrResourceNotFound
+		}
 
-	_, _, diags := resolveDocumentImport(context.Background(), "document-missing", fetch)
+		_, _, diags := resolveDocumentImport(t.Context(), "document-missing", fetch)
 
-	if !diags.HasError() {
-		t.Fatal("expected error diagnostic when fetch returns ErrResourceNotFound, got none")
-	}
-}
+		Expect(diags.HasError()).To(BeTrue())
+	})
 
-func TestResolveDocumentImport_TransportErrorSurfaced(t *testing.T) {
-	sentinel := errors.New("network exploded")
-	fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
-		return nil, sentinel
-	}
+	t.Run("Transport error is surfaced as an error diagnostic", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
+			return nil, errors.New("network exploded")
+		}
 
-	_, _, diags := resolveDocumentImport(context.Background(), "document-x", fetch)
+		_, _, diags := resolveDocumentImport(t.Context(), "document-x", fetch)
 
-	if !diags.HasError() {
-		t.Fatal("expected error diagnostic when fetch returns a non-not-found error, got none")
-	}
-}
+		Expect(diags.HasError()).To(BeTrue())
+	})
 
-func TestResolveDocumentImport_HappyPathPopulatesStateAndIdentity(t *testing.T) {
-	fetch := func(_ context.Context, id string) (*geni.DocumentResponse, error) {
-		return &geni.DocumentResponse{Id: id, Title: "My Doc"}, nil
-	}
+	t.Run("Happy path populates state and identity from the fetched response", func(t *testing.T) {
+		RegisterTestingT(t)
+		fetch := func(_ context.Context, id string) (*geni.DocumentResponse, error) {
+			return &geni.DocumentResponse{Id: id, Title: "My Doc"}, nil
+		}
 
-	state, identity, diags := resolveDocumentImport(context.Background(), "document-42", fetch)
+		state, identity, diags := resolveDocumentImport(t.Context(), "document-42", fetch)
 
-	if diags.HasError() {
-		t.Fatalf("expected no diagnostics on happy path, got: %v", diags)
-	}
-	if identity.ID.ValueString() != "document-42" {
-		t.Fatalf("expected identity.ID=document-42, got %q", identity.ID.ValueString())
-	}
-	if state.ID.ValueString() != "document-42" {
-		t.Fatalf("expected state.ID=document-42, got %q", state.ID.ValueString())
-	}
-	if state.Title.ValueString() != "My Doc" {
-		t.Fatalf("expected state.Title=My Doc, got %q", state.Title.ValueString())
-	}
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(identity.ID.ValueString()).To(Equal("document-42"))
+		Expect(state.ID.ValueString()).To(Equal("document-42"))
+		Expect(state.Title.ValueString()).To(Equal("My Doc"))
+	})
 }
