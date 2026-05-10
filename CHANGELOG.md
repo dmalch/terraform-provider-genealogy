@@ -1,4 +1,21 @@
-## 0.16.5 (Unreleased)
+## 0.17.1 (Unreleased)
+
+## 0.17.0
+
+BUG FIXES:
+
+* Batch read: a `geni_document`, `geni_profile`, or `geni_union` that no longer exists on Geni is now removed from state cleanly when refreshed through the concurrent batch path. The bulk endpoints silently omit missing IDs from their response; the batch client now translates that omission into `ErrResourceNotFound` so the Read handlers' existing not-found branch runs `resp.State.RemoveResource`. Previously the synthesized error was generic, the resource stayed in state with all fields zeroed out, and every subsequent `terraform plan` failed refresh on the same row until it was manually `terraform state rm`'d. (#80)
+* Import: `terraform import` for `geni_document`, `geni_profile`, and `geni_union` now validates the supplied ID against the Geni API before writing state. A non-existent ID surfaces a clear `<Resource> not found` diagnostic instead of succeeding silently and producing a zombie state row that fails every subsequent refresh. (#80)
+
+BEHAVIORAL CHANGES:
+
+* Import: each `terraform import` now performs one additional GET against the Geni API to verify the ID exists before falling through to the framework's standard import-then-refresh flow. When `use_document_cache` / `use_profile_cache` is enabled, the framework's follow-up Read is served from cache so only the validation GET hits the API; unions have no cache and always cost two GETs per import. The trade-off is intentional: it eliminates the silent-success path that previously left unrecoverable zombie state rows.
+
+IMPROVEMENTS:
+
+* Testing: added unit-test coverage for the batch client's response-to-request dispatch logic and for the new import validation paths, both in the repo's gomega/`t.Run` convention. Added acceptance tests that exercise the import-non-existent-id path against the live sandbox API for all three resources.
+* Documentation: documented the unit-test conventions (gomega dot-import, `RegisterTestingT(t)` per sub-test, same-package tests) in `CLAUDE.md` so contributors find the pattern without reverse-engineering it.
+* Maintenance: dependency updates (`labstack/echo/v4`, grouped `go_modules` bumps) and CI action updates (`goreleaser/goreleaser-action`, `actions/setup-go`).
 
 ## 0.16.4
 
