@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -105,5 +105,46 @@ func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.Prof
 }
 
 func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
+	state, identity, diags := resolveProfileImport(ctx, req.ID, r.getProfile)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+}
+
+// resolveProfileImport validates that the imported profile exists on Geni and
+// produces the state and identity values to write. See GitHub issue #80 for why
+// this validation is required.
+func resolveProfileImport(
+	ctx context.Context,
+	id string,
+	fetch func(context.Context, string) (*geni.ProfileResponse, error),
+) (ResourceModel, ResourceIdentityModel, diag.Diagnostics) {
+	var state ResourceModel
+	var identity ResourceIdentityModel
+	var diags diag.Diagnostics
+
+	profileResponse, err := fetch(ctx, id)
+	if err != nil {
+		if errors.Is(err, geni.ErrResourceNotFound) {
+			diags.AddError(
+				"Profile not found",
+				fmt.Sprintf("No Geni profile with ID %q exists.", id),
+			)
+			return state, identity, diags
+		}
+		diags.AddError("Error reading profile for import", err.Error())
+		return state, identity, diags
+	}
+
+	diags.Append(ValueFrom(ctx, profileResponse, &state)...)
+	if diags.HasError() {
+		return state, identity, diags
+	}
+
+	identity.ID = types.StringValue(profileResponse.Id)
+	return state, identity, diags
 }
