@@ -1,5 +1,9 @@
 ## 0.18.2 (Unreleased)
 
+BUG FIXES:
+
+* Profile: events (`birth`, `death`, `baptism`, `burial`) that the Geni API auto-creates from a sibling input — most visibly `death` when `cause_of_death` is set — no longer flap the refresh plan. The Read path now treats an event that carries only a server-generated name (no `date` and no `location`) as no event, so `state.death` stays null when the user did not author a `death` block in HCL. User-set events still round-trip because the schema validator already requires them to carry `date` or `location`. (#91)
+
 ## 0.18.1
 
 BUG FIXES:

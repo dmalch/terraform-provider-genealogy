@@ -148,6 +148,46 @@ func TestValueFrom(t *testing.T) {
 		Expect(diags).To(BeEmpty())
 		Expect(result.IsNull()).To(BeTrue())
 	})
+
+	t.Run("event with only a name and no date or location is treated as a server-auto-generated non-event", func(t *testing.T) {
+		RegisterTestingT(t)
+		// Geni auto-creates `death = {name: "Death of <name>"}` whenever
+		// `cause_of_death` is set. The schema validator requires user-set
+		// events to carry date or location, so this shape can only come
+		// from auto-creation and must not flap the refresh plan.
+		eventElement := &geni.EventElement{Name: "Death of John Doe"}
+
+		result, diags := ValueFrom(t.Context(), eventElement)
+
+		Expect(diags).To(BeEmpty())
+		Expect(result.IsNull()).To(BeTrue())
+	})
+
+	t.Run("event with date set is kept regardless of name", func(t *testing.T) {
+		RegisterTestingT(t)
+		eventElement := &geni.EventElement{
+			Name: "Death of John Doe",
+			Date: &geni.DateElement{Year: ptr(int32(1980))},
+		}
+
+		result, diags := ValueFrom(t.Context(), eventElement)
+
+		Expect(diags).To(BeEmpty())
+		Expect(result.IsNull()).To(BeFalse())
+	})
+
+	t.Run("event with location set is kept regardless of name", func(t *testing.T) {
+		RegisterTestingT(t)
+		eventElement := &geni.EventElement{
+			Name:     "Birth of John Doe",
+			Location: &geni.LocationElement{City: ptr("Springfield")},
+		}
+
+		result, diags := ValueFrom(t.Context(), eventElement)
+
+		Expect(diags).To(BeEmpty())
+		Expect(result.IsNull()).To(BeFalse())
+	})
 }
 
 func TestDateValueFrom(t *testing.T) {
