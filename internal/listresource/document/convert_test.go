@@ -1,39 +1,35 @@
 package documentlist
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	. "github.com/onsi/gomega"
 
-	documentresource "github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
-
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	documentresource "github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 )
 
 func ptr[T any](v T) *T { return &v }
 
+// listRequestForDocument builds a list.ListRequest carrying the live
+// managed-resource schemas. The caller must have already registered gomega
+// for the current test via RegisterTestingT.
 func listRequestForDocument(t *testing.T, includeResource bool) list.ListRequest {
 	t.Helper()
 	r := documentresource.NewResource()
 
 	var schemaResp resource.SchemaResponse
 	r.Schema(t.Context(), resource.SchemaRequest{}, &schemaResp)
-	if schemaResp.Diagnostics.HasError() {
-		t.Fatalf("failed to build resource schema: %v", schemaResp.Diagnostics)
-	}
+	Expect(schemaResp.Diagnostics.HasError()).To(BeFalse(), "building resource schema")
+
+	withIdentity, ok := r.(resource.ResourceWithIdentity)
+	Expect(ok).To(BeTrue(), "document resource must implement ResourceWithIdentity")
 
 	var idResp resource.IdentitySchemaResponse
-	withIdentity, ok := r.(resource.ResourceWithIdentity)
-	if !ok {
-		t.Fatalf("document resource %T does not implement ResourceWithIdentity", r)
-	}
 	withIdentity.IdentitySchema(t.Context(), resource.IdentitySchemaRequest{}, &idResp)
-	if idResp.Diagnostics.HasError() {
-		t.Fatalf("failed to build identity schema: %v", idResp.Diagnostics)
-	}
+	Expect(idResp.Diagnostics.HasError()).To(BeFalse(), "building identity schema")
 
 	return list.ListRequest{
 		ResourceSchema:         schemaResp.Schema,
@@ -60,26 +56,25 @@ func TestBuildDocumentListResult(t *testing.T) {
 	t.Run("Populates Identity with the document ID", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequestForDocument(t, false)
-		resp := &geni.DocumentResponse{Id: "document-42", Title: "Test Doc"}
+		givenResponse := &geni.DocumentResponse{Id: "document-42", Title: "Test Doc"}
 
-		result, ok := buildDocumentListResult(t.Context(), resp, req)
+		result, ok := buildDocumentListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
 		Expect(result.Diagnostics.HasError()).To(BeFalse())
 		Expect(result.Identity).NotTo(BeNil())
 
 		var identity documentresource.ResourceIdentityModel
-		diags := result.Identity.Get(context.Background(), &identity)
-		Expect(diags.HasError()).To(BeFalse())
+		Expect(result.Identity.Get(t.Context(), &identity).HasError()).To(BeFalse())
 		Expect(identity.ID.ValueString()).To(Equal("document-42"))
 	})
 
 	t.Run("Sets a human-readable DisplayName", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequestForDocument(t, false)
-		resp := &geni.DocumentResponse{Id: "document-42", Title: "Test Doc"}
+		givenResponse := &geni.DocumentResponse{Id: "document-42", Title: "Test Doc"}
 
-		result, ok := buildDocumentListResult(t.Context(), resp, req)
+		result, ok := buildDocumentListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
 		Expect(result.DisplayName).To(Equal("Test Doc (document-42)"))
@@ -88,21 +83,20 @@ func TestBuildDocumentListResult(t *testing.T) {
 	t.Run("Populates Resource via document.ValueFrom when IncludeResource is true", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequestForDocument(t, true)
-		resp := &geni.DocumentResponse{
+		givenResponse := &geni.DocumentResponse{
 			Id:          "document-43",
 			Title:       "Birth Certificate",
 			ContentType: ptr("image/png"),
 		}
 
-		result, ok := buildDocumentListResult(t.Context(), resp, req)
+		result, ok := buildDocumentListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
 		Expect(result.Diagnostics.HasError()).To(BeFalse())
 		Expect(result.Resource).NotTo(BeNil())
 
 		var model documentresource.ResourceModel
-		diags := result.Resource.Get(context.Background(), &model)
-		Expect(diags.HasError()).To(BeFalse())
+		Expect(result.Resource.Get(t.Context(), &model).HasError()).To(BeFalse())
 		Expect(model.ID.ValueString()).To(Equal("document-43"))
 		Expect(model.Title.ValueString()).To(Equal("Birth Certificate"))
 		Expect(model.ContentType.ValueString()).To(Equal("image/png"))
