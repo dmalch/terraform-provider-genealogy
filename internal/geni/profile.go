@@ -129,6 +129,8 @@ type ProfileResponse struct {
 	Url string `json:"url,omitempty"`
 	// Unions is the URLs to unions
 	Unions []string `json:"unions,omitempty"`
+	// Projects are the IDs of projects this profile is a member of
+	Projects []string `json:"project_ids,omitempty"`
 	// Deleted is a boolean that indicates whether the profile is deleted
 	Deleted bool `json:"deleted"`
 	// UpdatedAt is the timestamp of when the profile was last updated
@@ -355,7 +357,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,detail_strings,unions,is_alive,public,deleted,merged_into,updated_at,created_at")
+	query.Add("fields", "id,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,detail_strings,unions,project_ids,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 
