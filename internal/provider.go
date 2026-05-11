@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -19,10 +20,14 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
+	documentlist "github.com/dmalch/terraform-provider-genealogy/internal/listresource/document"
+	profilelist "github.com/dmalch/terraform-provider-genealogy/internal/listresource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
 )
+
+var _ provider.ProviderWithListResources = (*GeniProvider)(nil)
 
 type GeniProvider struct {
 }
@@ -140,6 +145,10 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.DataSourceData = &config.ClientData{
 		Client: client,
 	}
+
+	resp.ListResourceData = &config.ClientData{
+		Client: client,
+	}
 }
 
 func tokenCacheFilePath(useSandboxEnv bool) (string, error) {
@@ -177,5 +186,12 @@ func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {
 func (p *GeniProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		project.NewDataSource,
+	}
+}
+
+func (p *GeniProvider) ListResources(_ context.Context) []func() list.ListResource {
+	return []func() list.ListResource{
+		profilelist.NewListResource,
+		documentlist.NewListResource,
 	}
 }
