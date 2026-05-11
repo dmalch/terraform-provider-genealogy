@@ -1,5 +1,16 @@
 ## 0.17.1 (Unreleased)
 
+BUG FIXES:
+
+* Import: plannable `import {}` blocks that pass the resource via the typed `identity` attribute (Terraform 1.12+ `import { identity = { id = "..." } to = ... }`) now work. The import-time validation introduced in v0.17.0 only inspected the legacy string ID, which is empty in plannable mode, so every plannable import failed with a spurious `<Resource> not found` diagnostic. The handler now reads from `req.Identity` when its `Raw` is non-null. (#84, #86)
+* Profile: importing or refreshing a profile that the Geni API returns with flat top-level name fields (`first_name`, `last_name`, etc.) and an empty localized `names` map now hydrates an en-US entry from those flat fields. Previously the `names` attribute came back null and the next plan showed a spurious in-place update recreating the locale entry; this also unblocks plannable imports for the common single-locale case. (#86)
+
+IMPROVEMENTS:
+
+* Testing: modernized identity coverage on `geni_document`, `geni_profile`, and `geni_union` — every happy-path apply now asserts `statecheck.ExpectIdentity` + `statecheck.ExpectIdentityValueMatchesState`, and one acceptance step per resource exercises the Terraform 1.12+ plannable-import flow via `ImportStateKind: resource.ImportBlockWithResourceIdentity`. (#84, #86)
+* Testing: added unit-test coverage for the new flat-name fallback (both `namesWithFlatFallback` directly and end-to-end through `ValueFrom`), in the repo's gomega/`t.Run` convention. (#86)
+* Testing: pointed the project acceptance tests at writable sandbox projects (`project-8`, `project-9`); the previously hardcoded `project-6` is not accessible to the test account and was failing with `Access Denied`. Also switched the multi-project assertion from positional `AtSliceIndex` to `SetExact` since `projects` is a set. (#86)
+
 ## 0.17.0
 
 BUG FIXES:

@@ -16,7 +16,7 @@ func TestAccProject_getProject(t *testing.T) {
 			{
 				Config: `
 					data "geni_project" "test" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 					`,
 				PlanOnly: true,
@@ -32,7 +32,7 @@ func TestAccProject_addProfileToProject(t *testing.T) {
 			{
 				Config: `
 					data "geni_project" "test" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 
 					resource "geni_profile" "test" {
@@ -50,7 +50,7 @@ func TestAccProject_addProfileToProject(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-8")),
 				},
 			},
 		},
@@ -63,12 +63,12 @@ func TestAccProject_addProfileToTwoProject(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: `
-					data "geni_project" "test-6" {
-					  id = "project-6"
-					}
-
 					data "geni_project" "test-8" {
 					  id = "project-8"
+					}
+
+					data "geni_project" "test-9" {
+					  id = "project-9"
 					}
 
 					resource "geni_profile" "test" {
@@ -80,14 +80,16 @@ func TestAccProject_addProfileToTwoProject(t *testing.T) {
 					  }
 					  alive = false
 					  public = true
-					  projects = [data.geni_project.test-6.id,data.geni_project.test-8.id]
+					  projects = [data.geni_project.test-8.id,data.geni_project.test-9.id]
 					}
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(1), knownvalue.StringExact("project-8")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects"), knownvalue.SetExact([]knownvalue.Check{
+						knownvalue.StringExact("project-8"),
+						knownvalue.StringExact("project-9"),
+					})),
 				},
 			},
 		},
@@ -101,7 +103,7 @@ func TestAccProject_addDocumentToProject(t *testing.T) {
 			{
 				Config: `
 					data "geni_project" "test" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 
 					resource "geni_document" "test" {
@@ -112,7 +114,7 @@ func TestAccProject_addDocumentToProject(t *testing.T) {
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
-					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-8")),
 				},
 			},
 		},

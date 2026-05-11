@@ -393,7 +393,16 @@ func TestAccDocument_createUrlDocument(t *testing.T) {
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("file_name"), knownvalue.Null()),
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("source_url"), knownvalue.StringExact("https://example.com")),
+					statecheck.ExpectIdentity("geni_document.test", map[string]knownvalue.Check{
+						"id": knownvalue.NotNull(),
+					}),
+					statecheck.ExpectIdentityValueMatchesState("geni_document.test", tfjsonpath.New("id")),
 				},
+			},
+			{
+				ResourceName:    "geni_document.test",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 			},
 		},
 	})

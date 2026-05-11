@@ -35,7 +35,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	d.Append(diags...)
 	profileModel.CurrentResidence = currentResidence
 
-	names, diags := NameValueFrom(ctx, profile.Names)
+	names, diags := NameValueFrom(ctx, namesWithFlatFallback(profile))
 	d.Append(diags...)
 	profileModel.Names = names
 
@@ -83,6 +83,37 @@ func detailStringsValueFrom(ctx context.Context, profile *geni.ProfileResponse) 
 	}
 
 	return types.MapValueFrom(ctx, types.StringType, aboutMeMap)
+}
+
+// namesWithFlatFallback returns the API's localized name map when present, or
+// synthesizes an en-US entry from the response's top-level flat name fields
+// (first_name/last_name/...) when the map is empty. The Geni API returns flat
+// fields for profiles created without a locale tag — without this fallback,
+// importing such a profile produces a null `names` map and the next plan
+// shows a spurious in-place update that recreates the locale entry.
+func namesWithFlatFallback(profile *geni.ProfileResponse) map[string]geni.NameElement {
+	if len(profile.Names) > 0 {
+		return profile.Names
+	}
+	if profile.FirstName == nil && profile.LastName == nil && profile.MiddleName == nil &&
+		profile.MaidenName == nil && profile.DisplayName == nil && len(profile.Nicknames) == 0 {
+		return profile.Names
+	}
+	var nicknames *string
+	if len(profile.Nicknames) > 0 {
+		joined := strings.Join(profile.Nicknames, ",")
+		nicknames = &joined
+	}
+	return map[string]geni.NameElement{
+		"en-US": {
+			FirstName:   profile.FirstName,
+			LastName:    profile.LastName,
+			MiddleName:  profile.MiddleName,
+			MaidenName:  profile.MaidenName,
+			DisplayName: profile.DisplayName,
+			Nicknames:   nicknames,
+		},
+	}
 }
 
 func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement) (basetypes.MapValue, diag.Diagnostics) {

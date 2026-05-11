@@ -27,12 +27,16 @@ func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {
 						"geni_profile.husband", tfjsonpath.New("id"), compare.ValuesSame()),
 					statecheck.CompareValueCollection("geni_union.doe_family", []tfjsonpath.Path{tfjsonpath.New("partners")},
 						"geni_profile.wife", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.ExpectIdentity("geni_union.doe_family", map[string]knownvalue.Check{
+						"id": knownvalue.NotNull(),
+					}),
+					statecheck.ExpectIdentityValueMatchesState("geni_union.doe_family", tfjsonpath.New("id")),
 				},
 			},
 			{
-				ResourceName:      "geni_union.doe_family",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:    "geni_union.doe_family",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 			},
 		},
 	})
