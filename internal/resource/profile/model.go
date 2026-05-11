@@ -3,7 +3,29 @@ package profile
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
+
+// NewEmptyResourceModel returns a ResourceModel whose collection fields are
+// initialized to typed null values matching the schema. Use it when building
+// a model from scratch with no prior state to seed from — e.g. when assembling
+// a list-resource query result. ValueFrom can then overwrite the fields the
+// API does populate without leaving any collection attribute carrying a
+// type-less zero value that would later fail framework state writes.
+func NewEmptyResourceModel() ResourceModel {
+	return ResourceModel{
+		Names:            types.MapNull(types.ObjectType{AttrTypes: NameAttributeTypes()}),
+		About:            types.MapNull(types.StringType),
+		Unions:           types.SetNull(types.StringType),
+		Projects:         types.SetNull(types.StringType),
+		CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
+		Birth:            types.ObjectNull(event.EventModelAttributeTypes()),
+		Baptism:          types.ObjectNull(event.EventModelAttributeTypes()),
+		Death:            types.ObjectNull(event.EventModelAttributeTypes()),
+		Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
+	}
+}
 
 type ResourceModel struct {
 	ID               types.String `tfsdk:"id"`

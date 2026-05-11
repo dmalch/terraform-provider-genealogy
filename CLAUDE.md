@@ -68,11 +68,20 @@ Configured in `.golangci.yml`. Notable enabled linters: `errcheck`, `forcetypeas
 
 Releases are triggered by pushing a `v*` tag (e.g., `v0.16.1`). GitHub Actions runs GoReleaser (`.github/workflows/release.yaml`) to produce cross-platform builds signed with GPG.
 
-Steps:
-1. Update `CHANGELOG.md`: remove "(Unreleased)" from the current section, add entries, and add a new `## X.Y.Z (Unreleased)` header above it.
-2. Commit and tag: `git tag v0.X.Y`
-3. Push commit and tag: `git push && git push --tags`
-4. Verify: `gh run list --workflow=release.yaml`
+### Per-PR (before the release tag)
+
+Every PR that ships user-visible behavior **must** land these two artifacts in the same merge so the release-cut step is a pure rename:
+
+1. **Add a CHANGELOG entry under `## X.Y.Z (Unreleased)`** at the top of `CHANGELOG.md`. Choose the section by impact: `FEATURES` (new capabilities), `BUG FIXES`, `IMPROVEMENTS`, `BREAKING CHANGES`, `SECURITY`, `BEHAVIORAL CHANGES`. Reference the issue and PR numbers in parentheses, e.g. `(#82, #87)`.
+2. **Regenerate provider docs**: `make docs` (which runs `tfplugindocs generate --provider-name geni`). Required when schemas, resources, data sources, or list resources change. Commit any `docs/**` deltas alongside the code.
+   - `tfplugindocs` is not vendored. If `make docs` reports `No such file or directory`, install it once with `go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest` and ensure `$(go env GOPATH)/bin` is on `PATH`.
+
+### Tagging the release
+
+1. Promote `## X.Y.Z (Unreleased)` → `## X.Y.Z` in `CHANGELOG.md`, and add a new `## X.Y.Z+1 (Unreleased)` placeholder above it.
+2. Confirm `docs/**` is in sync with the current schema (`make docs` should produce no diff).
+3. Commit, tag, push: `git tag v0.X.Y && git push && git push --tags`.
+4. Verify: `gh run list --workflow=release.yaml`.
 
 ## Go Version
 
