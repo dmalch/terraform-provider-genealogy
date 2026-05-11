@@ -365,3 +365,143 @@ func TestNameValueFrom(t *testing.T) {
 		Expect(actualNames).To(Equal(expectedNames))
 	})
 }
+
+func TestNamesWithFlatFallback(t *testing.T) {
+	t.Run("Returns the API names map as-is when it has entries", func(t *testing.T) {
+		RegisterTestingT(t)
+		original := map[string]geni.NameElement{
+			"fr": {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
+		}
+		profile := &geni.ProfileResponse{
+			Names:     original,
+			FirstName: ptr("ignored-because-map-is-populated"),
+		}
+
+		result := namesWithFlatFallback(profile)
+
+		Expect(result).To(Equal(original))
+	})
+
+	t.Run("Synthesizes an en-US entry from flat fields when the map is empty", func(t *testing.T) {
+		RegisterTestingT(t)
+		profile := &geni.ProfileResponse{
+			FirstName:   ptr("John"),
+			MiddleName:  ptr("A"),
+			LastName:    ptr("Doe"),
+			MaidenName:  ptr("Smith"),
+			DisplayName: ptr("John A Doe"),
+		}
+
+		result := namesWithFlatFallback(profile)
+
+		Expect(result).To(HaveLen(1))
+		Expect(result).To(HaveKey("en-US"))
+		Expect(result["en-US"].FirstName).To(HaveValue(Equal("John")))
+		Expect(result["en-US"].MiddleName).To(HaveValue(Equal("A")))
+		Expect(result["en-US"].LastName).To(HaveValue(Equal("Doe")))
+		Expect(result["en-US"].MaidenName).To(HaveValue(Equal("Smith")))
+		Expect(result["en-US"].DisplayName).To(HaveValue(Equal("John A Doe")))
+		Expect(result["en-US"].Nicknames).To(BeNil())
+	})
+
+	t.Run("Joins flat nicknames into a comma-separated string", func(t *testing.T) {
+		RegisterTestingT(t)
+		profile := &geni.ProfileResponse{
+			FirstName: ptr("John"),
+			Nicknames: []string{"Johnny", "JD"},
+		}
+
+		result := namesWithFlatFallback(profile)
+
+		Expect(result["en-US"].Nicknames).To(HaveValue(Equal("Johnny,JD")))
+	})
+
+	t.Run("Returns the original empty map when nothing populated", func(t *testing.T) {
+		RegisterTestingT(t)
+		profile := &geni.ProfileResponse{}
+
+		result := namesWithFlatFallback(profile)
+
+		Expect(result).To(BeEmpty())
+	})
+
+	t.Run("Returns the original empty map when only Nicknames slice is non-empty alongside nil flat fields", func(t *testing.T) {
+		// Nicknames alone (without any other name field) is a legitimate signal
+		// of presence — synthesize so the en-US entry exists for downstream
+		// state writing.
+		RegisterTestingT(t)
+		profile := &geni.ProfileResponse{
+			Nicknames: []string{"Jay"},
+		}
+
+		result := namesWithFlatFallback(profile)
+
+		Expect(result).To(HaveLen(1))
+		Expect(result["en-US"].Nicknames).To(HaveValue(Equal("Jay")))
+		Expect(result["en-US"].FirstName).To(BeNil())
+		Expect(result["en-US"].LastName).To(BeNil())
+	})
+}
+
+func TestValueFrom_NamesFlatFallback(t *testing.T) {
+	t.Run("ValueFrom hydrates names from flat fields when the API map is empty", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.ProfileResponse{
+			Id:        "profile-42",
+			Public:    true,
+			FirstName: ptr("John"),
+			LastName:  ptr("Doe"),
+		}
+
+		var model ResourceModel
+		diags := ValueFrom(t.Context(), givenResponse, &model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Names.IsNull()).To(BeFalse())
+
+		var names map[string]NameModel
+		Expect(model.Names.ElementsAs(t.Context(), &names, false).HasError()).To(BeFalse())
+		Expect(names).To(HaveLen(1))
+		Expect(names["en-US"].FirstName.ValueString()).To(Equal("John"))
+		Expect(names["en-US"].LastName.ValueString()).To(Equal("Doe"))
+	})
+
+	t.Run("ValueFrom keeps API names when both the map and flat fields are populated", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.ProfileResponse{
+			Id:        "profile-43",
+			Public:    true,
+			FirstName: ptr("ignored"),
+			LastName:  ptr("ignored"),
+			Names: map[string]geni.NameElement{
+				"fr": {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
+			},
+		}
+
+		var model ResourceModel
+		diags := ValueFrom(t.Context(), givenResponse, &model)
+
+		Expect(diags.HasError()).To(BeFalse())
+
+		var names map[string]NameModel
+		Expect(model.Names.ElementsAs(t.Context(), &names, false).HasError()).To(BeFalse())
+		Expect(names).To(HaveLen(1))
+		Expect(names).To(HaveKey("fr"))
+		Expect(names).NotTo(HaveKey("en-US"))
+		Expect(names["fr"].FirstName.ValueString()).To(Equal("Jean"))
+	})
+
+	t.Run("ValueFrom returns null names when neither the map nor flat fields are populated", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.ProfileResponse{
+			Id:     "profile-44",
+			Public: true,
+		}
+
+		var model ResourceModel
+		diags := ValueFrom(t.Context(), givenResponse, &model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Names.IsNull()).To(BeTrue())
+	})
+}
