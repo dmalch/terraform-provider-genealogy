@@ -1,5 +1,13 @@
 ## 0.17.2 (Unreleased)
 
+FEATURES:
+
+* List resources: added Terraform 1.14 `list "geni_profile" "..." {}` and `list "geni_document" "..." {}` blocks so `terraform query` discovers existing managed profiles and uploaded documents on the Geni account without needing numeric IDs up-front. Each result carries an `identity = { id = "..." }` that pastes directly into a `import {}` block — closing the discover-then-import workflow. Backed by `/api/user/managed-profiles` and `/api/user/uploaded-documents`; results stream page-by-page through the existing rate-limited `*geni.Client`. Union list is deferred — the Geni API has no enumeration endpoint. (#82, #87)
+
+IMPROVEMENTS:
+
+* Profile and document: exposed `NewEmptyResourceModel()` constructors that return a model whose collection fields carry typed-null defaults matching the schema. Used by the list resources to seed a from-scratch model before `ValueFrom` runs; the managed-resource Read paths continue to seed via `req.State.Get`. (#87)
+
 ## 0.17.1
 
 BUG FIXES:
