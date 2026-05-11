@@ -42,6 +42,27 @@ func TestAccUnion_createUnionWithTwoPartners(t *testing.T) {
 	})
 }
 
+func TestAccUnion_generateConfigOut(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: unionWithTwoPartners(),
+			},
+			{
+				// All union schema attributes are populated by ValueFrom, so
+				// the generated config round-trips through plan with no
+				// caveats.
+				ResourceName:    "geni_union.doe_family",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
+				GenerateConfig:  true,
+			},
+		},
+	})
+}
+
 func unionWithTwoPartners() string {
 	return `
 		resource "geni_profile" "husband" {

@@ -408,6 +408,33 @@ func TestAccDocument_createUrlDocument(t *testing.T) {
 	})
 }
 
+func TestAccDocument_generateConfigOut(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDocumentDestroy,
+		Steps: []resource.TestStep{
+			{
+				// URL-backed documents round-trip cleanly through Read. The
+				// text / file / file_name attributes are set-only (the API
+				// doesn't return them) and would diff in the generated
+				// config, so they're omitted intentionally.
+				Config: `
+					resource "geni_document" "test" {
+					  title      = "Test Document"
+					  source_url = "https://example.com"
+					}
+				`,
+			},
+			{
+				ResourceName:    "geni_document.test",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
+				GenerateConfig:  true,
+			},
+		},
+	})
+}
+
 func TestAccDocument_createUrlDocumentWithDetails(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testProtoV6ProviderFactories,

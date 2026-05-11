@@ -1,5 +1,9 @@
 ## 0.18.1 (Unreleased)
 
+IMPROVEMENTS:
+
+* Testing: added acceptance tests that verify `terraform plan -generate-config-out` produces a no-diff HCL config for `geni_profile`, `geni_document`, and `geni_union` via the `terraform-plugin-testing` 1.16 `GenerateConfig` ImportState mode. The framework's auto-implemented `GenerateResourceConfiguration` RPC (shipped on `terraform-plugin-framework` v1.19.0 since v0.17.0) round-trips cleanly for every attribute the API returns — the seed configs intentionally exclude set-only attributes (`projects` on profile/document; `text` / `file` / `file_name` on document) because the generated HCL omits them and the framework requires a no-op plan. (#85)
+
 ## 0.18.0
 
 FEATURES:
