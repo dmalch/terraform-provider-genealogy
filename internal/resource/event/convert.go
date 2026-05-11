@@ -135,27 +135,36 @@ func DateRangeObjectValueFrom(ctx context.Context, dateObject types.Object) (*Da
 func ValueFrom(ctx context.Context, eventElement *geni.EventElement) (basetypes.ObjectValue, diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	if eventElement != nil {
-		dateObjectValue, diags := DateRangeValueFrom(ctx, eventElement.Date)
-		d.Append(diags...)
-
-		locationObjectValue, diags := LocationValueFrom(ctx, eventElement.Location)
-		d.Append(diags...)
-
-		eventModel := Model{
-			Description: types.StringPointerValue(eventElement.Description),
-			Name:        types.StringValue(eventElement.Name),
-			Date:        dateObjectValue,
-			Location:    locationObjectValue,
-		}
-
-		eventObjectValue, diags := types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
-		d.Append(diags...)
-
-		return eventObjectValue, d
+	if eventElement == nil {
+		return types.ObjectNull(EventModelAttributeTypes()), d
+	}
+	// Geni auto-creates events (e.g. `death = {name: "Death of <name>"}`
+	// when `cause_of_death` is set) that carry only a server-generated
+	// name and no date or location. The schema validator requires every
+	// user-set event to carry date or location, so this shape can only
+	// come from auto-creation; treat it as no event so the refresh plan
+	// does not flap against a config that omits the block.
+	if eventElement.Date == nil && eventElement.Location == nil {
+		return types.ObjectNull(EventModelAttributeTypes()), d
 	}
 
-	return types.ObjectNull(EventModelAttributeTypes()), d
+	dateObjectValue, diags := DateRangeValueFrom(ctx, eventElement.Date)
+	d.Append(diags...)
+
+	locationObjectValue, diags := LocationValueFrom(ctx, eventElement.Location)
+	d.Append(diags...)
+
+	eventModel := Model{
+		Description: types.StringPointerValue(eventElement.Description),
+		Name:        types.StringValue(eventElement.Name),
+		Date:        dateObjectValue,
+		Location:    locationObjectValue,
+	}
+
+	eventObjectValue, diags := types.ObjectValueFrom(ctx, eventModel.AttributeTypes(), eventModel)
+	d.Append(diags...)
+
+	return eventObjectValue, d
 }
 
 func DateValueFrom(ctx context.Context, dateElement *geni.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
