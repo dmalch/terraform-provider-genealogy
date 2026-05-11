@@ -29,6 +29,7 @@ func NewEmptyResourceModel() ResourceModel {
 
 type ResourceModel struct {
 	ID               types.String `tfsdk:"id"`
+	Guid             types.String `tfsdk:"guid"`
 	Names            types.Map    `tfsdk:"names"`
 	Gender           types.String `tfsdk:"gender"`
 	Birth            types.Object `tfsdk:"birth"`

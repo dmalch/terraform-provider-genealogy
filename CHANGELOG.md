@@ -1,4 +1,12 @@
-## 0.18.3 (Unreleased)
+## 0.19.0 (Unreleased)
+
+FEATURES:
+
+* New data source `geni_profile`: look up an existing Geni profile by `id` or `guid` (exactly one) without managing it. Honors the provider's `auto_update_merged_profiles` flag — when set, the data source walks the `merged_into` chain (up to 10 hops) to return the surviving profile.
+
+IMPROVEMENTS:
+
+* Profile resource: exposes `guid` as a computed attribute alongside the existing `id`, surfacing the globally unique identifier Geni assigns to each profile.
 
 ## 0.18.2
 

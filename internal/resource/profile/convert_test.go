@@ -20,6 +20,7 @@ func TestValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		givenProfile := &geni.ProfileResponse{
 			Id:          "123",
+			Guid:        "abcdef0123456789abcdef0123456789",
 			FirstName:   ptr("John"),
 			LastName:    ptr("Doe"),
 			MiddleName:  ptr("A"),
@@ -74,6 +75,7 @@ func TestValueFrom(t *testing.T) {
 
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.Id))
+		Expect(actualValue.Guid.ValueString()).To(Equal(givenProfile.Guid))
 		Expect(actualValue.Gender.ValueString()).To(Equal(*givenProfile.Gender))
 		var actualAbout = make(map[string]string)
 		Expect(actualValue.About.ElementsAs(t.Context(), &actualAbout, false).HasError()).To(BeFalse())
@@ -95,6 +97,15 @@ func TestValueFrom(t *testing.T) {
 		var actualProjects []string
 		Expect(actualValue.Projects.ElementsAs(t.Context(), &actualProjects, false).HasError()).To(BeFalse())
 		Expect(actualProjects).To(ConsistOf("project-4505748", "project-4497781"))
+	})
+
+	t.Run("when the response has no guid, model.Guid is a null string", func(t *testing.T) {
+		RegisterTestingT(t)
+		given := &geni.ProfileResponse{Id: "profile-1"}
+		actual := &ResourceModel{}
+
+		Expect(ValueFrom(t.Context(), given, actual).HasError()).To(BeFalse())
+		Expect(actual.Guid.IsNull()).To(BeTrue())
 	})
 
 	t.Run("when the response has no project memberships, Projects is a typed null Set[String]", func(t *testing.T) {

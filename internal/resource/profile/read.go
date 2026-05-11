@@ -51,14 +51,12 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		}
 
 		if r.autoUpdateMergedProfiles {
-			for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
-				profileResponse, err = r.batchClient.GetProfile(ctx, profileResponse.MergedInto)
-				if err != nil {
-					resp.Diagnostics.AddError("Error reading profile", err.Error())
-					return
-				}
+			profileResponse, err = FollowMergedInto(ctx, profileResponse, r.batchClient.GetProfile, 10)
+			if err != nil {
+				resp.Diagnostics.AddError("Error reading profile", err.Error())
+				return
 			}
-			if profileResponse.Deleted && profileResponse.MergedInto == "" {
+			if profileResponse.Deleted {
 				resp.State.RemoveResource(ctx)
 				return
 			}
