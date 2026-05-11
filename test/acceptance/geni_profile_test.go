@@ -41,6 +41,33 @@ func TestAccProfile_createProfile(t *testing.T) {
 	})
 }
 
+func TestAccProfile_generateConfigOut(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: profile(),
+			},
+			{
+				// terraform-plugin-framework v1.19 auto-implements the
+				// GenerateResourceConfiguration RPC. The framework appends an
+				// `import { identity = {...} to = geni_profile.generated }`
+				// block to the prior config and runs `terraform plan
+				// -generate-config-out`. The implicit assertion is that the
+				// generated HCL produces a no-op plan against the imported
+				// state — which is only the case for attributes ValueFrom
+				// populates from the API. The seed config uses just `names`
+				// + `alive` + `public` (no `projects` — that's set-only).
+				ResourceName:    "geni_profile.test",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
+				GenerateConfig:  true,
+			},
+		},
+	})
+}
+
 func profile() string {
 	return `
 		resource "geni_profile" "test" {
