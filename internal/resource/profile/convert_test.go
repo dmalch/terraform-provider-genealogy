@@ -36,7 +36,8 @@ func TestValueFrom(t *testing.T) {
 					LastName:   ptr("Doe"),
 				},
 			},
-			Unions: []string{"union1", "union2"},
+			Unions:   []string{"union1", "union2"},
+			Projects: []string{"project-4505748", "project-4497781"},
 			Birth: &geni.EventElement{
 				Date: &geni.DateElement{
 					Day:   ptr[int32](1),
@@ -90,6 +91,20 @@ func TestValueFrom(t *testing.T) {
 			Nicknames:     types.SetNull(types.StringType),
 		}))
 		Expect(actualValue.CreatedAt.ValueString()).To(Equal(givenProfile.CreatedAt))
+
+		var actualProjects []string
+		Expect(actualValue.Projects.ElementsAs(t.Context(), &actualProjects, false).HasError()).To(BeFalse())
+		Expect(actualProjects).To(ConsistOf("project-4505748", "project-4497781"))
+	})
+
+	t.Run("when the response has no project memberships, Projects is a typed null Set[String]", func(t *testing.T) {
+		RegisterTestingT(t)
+		given := &geni.ProfileResponse{Id: "profile-1"}
+		actual := &ResourceModel{}
+
+		Expect(ValueFrom(t.Context(), given, actual).HasError()).To(BeFalse())
+		Expect(actual.Projects.IsNull()).To(BeTrue())
+		Expect(actual.Projects.ElementType(t.Context())).To(Equal(types.StringType))
 	})
 
 	t.Run("when about me in multiple languages is defiled", func(t *testing.T) {
@@ -208,6 +223,9 @@ func TestUpdateComputedFields(t *testing.T) {
 		givenProfile := &geni.ProfileResponse{
 			Id:     "profile-123",
 			Unions: []string{"union-1", "union-2"},
+			// Projects intentionally omitted: Create/Update pass the pre-link
+			// API response, so it is stale and must not overwrite plan.Projects.
+			Projects: []string{"project-stale"},
 			Birth: &geni.EventElement{
 				Name: "Birth",
 				Date: &geni.DateElement{Year: ptr[int32](1990)},
@@ -220,6 +238,9 @@ func TestUpdateComputedFields(t *testing.T) {
 			CreatedAt:  "1719709400",
 		}
 
+		planProjects, planProjectsDiags := types.SetValueFrom(t.Context(), types.StringType, []string{"project-from-plan"})
+		Expect(planProjectsDiags.HasError()).To(BeFalse())
+
 		model := &ResourceModel{
 			Birth:            types.ObjectNull(event.EventModelAttributeTypes()),
 			Baptism:          types.ObjectNull(event.EventModelAttributeTypes()),
@@ -227,6 +248,7 @@ func TestUpdateComputedFields(t *testing.T) {
 			Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
 			CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
 			About:            types.MapNull(types.StringType),
+			Projects:         planProjects,
 		}
 
 		diags := UpdateComputedFields(t.Context(), givenProfile, model)
@@ -234,6 +256,12 @@ func TestUpdateComputedFields(t *testing.T) {
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(model.ID.ValueString()).To(Equal("profile-123"))
 		Expect(model.Unions.Elements()).To(HaveLen(2))
+		// Projects in the plan must survive: the API response passed to
+		// UpdateComputedFields is captured before AddProfileToProject runs,
+		// so its Projects field is stale and must not overwrite the plan.
+		var actualProjects []string
+		Expect(model.Projects.ElementsAs(t.Context(), &actualProjects, false).HasError()).To(BeFalse())
+		Expect(actualProjects).To(ConsistOf("project-from-plan"))
 		Expect(model.Deleted.ValueBool()).To(BeTrue())
 		Expect(model.MergedInto.ValueString()).To(Equal("profile-456"))
 		Expect(model.CreatedAt.ValueString()).To(Equal("1719709400"))

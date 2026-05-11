@@ -1,11 +1,13 @@
 package acceptance
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
@@ -90,6 +92,51 @@ func TestAccProject_addProfileToTwoProject(t *testing.T) {
 						knownvalue.StringExact("project-8"),
 						knownvalue.StringExact("project-9"),
 					})),
+				},
+			},
+		},
+	})
+}
+
+func TestAccProject_importProfilePopulatesProjects(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					data "geni_project" "test" {
+					  id = "project-8"
+					}
+
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = {
+							first_name = "John"
+							last_name = "Doe"
+						}
+					  }
+					  alive = false
+					  public = true
+					  projects = [data.geni_project.test.id]
+					}
+					`,
+			},
+			{
+				ResourceName:    "geni_profile.test",
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithResourceIdentity,
+				ImportStateCheck: func(states []*terraform.InstanceState) error {
+					if len(states) != 1 {
+						return fmt.Errorf("expected 1 imported state, got %d", len(states))
+					}
+					attrs := states[0].Attributes
+					if attrs["projects.#"] != "1" {
+						return fmt.Errorf("expected projects.# = 1, got %q", attrs["projects.#"])
+					}
+					if attrs["projects.0"] != "project-8" {
+						return fmt.Errorf("expected projects.0 = project-8, got %q", attrs["projects.0"])
+					}
+					return nil
 				},
 			},
 		},

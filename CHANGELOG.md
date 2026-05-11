@@ -1,5 +1,9 @@
 ## 0.18.1 (Unreleased)
 
+BUG FIXES:
+
+* Profile: `terraform import`, batched managed-resource Read, and the v0.18.0 `geni_profile` list resource now request `project_ids` from the Geni API and copy it into the `projects` attribute. Previously the field was omitted from the shared `fields=` query parameter, so state landed with `projects = null` and every subsequent `terraform plan` against an HCL `projects = [...]` showed a spurious in-place update — in large workspaces this masked real drift behind thousands of no-op changes. (#89)
+
 IMPROVEMENTS:
 
 * Testing: added acceptance tests that verify `terraform plan -generate-config-out` produces a no-diff HCL config for `geni_profile`, `geni_document`, and `geni_union` via the `terraform-plugin-testing` 1.16 `GenerateConfig` ImportState mode. The framework's auto-implemented `GenerateResourceConfiguration` RPC (shipped on `terraform-plugin-framework` v1.19.0 since v0.17.0) round-trips cleanly for every attribute the API returns — the seed configs intentionally exclude set-only attributes (`projects` on profile/document; `text` / `file` / `file_name` on document) because the generated HCL omits them and the framework requires a no-op plan. (#85)

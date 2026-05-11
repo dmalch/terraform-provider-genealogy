@@ -43,6 +43,10 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	d.Append(diags...)
 	profileModel.Unions = unions
 
+	projects, diags := types.SetValueFrom(ctx, types.StringType, profile.Projects)
+	d.Append(diags...)
+	profileModel.Projects = projects
+
 	birth, diags := event.ValueFrom(ctx, profile.Birth)
 	d.Append(diags...)
 	profileModel.Birth = birth
@@ -256,6 +260,12 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	unions, diags := types.SetValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
 	profileModel.Unions = unions
+
+	// Projects is intentionally not updated here: Create/Update pass the
+	// pre-link API response (the AddProfileToProject calls fire afterwards),
+	// so profile.Projects is stale and would overwrite plan.Projects with
+	// null. The Read path's ValueFrom is responsible for populating
+	// projects from the API; the plan is authoritative on Create/Update.
 
 	birth, diags := event.UpdateComputedFieldsInEvent(ctx, profileModel.Birth, profile.Birth)
 	d.Append(diags...)
