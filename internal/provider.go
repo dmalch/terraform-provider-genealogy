@@ -20,8 +20,6 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
-	documentlist "github.com/dmalch/terraform-provider-genealogy/internal/listresource/document"
-	profilelist "github.com/dmalch/terraform-provider-genealogy/internal/listresource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
@@ -191,7 +189,7 @@ func (p *GeniProvider) DataSources(_ context.Context) []func() datasource.DataSo
 
 func (p *GeniProvider) ListResources(_ context.Context) []func() list.ListResource {
 	return []func() list.ListResource{
-		profilelist.NewListResource,
-		documentlist.NewListResource,
+		profile.NewListResource,
+		document.NewListResource,
 	}
 }

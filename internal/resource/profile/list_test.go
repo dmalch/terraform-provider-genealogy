@@ -1,4 +1,4 @@
-package profilelist
+package profile
 
 import (
 	"testing"
@@ -8,18 +8,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
-	profileresource "github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 )
 
-func ptr[T any](v T) *T { return &v }
-
-// listRequestForProfile builds a list.ListRequest carrying the live
-// managed-resource schemas, so tests exercise the same schemas the framework
-// would hand the list resource at runtime. The caller must have already
-// registered gomega for the current test via RegisterTestingT.
-func listRequestForProfile(t *testing.T, includeResource bool) list.ListRequest {
+// listRequest builds a list.ListRequest carrying the live managed-resource
+// schemas, so tests exercise the same schemas the framework would hand the
+// list resource at runtime. The caller must have already registered gomega
+// for the current test via RegisterTestingT.
+func listRequest(t *testing.T, includeResource bool) list.ListRequest {
 	t.Helper()
-	r := profileresource.NewProfileResource()
+	r := NewProfileResource()
 
 	var schemaResp resource.SchemaResponse
 	r.Schema(t.Context(), resource.SchemaRequest{}, &schemaResp)
@@ -69,37 +66,37 @@ func TestDisplayNameFor(t *testing.T) {
 	})
 }
 
-func TestBuildProfileListResult(t *testing.T) {
+func TestBuildListResult(t *testing.T) {
 	t.Run("Populates Identity with the profile ID", func(t *testing.T) {
 		RegisterTestingT(t)
-		req := listRequestForProfile(t, false)
+		req := listRequest(t, false)
 		givenResponse := &geni.ProfileResponse{Id: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
 
-		result, ok := buildProfileListResult(t.Context(), givenResponse, req)
+		result, ok := buildListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
 		Expect(result.Diagnostics.HasError()).To(BeFalse())
 		Expect(result.Identity).NotTo(BeNil())
 
-		var identity profileresource.ResourceIdentityModel
+		var identity ResourceIdentityModel
 		Expect(result.Identity.Get(t.Context(), &identity).HasError()).To(BeFalse())
 		Expect(identity.ID.ValueString()).To(Equal("profile-42"))
 	})
 
 	t.Run("Sets a human-readable DisplayName", func(t *testing.T) {
 		RegisterTestingT(t)
-		req := listRequestForProfile(t, false)
+		req := listRequest(t, false)
 		givenResponse := &geni.ProfileResponse{Id: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
 
-		result, ok := buildProfileListResult(t.Context(), givenResponse, req)
+		result, ok := buildListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
 		Expect(result.DisplayName).To(Equal("John Doe (profile-42)"))
 	})
 
-	t.Run("Populates Resource via profile.ValueFrom when IncludeResource is true", func(t *testing.T) {
+	t.Run("Populates Resource via ValueFrom when IncludeResource is true", func(t *testing.T) {
 		RegisterTestingT(t)
-		req := listRequestForProfile(t, true)
+		req := listRequest(t, true)
 		givenResponse := &geni.ProfileResponse{
 			Id:        "profile-43",
 			Public:    true,
@@ -107,17 +104,17 @@ func TestBuildProfileListResult(t *testing.T) {
 			LastName:  ptr("Doe"),
 		}
 
-		result, ok := buildProfileListResult(t.Context(), givenResponse, req)
+		result, ok := buildListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
 		Expect(result.Diagnostics.HasError()).To(BeFalse())
 		Expect(result.Resource).NotTo(BeNil())
 
-		var model profileresource.ResourceModel
+		var model ResourceModel
 		Expect(result.Resource.Get(t.Context(), &model).HasError()).To(BeFalse())
 		Expect(model.ID.ValueString()).To(Equal("profile-43"))
 
-		var names map[string]profileresource.NameModel
+		var names map[string]NameModel
 		Expect(model.Names.ElementsAs(t.Context(), &names, false).HasError()).To(BeFalse())
 		Expect(names).To(HaveKey("en-US"))
 		Expect(names["en-US"].FirstName.ValueString()).To(Equal("John"))
@@ -125,14 +122,12 @@ func TestBuildProfileListResult(t *testing.T) {
 
 	t.Run("Leaves Resource at its schema-null default when IncludeResource is false", func(t *testing.T) {
 		RegisterTestingT(t)
-		req := listRequestForProfile(t, false)
+		req := listRequest(t, false)
 		givenResponse := &geni.ProfileResponse{Id: "profile-44", FirstName: ptr("John"), LastName: ptr("Doe")}
 
-		result, ok := buildProfileListResult(t.Context(), givenResponse, req)
+		result, ok := buildListResult(t.Context(), givenResponse, req)
 
 		Expect(ok).To(BeTrue())
-		// req.NewListResult pre-populates Resource with a null Raw; with
-		// IncludeResource=false buildProfileListResult must not overwrite it.
 		Expect(result.Resource.Raw.IsNull()).To(BeTrue())
 	})
 }
