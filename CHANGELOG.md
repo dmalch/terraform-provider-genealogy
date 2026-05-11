@@ -1,5 +1,9 @@
 ## 0.19.1 (Unreleased)
 
+BUG FIXES:
+
+* Profile and union: clearing an individual date sub-field (e.g. `birth.date.end_month`, `marriage.date.day`) in HCL while keeping the rest of the date now actually clears it on Geni. The Update path performs a wipe-then-rewrite (one extra PATCH that nulls only the affected event's `date`, followed by the regular PATCH) — Geni's API deep-merges nested objects per-key, so a single PATCH with `"end_month": null` is silently dropped. Adds `geni.Client.WipeEventDates` and a small `event.EventNeedsDatePreWipe` helper that gates the extra PATCH to the case where it is actually needed. (#94)
+
 ## 0.19.0
 
 FEATURES:

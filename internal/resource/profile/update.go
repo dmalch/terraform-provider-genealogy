@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 // Update updates the resource.
@@ -48,6 +49,17 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
+	// Geni's PATCH deep-merges nested objects per-key, so clearing individual
+	// date sub-fields needs a wipe-then-rewrite (#94). Issue the pre-wipe only
+	// for events where the plan keeps the date but clears at least one sub-field.
+	wipeEvents := planDateWipes(state, plan)
+	if len(wipeEvents) > 0 {
+		if err := r.client.WipeEventDates(ctx, plan.ID.ValueString(), wipeEvents); err != nil {
+			resp.Diagnostics.AddError("Error clearing date fields", err.Error())
+			return
+		}
+	}
+
 	profileResponse, err := r.client.UpdateProfile(ctx, plan.ID.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating profile", err.Error())
@@ -73,6 +85,27 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	// Set data returned by API in identity
 	identityData.ID = types.StringValue(profileResponse.Id)
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
+}
+
+// planDateWipes lists the event keys whose date sub-object the Update path
+// must pre-wipe before sending the regular PATCH. Order is fixed for
+// determinism in tests and to match the API payload shape.
+func planDateWipes(state, plan ResourceModel) []string {
+	var wipes []string
+	for _, e := range []struct {
+		name        string
+		state, plan types.Object
+	}{
+		{"birth", state.Birth, plan.Birth},
+		{"baptism", state.Baptism, plan.Baptism},
+		{"death", state.Death, plan.Death},
+		{"burial", state.Burial, plan.Burial},
+	} {
+		if event.EventNeedsDatePreWipe(e.state, e.plan) {
+			wipes = append(wipes, e.name)
+		}
+	}
+	return wipes
 }
 
 func findRemovedKeys(stateAbout types.Map, planAbout types.Map) []string {
