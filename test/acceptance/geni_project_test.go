@@ -16,7 +16,7 @@ func TestAccProject_getProject(t *testing.T) {
 			{
 				Config: `
 					data "geni_project" "test" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 					`,
 				PlanOnly: true,
@@ -32,7 +32,7 @@ func TestAccProject_addProfileToProject(t *testing.T) {
 			{
 				Config: `
 					data "geni_project" "test" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 
 					resource "geni_profile" "test" {
@@ -50,7 +50,7 @@ func TestAccProject_addProfileToProject(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-8")),
 				},
 			},
 		},
@@ -58,13 +58,18 @@ func TestAccProject_addProfileToProject(t *testing.T) {
 }
 
 func TestAccProject_addProfileToTwoProject(t *testing.T) {
+	// Requires write access to two distinct sandbox projects under the test
+	// token's account. Currently only project-8 is wired up; supply a second
+	// writable project ID and replace the placeholder below to re-enable.
+	t.Skip("needs a second writable sandbox project (only project-8 is configured)")
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
 					data "geni_project" "test-6" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 
 					data "geni_project" "test-8" {
@@ -86,7 +91,7 @@ func TestAccProject_addProfileToTwoProject(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("last_name"), knownvalue.StringExact("Doe")),
-					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-8")),
 					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("projects").AtSliceIndex(1), knownvalue.StringExact("project-8")),
 				},
 			},
@@ -101,7 +106,7 @@ func TestAccProject_addDocumentToProject(t *testing.T) {
 			{
 				Config: `
 					data "geni_project" "test" {
-					  id = "project-6"
+					  id = "project-8"
 					}
 
 					resource "geni_document" "test" {
@@ -112,7 +117,7 @@ func TestAccProject_addDocumentToProject(t *testing.T) {
 					`,
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("title"), knownvalue.StringExact("Test Document")),
-					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-6")),
+					statecheck.ExpectKnownValue("geni_document.test", tfjsonpath.New("projects").AtSliceIndex(0), knownvalue.StringExact("project-8")),
 				},
 			},
 		},
