@@ -16,6 +16,7 @@ import (
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
+	profiledatasource "github.com/dmalch/terraform-provider-genealogy/internal/datasource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/datasource/project"
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
@@ -141,7 +142,11 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	resp.DataSourceData = &config.ClientData{
-		Client: client,
+		Client:                   client,
+		BatchClient:              batchClient,
+		CacheClient:              cacheClient,
+		UseProfileCache:          cfg.UseProfileCache.ValueBool(),
+		AutoUpdateMergedProfiles: cfg.AutoUpdateMergedProfiles.ValueBool(),
 	}
 
 	resp.ListResourceData = &config.ClientData{
@@ -184,6 +189,7 @@ func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {
 func (p *GeniProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		project.NewDataSource,
+		profiledatasource.NewDataSource,
 	}
 }
 

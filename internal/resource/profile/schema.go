@@ -37,6 +37,11 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Validators:    []validator.String{stringvalidator.RegexMatches(profileIdFormat, "must be in the format profile-1")},
 				Description:   "The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.",
 			},
+			"guid": schema.StringAttribute{
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Description:   "The globally unique identifier (GUID) for the profile, as assigned by Geni.",
+			},
 			"gender": schema.StringAttribute{
 				Optional:    true,
 				Validators:  []validator.String{stringvalidator.OneOf("female", "male")},

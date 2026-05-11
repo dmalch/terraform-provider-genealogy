@@ -19,6 +19,12 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 		profileModel.ID = types.StringValue(profile.Id)
 	}
 
+	if profile.Guid != "" {
+		profileModel.Guid = types.StringValue(profile.Guid)
+	} else {
+		profileModel.Guid = types.StringNull()
+	}
+
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 
 	detailStrings, diags := detailStringsValueFrom(ctx, profile)
@@ -256,6 +262,12 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	var d diag.Diagnostics
 
 	profileModel.ID = types.StringValue(profile.Id)
+
+	if profile.Guid != "" {
+		profileModel.Guid = types.StringValue(profile.Guid)
+	} else {
+		profileModel.Guid = types.StringNull()
+	}
 
 	unions, diags := types.SetValueFrom(ctx, types.StringType, profile.Unions)
 	d.Append(diags...)
