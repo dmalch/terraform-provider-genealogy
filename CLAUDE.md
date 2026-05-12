@@ -85,4 +85,4 @@ Every PR that ships user-visible behavior **must** land these two artifacts in t
 
 ## Go Version
 
-Go 1.24.1 with vendored dependencies (`vendor/`).
+Go 1.26 with vendored dependencies (`vendor/`).
