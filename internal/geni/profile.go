@@ -489,9 +489,12 @@ func (c *Client) WipeEventDates(ctx context.Context, resourceId string, eventKey
 		return nil
 	}
 
+	// "date": {} (empty object) is the only sentinel both the profile and
+	// union endpoints honor as a date wipe. "date": null wipes on profile but
+	// is silently ignored on union.
 	payload := make(map[string]any, len(eventKeys))
 	for _, key := range eventKeys {
-		payload[key] = map[string]any{"date": nil}
+		payload[key] = map[string]any{"date": map[string]any{}}
 	}
 	jsonBody, err := json.Marshal(payload)
 	if err != nil {

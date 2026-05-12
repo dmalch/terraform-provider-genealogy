@@ -1,5 +1,9 @@
 ## 0.19.2 (Unreleased)
 
+BUG FIXES:
+
+* Union: clearing an individual `marriage.date` or `divorce.date` sub-field now actually clears it on Geni. v0.19.1 shipped the wipe-then-rewrite plumbing for both profile and union Update paths, but the wipe sentinel was `"date": null` — which the profile endpoint honors but the union endpoint silently ignores. Switched to `"date": {}` (empty object), which Geni accepts uniformly on both endpoints. Adds a union acceptance test that locks in the behaviour. (#94)
+
 ## 0.19.1
 
 BUG FIXES:

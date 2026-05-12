@@ -1209,3 +1209,109 @@ func TestAccUnion_addFosterChildToExistingUnion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccUnion_clearMarriageDateSubFieldPersists exercises the wipe-then-rewrite
+// path on the union resource (#94 sibling coverage): a between-range
+// marriage.date with end_month=7 is narrowed by removing end_month from HCL
+// while keeping the rest of the date. The third step rolls the same config
+// forward as PlanOnly to assert that the follow-up refresh+plan is empty.
+func TestAccUnion_clearMarriageDateSubFieldPersists(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_profile" "husband" {
+					  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_profile" "wife" {
+					  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_union" "doe_family" {
+					  partners = [geni_profile.husband.id, geni_profile.wife.id]
+					  marriage = {
+						date = {
+						  range     = "between"
+						  circa     = true
+						  year      = 1752
+						  end_circa = true
+						  end_year  = 1799
+						  end_month = 7
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("end_month"), knownvalue.Int32Exact(7)),
+				},
+			},
+			{
+				Config: `
+					resource "geni_profile" "husband" {
+					  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_profile" "wife" {
+					  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_union" "doe_family" {
+					  partners = [geni_profile.husband.id, geni_profile.wife.id]
+					  marriage = {
+						date = {
+						  range     = "between"
+						  circa     = true
+						  year      = 1752
+						  end_circa = true
+						  end_year  = 1799
+						  # end_month intentionally absent
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("end_month"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1752)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("end_year"), knownvalue.Int32Exact(1799)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("end_circa"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("range"), knownvalue.StringExact("between")),
+				},
+			},
+			{
+				// Refresh + plan only. Asserts no drift on Geni's side.
+				Config: `
+					resource "geni_profile" "husband" {
+					  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_profile" "wife" {
+					  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_union" "doe_family" {
+					  partners = [geni_profile.husband.id, geni_profile.wife.id]
+					  marriage = {
+						date = {
+						  range     = "between"
+						  circa     = true
+						  year      = 1752
+						  end_circa = true
+						  end_year  = 1799
+						}
+					  }
+					}
+				`,
+				PlanOnly: true,
+			},
+		},
+	})
+}
