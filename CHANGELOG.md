@@ -1,4 +1,10 @@
-## 0.20.1 (Unreleased)
+## 0.20.2 (Unreleased)
+
+## 0.20.1
+
+IMPROVEMENTS:
+
+* Build: bump the declared Go version from 1.25.8 to 1.26 so the module floor matches the toolchain in use. CI picks the version up automatically via `go-version-file: 'go.mod'`. No source or behavioural change; relevant only to users building the provider from source.
 
 ## 0.20.0
 
