@@ -35,8 +35,11 @@ Look up a single Geni profile by `id` or `guid`. Exactly one must be set.
 - `gender` (String) Profile's gender.
 - `merged_into` (String) The ID of the profile this profile was merged into, if any.
 - `names` (Attributes Map) Nested map of locale → name fields. (see [below for nested schema](#nestedatt--names))
+- `occupation` (String) Profile's occupation.
 - `projects` (Set of String) List of project IDs the profile is a member of.
 - `public` (Boolean) Profile's public visibility.
+- `suffix` (String) Profile's name suffix (e.g. "Jr.", "III").
+- `title` (String) Profile's name title (e.g. "Dr.", "Sir").
 - `unions` (Set of String) List of union IDs the profile belongs to.
 
 <a id="nestedatt--baptism"></a>

@@ -47,6 +47,18 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Validators:  []validator.String{stringvalidator.OneOf("female", "male")},
 				Description: "Profile's gender.",
 			},
+			"title": schema.StringAttribute{
+				Optional:    true,
+				Description: "Profile's name title (e.g. \"Dr.\", \"Sir\").",
+			},
+			"suffix": schema.StringAttribute{
+				Optional:    true,
+				Description: "Profile's name suffix (e.g. \"Jr.\", \"III\").",
+			},
+			"occupation": schema.StringAttribute{
+				Optional:    true,
+				Description: "Profile's occupation.",
+			},
 			"names": schema.MapNestedAttribute{
 				Optional: true,
 				NestedObject: schema.NestedAttributeObject{

@@ -31,6 +31,9 @@ type ResourceModel struct {
 	ID               types.String `tfsdk:"id"`
 	Guid             types.String `tfsdk:"guid"`
 	Names            types.Map    `tfsdk:"names"`
+	Title            types.String `tfsdk:"title"`
+	Suffix           types.String `tfsdk:"suffix"`
+	Occupation       types.String `tfsdk:"occupation"`
 	Gender           types.String `tfsdk:"gender"`
 	Birth            types.Object `tfsdk:"birth"`
 	Baptism          types.Object `tfsdk:"baptism"`

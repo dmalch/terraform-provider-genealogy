@@ -1,4 +1,8 @@
-## 0.19.3 (Unreleased)
+## 0.20.0 (Unreleased)
+
+FEATURES:
+
+* `geni_profile`: new optional attributes `title`, `suffix`, and `occupation`, surfacing the matching Geni profile fields. Clearing them in HCL now sends `""` to Geni so the server-side value is genuinely removed. The new `geni_profile` data source returns the same three attributes as computed values.
 
 ## 0.19.2
 
