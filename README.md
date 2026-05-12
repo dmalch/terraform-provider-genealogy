@@ -16,7 +16,7 @@ terraform {
   required_providers {
     geni = {
       source  = "dmalch/genealogy"
-      version = "~> 0.16"
+      version = "~> 0.20"
     }
   }
 }
@@ -59,6 +59,9 @@ resource "geni_profile" "mother" {
 }
 
 resource "geni_profile" "father" {
+  title      = "Dr."
+  occupation = "Historian"
+
   names = {
     "en-US" = {
       first_name  = "John"
@@ -133,13 +136,50 @@ document forces Terraform to destroy and recreate it.
 
 ## Data Sources
 
+Look up an existing project or profile without taking ownership of it.
+
 ```hcl
 data "geni_project" "example" {
-  # Provide a valid project ID or lookup
-  # You can reference this data source in other resources
-  project_id = "project-67890"
+  id = "project-12345" # format: "project-<numeric>"
+}
+
+# Look up by canonical id…
+data "geni_profile" "founder" {
+  id = "profile-12345"
+}
+
+# …or by GUID. Exactly one of `id` or `guid` is required.
+data "geni_profile" "founder_by_guid" {
+  guid = "abcdef0123456789"
 }
 ```
+
+When the provider's `auto_update_merged_profiles` flag is set, the
+`geni_profile` data source follows `merged_into` chains (up to ten hops) so
+you can reference a profile by its historical id and still get the surviving
+record.
+
+## Discovery (Terraform 1.14+)
+
+Use `terraform query` to enumerate profiles or documents you already manage on
+Geni so you can paste their identities into `import {}` blocks — closing the
+discover-then-import workflow without having to look up numeric IDs by hand.
+
+```hcl
+list "geni_profile" "all" {
+  provider = geni
+}
+
+list "geni_document" "all" {
+  provider = geni
+}
+```
+
+Each result carries an `identity = { id = "..." }` that drops straight into an
+`import { identity = { id = "profile-NNN" } to = geni_profile.<label> }`
+block. Backed by `/api/user/managed-profiles` and
+`/api/user/uploaded-documents`; results stream page-by-page through the
+existing rate-limited client.
 
 ## Documentation
 
