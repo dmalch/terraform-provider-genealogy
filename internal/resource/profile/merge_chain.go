@@ -3,7 +3,7 @@ package profile
 import (
 	"context"
 
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/go-geni"
 )
 
 // FollowMergedInto walks the merged_into chain starting from initial, fetching

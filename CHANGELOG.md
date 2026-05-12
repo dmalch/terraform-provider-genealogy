@@ -1,4 +1,8 @@
-## 0.20.2 (Unreleased)
+## 0.21.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* The Geni HTTP API client has moved to a standalone Go library at [`github.com/dmalch/go-geni`](https://github.com/dmalch/go-geni) (released as `v0.1.0`). The provider now consumes it as an external dependency. Runtime behaviour is unchanged — every resource, data source, list resource, schema, and acceptance test behaves identically to `v0.20.1`. This is relevant only to downstream Go projects that want to talk to the Geni API directly; for Terraform users there is nothing to change.
 
 ## 0.20.1
 
