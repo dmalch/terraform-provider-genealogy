@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/go-geni"
 )
 
 // listRequest builds a list.ListRequest carrying the live managed-resource

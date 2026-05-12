@@ -12,7 +12,7 @@ import (
 	"github.com/allegro/bigcache/v3"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/go-geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/go-geni"
 )
 
 // Read reads the resource.

@@ -181,6 +181,14 @@ block. Backed by `/api/user/managed-profiles` and
 `/api/user/uploaded-documents`; results stream page-by-page through the
 existing rate-limited client.
 
+## Using the Geni API directly
+
+This provider's HTTP client lives in a standalone Go library:
+[`github.com/dmalch/go-geni`](https://github.com/dmalch/go-geni). If you need
+to call the Geni API from a CLI tool, migration script, or another Go project
+without involving Terraform, you can `go get github.com/dmalch/go-geni` and
+reuse exactly the same client the provider uses internally.
+
 ## Documentation
 
 For the full provider documentation, see

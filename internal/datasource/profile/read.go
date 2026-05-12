@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/go-geni"
 	resourceprofile "github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 )
 

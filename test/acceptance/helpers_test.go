@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"golang.org/x/oauth2"
 
+	"github.com/dmalch/go-geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal"
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 var testProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){

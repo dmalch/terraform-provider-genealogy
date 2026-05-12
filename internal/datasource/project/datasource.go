@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/dmalch/go-geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 )
 
 // Ensure the implementation satisfies the desired interfaces.

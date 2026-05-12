@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"golang.org/x/oauth2"
 
-	"github.com/dmalch/terraform-provider-genealogy/internal/authn"
+	"github.com/dmalch/go-geni"
+	"github.com/dmalch/go-geni/auth"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	profiledatasource "github.com/dmalch/terraform-provider-genealogy/internal/datasource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/datasource/project"
-	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
@@ -102,12 +102,12 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	var tokenSource = oauth2.ReuseTokenSource(nil,
-		authn.NewCachingTokenSource(
+		auth.NewCachingTokenSource(
 			cacheFilePath,
-			authn.NewAuthTokenSource(&oauth2.Config{
+			auth.NewAuthTokenSource(&oauth2.Config{
 				ClientID: clientId(useSandboxEnv),
 				Endpoint: oauth2.Endpoint{
-					AuthURL: geni.BaseUrl(useSandboxEnv) + "platform/oauth/authorize",
+					AuthURL: geni.BaseURL(useSandboxEnv) + "platform/oauth/authorize",
 				},
 			})))
 

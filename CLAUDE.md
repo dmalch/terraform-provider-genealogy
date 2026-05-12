@@ -36,13 +36,13 @@ golangci-lint run
 - `event/` — shared event schema (birth/death/burial/baptism) used across resources
 - `geniplanmodifier/` — custom plan modifiers
 
-**API layer** (`internal/geni/`): HTTP client with rate limiting (1 req/sec), retry logic for transient errors, and dual environment support (production `geni.com` / sandbox `api.sandbox.geni.com`).
+**API layer** (`github.com/dmalch/go-geni`): standalone Go library — HTTP client with rate limiting (1 req/sec), retry logic for transient errors, and dual environment support (production `geni.com` / sandbox `api.sandbox.geni.com`). The OAuth helper lives under `github.com/dmalch/go-geni/auth`. Previously vendored under `internal/geni/` and `internal/authn/`; extracted in provider `v0.21.0` / library `v0.1.0`.
 
 **Batch processing** (`internal/genibatch/`): Async channel-based bulk processors for unions, profiles, and documents with request deduplication. Three background goroutines are spawned during provider configuration.
 
 **Caching** (`internal/genicache/`): Optional bigcache-based layer for profiles and documents, enabled via provider config.
 
-**Authentication** (`internal/authn/`): Browser-based OAuth2 implicit flow with local Echo server on :8080 for callback. Tokens cached in `~/.genealogy/`. Falls back to manual `access_token` provider attribute.
+**Authentication** (`github.com/dmalch/go-geni/auth`): Browser-based OAuth2 implicit flow with local Echo server on :8080 for callback. Tokens cached in `~/.genealogy/`. Falls back to manual `access_token` provider attribute.
 
 ## Testing
 
