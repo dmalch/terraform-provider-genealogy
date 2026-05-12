@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/dmalch/terraform-provider-genealogy/internal/geni"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 // Update updates the resource.
@@ -167,6 +168,23 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
+		}
+
+		// Pre-wipe event dates that the plan partially clears — Geni's PATCH
+		// deep-merges nested objects so per-key nulls inside `date` are no-ops
+		// (#94). Cost is one extra PATCH per Update that hits this case.
+		var wipeEvents []string
+		if event.EventNeedsDatePreWipe(state.Marriage, plan.Marriage) {
+			wipeEvents = append(wipeEvents, "marriage")
+		}
+		if event.EventNeedsDatePreWipe(state.Divorce, plan.Divorce) {
+			wipeEvents = append(wipeEvents, "divorce")
+		}
+		if len(wipeEvents) > 0 {
+			if err := r.client.WipeEventDates(ctx, plan.ID.ValueString(), wipeEvents); err != nil {
+				resp.Diagnostics.AddError("Error clearing date fields", err.Error())
+				return
+			}
 		}
 
 		unionResponse, err := r.client.UpdateUnion(ctx, plan.ID.ValueString(), unionRequest)

@@ -473,6 +473,44 @@ func (c *Client) UpdateProfile(ctx context.Context, profileId string, request *P
 	return &profile, nil
 }
 
+// WipeEventDates issues a targeted PATCH against /api/<resourceId>/update
+// that nulls only the `date` sub-object of each named event (e.g. `birth`,
+// `baptism`, `death`, `burial` on a profile; `marriage` or `divorce` on a
+// union). Geni's API deep-merges nested objects per-key, which means
+// sending `"end_month": null` inside an otherwise-populated `date` is a
+// no-op — the only way to clear individual date sub-fields is to first
+// wipe the whole `date` and then re-PATCH the desired subset (#94).
+//
+// The request body is hand-crafted to touch only the named events' `date`
+// keys; it deliberately omits `location`, `name`, and `description` to
+// avoid accidentally clearing those alongside the date.
+func (c *Client) WipeEventDates(ctx context.Context, resourceId string, eventKeys []string) error {
+	if len(eventKeys) == 0 {
+		return nil
+	}
+
+	payload := make(map[string]any, len(eventKeys))
+	for _, key := range eventKeys {
+		payload[key] = map[string]any{"date": nil}
+	}
+	jsonBody, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	url := BaseUrl(c.useSandboxEnv) + "api/" + resourceId + "/update"
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	if _, err := c.doRequest(ctx, req); err != nil {
+		return err
+	}
+	return nil
+}
+
 type ResultResponse struct {
 	Result string `json:"result,omitempty"`
 }

@@ -1230,3 +1230,106 @@ func TestAccProfile_removeProfileAboutSection(t *testing.T) {
 		},
 	})
 }
+
+// TestAccProfile_clearDateSubFieldPersists exercises the issue #94 reproducer:
+// a between-range birth.date with end_month=7 is narrowed by removing
+// end_month from HCL while keeping range/year/end_year/end_circa. The fix
+// performs a wipe-then-rewrite, so after apply Geni's stored date matches
+// the plan exactly. The third step rolls the same config forward as PlanOnly
+// to assert that a follow-up refresh+plan is empty (no drift).
+func TestAccProfile_clearDateSubFieldPersists(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = {
+							first_name = "Darja"
+							last_name  = "Adrianovna"
+						}
+					  }
+					  alive  = false
+					  public = true
+					  birth = {
+						date = {
+						  range     = "between"
+						  circa     = true
+						  year      = 1752
+						  end_circa = true
+						  end_year  = 1799
+						  end_month = 7
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("end_month"), knownvalue.Int32Exact(7)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1752)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("end_year"), knownvalue.Int32Exact(1799)),
+				},
+			},
+			{
+				Config: `
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = {
+							first_name = "Darja"
+							last_name  = "Adrianovna"
+						}
+					  }
+					  alive  = false
+					  public = true
+					  birth = {
+						date = {
+						  range     = "between"
+						  circa     = true
+						  year      = 1752
+						  end_circa = true
+						  end_year  = 1799
+						  # end_month intentionally absent
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("end_month"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1752)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("end_year"), knownvalue.Int32Exact(1799)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("end_circa"), knownvalue.Bool(true)),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("birth").AtMapKey("date").AtMapKey("range"), knownvalue.StringExact("between")),
+				},
+			},
+			{
+				// Refresh + plan only. Before the fix this step would fail
+				// because Geni still has end_month=7 server-side, so the plan
+				// would re-show `~ end_month = 7 -> null`. ExpectNonEmptyPlan
+				// defaults to false, so an empty plan here is the assertion.
+				Config: `
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = {
+							first_name = "Darja"
+							last_name  = "Adrianovna"
+						}
+					  }
+					  alive  = false
+					  public = true
+					  birth = {
+						date = {
+						  range     = "between"
+						  circa     = true
+						  year      = 1752
+						  end_circa = true
+						  end_year  = 1799
+						}
+					  }
+					}
+				`,
+				PlanOnly: true,
+			},
+		},
+	})
+}
