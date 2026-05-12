@@ -1,6 +1,6 @@
 module github.com/dmalch/terraform-provider-genealogy
 
-go 1.25.8
+go 1.26
 
 require (
 	github.com/allegro/bigcache/v3 v3.1.0
