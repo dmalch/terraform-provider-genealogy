@@ -1,4 +1,6 @@
-## 0.19.1 (Unreleased)
+## 0.19.2 (Unreleased)
+
+## 0.19.1
 
 BUG FIXES:
 
