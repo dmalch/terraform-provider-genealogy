@@ -29,3 +29,6 @@ go.work.sum
 
 # Playwright MCP snapshots and console logs
 .playwright-mcp/
+
+# Claude Code session state (local task-runner scratch)
+.claude/
