@@ -1,4 +1,6 @@
-## 0.21.0 (Unreleased)
+## 0.21.1 (Unreleased)
+
+## 0.21.0
 
 IMPROVEMENTS:
 
