@@ -37,8 +37,11 @@ func TestValueFrom(t *testing.T) {
 					LastName:   ptr("Doe"),
 				},
 			},
-			Unions:   []string{"union1", "union2"},
-			Projects: []string{"project-4505748", "project-4497781"},
+			Unions:     []string{"union1", "union2"},
+			Projects:   []string{"project-4505748", "project-4497781"},
+			Title:      "Dr.",
+			Occupation: "Astronaut",
+			Suffix:     "Jr.",
 			Birth: &geni.EventElement{
 				Date: &geni.DateElement{
 					Day:   ptr[int32](1),
@@ -76,6 +79,9 @@ func TestValueFrom(t *testing.T) {
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.Id))
 		Expect(actualValue.Guid.ValueString()).To(Equal(givenProfile.Guid))
+		Expect(actualValue.Title.ValueString()).To(Equal(givenProfile.Title))
+		Expect(actualValue.Occupation.ValueString()).To(Equal(givenProfile.Occupation))
+		Expect(actualValue.Suffix.ValueString()).To(Equal(givenProfile.Suffix))
 		Expect(actualValue.Gender.ValueString()).To(Equal(*givenProfile.Gender))
 		var actualAbout = make(map[string]string)
 		Expect(actualValue.About.ElementsAs(t.Context(), &actualAbout, false).HasError()).To(BeFalse())
@@ -179,6 +185,9 @@ func TestRequestFrom(t *testing.T) {
 			Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
 			CauseOfDeath:     types.StringNull(),
 			CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
+			Title:            types.StringValue("Dr."),
+			Occupation:       types.StringValue("Astronaut"),
+			Suffix:           types.StringValue("Jr."),
 		}
 
 		request, diags := RequestFrom(t.Context(), givenModel)
@@ -188,6 +197,9 @@ func TestRequestFrom(t *testing.T) {
 		Expect(request.Gender).To(HaveValue(Equal("male")))
 		Expect(request.IsAlive).To(BeTrue())
 		Expect(request.Public).To(BeTrue())
+		Expect(request.Title).To(Equal("Dr."))
+		Expect(request.Occupation).To(Equal("Astronaut"))
+		Expect(request.Suffix).To(Equal("Jr."))
 		Expect(request.Names).To(HaveLen(1))
 		Expect(request.Names["en"].FirstName).To(HaveValue(Equal("John")))
 		Expect(request.Names["en"].LastName).To(HaveValue(Equal("Doe")))

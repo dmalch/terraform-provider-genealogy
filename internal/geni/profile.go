@@ -38,18 +38,20 @@ type ProfileRequest struct {
 	Burial *EventElement `json:"burial,omitempty"`
 	// IsAlive is a boolean that indicates whether the profile is living
 	IsAlive bool `json:"is_alive"`
-	// Title is the profile's name title
-	Title string `json:"title,omitempty"`
+	// Title is the profile's name title. Sent without omitempty so that an
+	// empty string clears any previously-set value (Geni accepts "" as a
+	// clear sentinel for flat scalar fields).
+	Title string `json:"title"`
 	// CurrentResidence is the profile's current residence
 	CurrentResidence *LocationElement `json:"current_residence"`
 	// AboutMe is the profile's about me section
 	AboutMe *string `json:"about_me"`
 	// DetailStrings are nested maps of locales to details fields (e.g. about me) to values
 	DetailStrings map[string]DetailsString `json:"detail_strings"`
-	// Occupation is the profile's occupation
-	Occupation string `json:"occupation,omitempty"`
-	// Suffix is the profile's suffix
-	Suffix string `json:"suffix,omitempty"`
+	// Occupation is the profile's occupation. Sent without omitempty — see Title.
+	Occupation string `json:"occupation"`
+	// Suffix is the profile's suffix. Sent without omitempty — see Title.
+	Suffix string `json:"suffix"`
 	// Public is a boolean that indicates whether the profile is public
 	Public bool `json:"public"`
 	// Locked is a boolean that indicates whether the profile is locked down by a curator
@@ -357,7 +359,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*ProfileResp
 
 func (c *Client) addProfileFieldsQueryParams(req *http.Request) {
 	query := req.URL.Query()
-	query.Add("fields", "id,guid,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,birth,baptism,death,burial,cause_of_death,current_residence,about_me,detail_strings,unions,project_ids,is_alive,public,deleted,merged_into,updated_at,created_at")
+	query.Add("fields", "id,guid,first_name,last_name,middle_name,maiden_name,display_name,nicknames,names,gender,title,suffix,occupation,birth,baptism,death,burial,cause_of_death,current_residence,about_me,detail_strings,unions,project_ids,is_alive,public,deleted,merged_into,updated_at,created_at")
 	req.URL.RawQuery = query.Encode()
 }
 

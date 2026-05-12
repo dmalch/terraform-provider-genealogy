@@ -25,6 +25,10 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 		profileModel.Guid = types.StringNull()
 	}
 
+	profileModel.Title = optionalString(profile.Title)
+	profileModel.Occupation = optionalString(profile.Occupation)
+	profileModel.Suffix = optionalString(profile.Suffix)
+
 	profileModel.Gender = types.StringPointerValue(profile.Gender)
 
 	detailStrings, diags := detailStringsValueFrom(ctx, profile)
@@ -219,6 +223,9 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 		DetailStrings:    convertedDetails,
 		Public:           resourceModel.Public.ValueBool(),
 		IsAlive:          resourceModel.Alive.ValueBool(),
+		Title:            resourceModel.Title.ValueString(),
+		Occupation:       resourceModel.Occupation.ValueString(),
+		Suffix:           resourceModel.Suffix.ValueString(),
 	}
 
 	return profileRequest, d
@@ -311,6 +318,17 @@ func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, pr
 	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
 
 	return d
+}
+
+// optionalString maps a Geni API string field (where "" means "not set") to a
+// Terraform-framework optional string: empty becomes null, non-empty becomes
+// the value. Used for plain string fields like title/occupation/suffix that
+// the API returns omitempty.
+func optionalString(s string) types.String {
+	if s == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
 }
 
 func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {

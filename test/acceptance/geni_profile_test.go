@@ -1333,3 +1333,63 @@ func TestAccProfile_clearDateSubFieldPersists(t *testing.T) {
 		},
 	})
 }
+
+// TestAccProfile_titleOccupationSuffix exercises the additive title/suffix/
+// occupation fields end-to-end against the sandbox: create with all three
+// set, then update to clear them. Step 3 plan-only asserts no drift.
+func TestAccProfile_titleOccupationSuffix(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = { first_name = "John", last_name = "Doe" }
+					  }
+					  alive      = false
+					  public     = true
+					  title      = "Dr."
+					  suffix     = "Jr."
+					  occupation = "Astronaut"
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("title"), knownvalue.StringExact("Dr.")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("suffix"), knownvalue.StringExact("Jr.")),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("occupation"), knownvalue.StringExact("Astronaut")),
+				},
+			},
+			{
+				Config: `
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = { first_name = "John", last_name = "Doe" }
+					  }
+					  alive  = false
+					  public = true
+					  # title/suffix/occupation intentionally absent
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("title"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("suffix"), knownvalue.Null()),
+					statecheck.ExpectKnownValue("geni_profile.test", tfjsonpath.New("occupation"), knownvalue.Null()),
+				},
+			},
+			{
+				Config: `
+					resource "geni_profile" "test" {
+					  names = {
+						"en-US" = { first_name = "John", last_name = "Doe" }
+					  }
+					  alive  = false
+					  public = true
+					}
+				`,
+				PlanOnly: true,
+			},
+		},
+	})
+}

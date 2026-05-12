@@ -44,6 +44,18 @@ func (d *DataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp 
 				Computed:    true,
 				Description: "Profile's gender.",
 			},
+			"title": schema.StringAttribute{
+				Computed:    true,
+				Description: "Profile's name title (e.g. \"Dr.\", \"Sir\").",
+			},
+			"suffix": schema.StringAttribute{
+				Computed:    true,
+				Description: "Profile's name suffix (e.g. \"Jr.\", \"III\").",
+			},
+			"occupation": schema.StringAttribute{
+				Computed:    true,
+				Description: "Profile's occupation.",
+			},
 			"names": schema.MapNestedAttribute{
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{

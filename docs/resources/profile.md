@@ -35,7 +35,10 @@ description: |-
 - `id` (String) The unique identifier for the profile. This is a string that starts with 'profile-' followed by a number.
 - `merged_into` (String) The ID of the profile this profile was merged into.
 - `names` (Attributes Map) Nested maps of locales to name fields to values. (see [below for nested schema](#nestedatt--names))
+- `occupation` (String) Profile's occupation.
 - `projects` (Set of String) List of project IDs.
+- `suffix` (String) Profile's name suffix (e.g. "Jr.", "III").
+- `title` (String) Profile's name title (e.g. "Dr.", "Sir").
 - `unions` (Set of String) List of union IDs.
 
 ### Read-Only
