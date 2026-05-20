@@ -1,5 +1,9 @@
 ## 0.21.1 (Unreleased)
 
+BUG FIXES:
+
+* `geni_union`: `Read` (refresh) now clears `partners`, `children`, `foster_children`, and `adopted_children` when the collection has drained to empty on Geni. Previously an empty API list left the stale prior-state value in place, producing a permanent phantom diff on every `terraform plan` that only an otherwise no-op `apply` could clear. (#106)
+
 ## 0.21.0
 
 IMPROVEMENTS:

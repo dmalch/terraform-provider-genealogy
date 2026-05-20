@@ -25,37 +25,20 @@ func ValueFrom(ctx context.Context, union *geni.UnionResponse, unionModel *Resou
 		tagged[id] = struct{}{}
 	}
 
-	if len(union.Children) > 0 {
-		biological := make([]string, 0, len(union.Children))
-		for _, id := range union.Children {
-			if _, isTagged := tagged[id]; !isTagged {
-				biological = append(biological, id)
-			}
-		}
-		if len(biological) > 0 {
-			children, diags := types.SetValueFrom(ctx, types.StringType, biological)
-			d.Append(diags...)
-			unionModel.Children = children
+	// Assign every collection unconditionally so Read reflects collections
+	// that have drained to empty on Geni. Skipping the assignment for an
+	// empty API list would leave the stale prior-state value in place and
+	// produce a permanent phantom diff on every plan (issue #106).
+	biological := make([]string, 0, len(union.Children))
+	for _, id := range union.Children {
+		if _, isTagged := tagged[id]; !isTagged {
+			biological = append(biological, id)
 		}
 	}
-
-	if len(union.FosterChildren) > 0 {
-		foster, diags := types.SetValueFrom(ctx, types.StringType, union.FosterChildren)
-		d.Append(diags...)
-		unionModel.FosterChildren = foster
-	}
-
-	if len(union.AdoptedChildren) > 0 {
-		adopted, diags := types.SetValueFrom(ctx, types.StringType, union.AdoptedChildren)
-		d.Append(diags...)
-		unionModel.AdoptedChildren = adopted
-	}
-
-	if len(union.Partners) > 0 {
-		partners, diags := types.SetValueFrom(ctx, types.StringType, union.Partners)
-		d.Append(diags...)
-		unionModel.Partners = partners
-	}
+	unionModel.Children = setOrNull(ctx, biological, &d)
+	unionModel.FosterChildren = setOrNull(ctx, union.FosterChildren, &d)
+	unionModel.AdoptedChildren = setOrNull(ctx, union.AdoptedChildren, &d)
+	unionModel.Partners = setOrNull(ctx, union.Partners, &d)
 
 	marriage, diags := event.ValueFrom(ctx, union.Marriage)
 	d.Append(diags...)
@@ -162,6 +145,17 @@ func hashMapFrom(slice []string) map[string]struct{} {
 		hashMap[elem] = struct{}{}
 	}
 	return hashMap
+}
+
+// setOrNull builds a string Set from ids, or returns a typed null Set when ids
+// is empty so that Read reflects collections that drained to empty on Geni.
+func setOrNull(ctx context.Context, ids []string, d *diag.Diagnostics) types.Set {
+	if len(ids) == 0 {
+		return types.SetNull(types.StringType)
+	}
+	set, diags := types.SetValueFrom(ctx, types.StringType, ids)
+	d.Append(diags...)
+	return set
 }
 
 func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {

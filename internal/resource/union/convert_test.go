@@ -132,6 +132,85 @@ func TestValueFrom(t *testing.T) {
 		Expect(adopted).To(ConsistOf("profile-5"))
 	})
 
+	t.Run("Clears partners when the API returns no partners", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:       "union-drained",
+			Children: []string{"profile-3"},
+		}
+
+		model := &ResourceModel{
+			Children: types.SetNull(types.StringType),
+			Partners: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("profile-1")}),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Partners.IsNull()).To(BeTrue())
+	})
+
+	t.Run("Clears adopted_children when the API returns no adopted children", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:       "union-drained",
+			Partners: []string{"profile-1"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("profile-9")}),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.AdoptedChildren.IsNull()).To(BeTrue())
+	})
+
+	t.Run("Clears foster_children when the API returns no foster children", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:       "union-drained",
+			Partners: []string{"profile-1"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetNull(types.StringType),
+			FosterChildren:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("profile-9")}),
+			AdoptedChildren: types.SetNull(types.StringType),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.FosterChildren.IsNull()).To(BeTrue())
+	})
+
+	t.Run("Clears children when all children become foster or adopted", func(t *testing.T) {
+		RegisterTestingT(t)
+		givenResponse := &geni.UnionResponse{
+			Id:             "union-drained",
+			Children:       []string{"profile-1"},
+			FosterChildren: []string{"profile-1"},
+		}
+
+		model := &ResourceModel{
+			Children:        types.SetValueMust(types.StringType, []attr.Value{types.StringValue("profile-1")}),
+			FosterChildren:  types.SetNull(types.StringType),
+			AdoptedChildren: types.SetNull(types.StringType),
+			Partners:        types.SetNull(types.StringType),
+		}
+		diags := ValueFrom(t.Context(), givenResponse, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.Children.IsNull()).To(BeTrue())
+
+		foster, d := convertToSlice(t.Context(), model.FosterChildren)
+		Expect(d.HasError()).To(BeFalse())
+		Expect(foster).To(ConsistOf("profile-1"))
+	})
+
 	t.Run("Leaves foster and adopted null when the response has no subsets", func(t *testing.T) {
 		RegisterTestingT(t)
 		givenResponse := &geni.UnionResponse{
