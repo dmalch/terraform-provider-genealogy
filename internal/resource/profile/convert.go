@@ -10,6 +10,7 @@ import (
 
 	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 func ValueFrom(ctx context.Context, profile *geniprofile.Profile, profileModel *ResourceModel) diag.Diagnostics {
@@ -237,7 +238,7 @@ func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geniprof
 	var profileNames = make(map[string]geniprofile.NameElement, len(nameModels))
 
 	for locale, nameModel := range nameModels {
-		nicknamesSlice, d := convertToSlice(ctx, nameModel.Nicknames)
+		nicknamesSlice, d := tfset.Strings(ctx, nameModel.Nicknames)
 		diags = append(diags, d...)
 		nicknamesCsv := strings.Join(nicknamesSlice, ",")
 
@@ -329,15 +330,4 @@ func optionalString(s string) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(s)
-}
-
-func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
-	if len(set.Elements()) == 0 {
-		return nil, diag.Diagnostics{}
-	}
-
-	var slice = make([]string, len(set.Elements()))
-	diags := set.ElementsAs(ctx, &slice, false)
-
-	return slice, diags
 }

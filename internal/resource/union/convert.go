@@ -8,6 +8,7 @@ import (
 
 	geniunion "github.com/dmalch/go-geni/union"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 func ValueFrom(ctx context.Context, union *geniunion.Union, unionModel *ResourceModel) diag.Diagnostics {
@@ -115,7 +116,7 @@ func childrenWithChangedModifier(ctx context.Context, plan, state ResourceModel)
 func labelsFor(ctx context.Context, m ResourceModel) map[string]string {
 	labels := make(map[string]string)
 	add := func(set types.Set, label string) {
-		ids, _ := convertToSlice(ctx, set)
+		ids, _ := tfset.Strings(ctx, set)
 		for _, id := range ids {
 			labels[id] = label
 		}
@@ -139,14 +140,6 @@ func modifierFor(childId string, fosterChildren, adoptedChildren map[string]stru
 	return ""
 }
 
-func hashMapFrom(slice []string) map[string]struct{} {
-	hashMap := make(map[string]struct{}, len(slice))
-	for _, elem := range slice {
-		hashMap[elem] = struct{}{}
-	}
-	return hashMap
-}
-
 // setOrNull builds a string Set from ids, or returns a typed null Set when ids
 // is empty so that Read reflects collections that drained to empty on Geni.
 func setOrNull(ctx context.Context, ids []string, d *diag.Diagnostics) types.Set {
@@ -156,10 +149,4 @@ func setOrNull(ctx context.Context, ids []string, d *diag.Diagnostics) types.Set
 	set, diags := types.SetValueFrom(ctx, types.StringType, ids)
 	d.Append(diags...)
 	return set
-}
-
-func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
-	slice := make([]string, 0, len(set.Elements()))
-	diags := set.ElementsAs(ctx, &slice, false)
-	return slice, diags
 }

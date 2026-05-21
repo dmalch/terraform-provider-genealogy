@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 // Create creates the resource.
@@ -21,7 +23,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	projectIds, diags := tfset.Strings(ctx, plan.Projects)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

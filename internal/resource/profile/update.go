@@ -8,6 +8,7 @@ import (
 
 	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 // Update updates the resource.
@@ -43,7 +44,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		}
 	}
 
-	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	projectIds, diags := tfset.Strings(ctx, plan.Projects)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
