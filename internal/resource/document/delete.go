@@ -17,7 +17,7 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 		return
 	}
 
-	err := r.client.DeleteDocument(ctx, state.ID.ValueString())
+	err := r.client.Document().Delete(ctx, state.ID.ValueString())
 	if err != nil && !errors.Is(err, geni.ErrResourceNotFound) {
 		resp.Diagnostics.AddError("Error deleting document", err.Error())
 		return

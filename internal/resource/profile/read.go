@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
 // Read reads the resource.
@@ -47,7 +48,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	if profileResponse.Deleted {
 		if profileResponse.MergedInto == "" {
 			resp.Diagnostics.AddWarning("Resource is deleted",
-				fmt.Sprintf("The profile %s was deleted in the Geni API.", profileResponse.Id))
+				fmt.Sprintf("The profile %s was deleted in the Geni API.", profileResponse.ID))
 		}
 
 		if r.autoUpdateMergedProfiles {
@@ -91,11 +92,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
 
 	// Set data returned by API in identity
-	identityData.ID = types.StringValue(profileResponse.Id)
+	identityData.ID = types.StringValue(profileResponse.ID)
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 
-func (r *Resource) getProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {
+func (r *Resource) getProfile(ctx context.Context, profileId string) (*geniprofile.Profile, error) {
 	if r.useProfileCache {
 		return r.cacheClient.GetProfile(ctx, profileId)
 	}
@@ -132,7 +133,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 func validateProfileImportID(
 	ctx context.Context,
 	id string,
-	fetch func(context.Context, string) (*geni.ProfileResponse, error),
+	fetch func(context.Context, string) (*geniprofile.Profile, error),
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -151,7 +152,7 @@ func validateProfileImportID(
 	// The Geni single-resource endpoint sometimes returns 200 with an empty
 	// body for IDs that do not exist (observed on sandbox), instead of 404.
 	// Treat a missing Id field as the same domain signal as ErrResourceNotFound.
-	if response == nil || response.Id == "" {
+	if response == nil || response.ID == "" {
 		diags.AddError(
 			"Profile not found",
 			fmt.Sprintf("No Geni profile with ID %q exists.", id),

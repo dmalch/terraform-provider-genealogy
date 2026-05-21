@@ -5,14 +5,14 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	geniproject "github.com/dmalch/go-geni/project"
 )
 
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined project response is passed", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.ProjectResponse{
-			Id:          "project-123",
+		givenResponse := &geniproject.Project{
+			ID:          "project-123",
 			Name:        "Test Project",
 			Description: ptr("This is a test project"),
 			UpdatedAt:   "1719709400",
@@ -32,8 +32,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("When description is nil", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.ProjectResponse{
-			Id:        "project-456",
+		givenResponse := &geniproject.Project{
+			ID:        "project-456",
 			Name:      "Minimal Project",
 			UpdatedAt: "1719709400",
 			CreatedAt: "1719709300",

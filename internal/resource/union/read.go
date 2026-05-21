@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
+	geniunion "github.com/dmalch/go-geni/union"
 )
 
 // Read reads the resource.
@@ -53,7 +55,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 		if existingUnionId != "" {
 			resp.Diagnostics.AddWarning("Found existing union", "The union in the state has no partners and children. Found an existing union with ID "+existingUnionId+".")
-			unionResponse, err = r.client.GetUnion(ctx, existingUnionId)
+			unionResponse, err = r.client.Union().Get(ctx, existingUnionId)
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading union", err.Error())
 				return
@@ -74,7 +76,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 
 	// Set data returned by API in identity
-	identityData.ID = types.StringValue(unionResponse.Id)
+	identityData.ID = types.StringValue(unionResponse.ID)
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 
@@ -120,7 +122,7 @@ func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners ty
 
 				// Check if the profile is a partner in the union
 				for _, partnerId := range unionResponse.Partners {
-					if partnerId == profileResponse.Id {
+					if partnerId == profileResponse.ID {
 						return unionId, diags
 					}
 				}
@@ -132,7 +134,7 @@ func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners ty
 	}
 
 	// Get partners using the API
-	profiles, err := r.client.GetProfiles(ctx, partnerIds)
+	profiles, err := r.client.Profile().GetBulk(ctx, partnerIds)
 	if err != nil {
 		diags.AddError("Error reading partners", err.Error())
 		return "", diags
@@ -179,7 +181,7 @@ func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners ty
 	return "", diags
 }
 
-func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geni.ProfileResponse) (*geni.ProfileResponse, diag.Diagnostics) {
+func (r *Resource) findMergedProfile(ctx context.Context, profileResponse *geniprofile.Profile) (*geniprofile.Profile, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	for i := 0; i < 10 && profileResponse.Deleted && profileResponse.MergedInto != ""; i++ {
@@ -223,7 +225,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 func validateUnionImportID(
 	ctx context.Context,
 	id string,
-	fetch func(context.Context, string) (*geni.UnionResponse, error),
+	fetch func(context.Context, string) (*geniunion.Union, error),
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -242,7 +244,7 @@ func validateUnionImportID(
 	// The Geni single-resource endpoint sometimes returns 200 with an empty
 	// body for IDs that do not exist (observed on sandbox), instead of 404.
 	// Treat a missing Id field as the same domain signal as ErrResourceNotFound.
-	if response == nil || response.Id == "" {
+	if response == nil || response.ID == "" {
 		diags.AddError(
 			"Union not found",
 			fmt.Sprintf("No Geni union with ID %q exists.", id),

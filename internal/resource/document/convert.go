@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
-func ValueFrom(ctx context.Context, response *geni.DocumentResponse, model *ResourceModel) diag.Diagnostics {
+func ValueFrom(ctx context.Context, response *genidocument.Document, model *ResourceModel) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	model.ID = types.StringValue(response.Id)
+	model.ID = types.StringValue(response.ID)
 	model.Title = types.StringValue(response.Title)
 	model.SourceUrl = types.StringPointerValue(response.SourceUrl)
 	model.Description = types.StringPointerValue(response.Description)
@@ -41,7 +41,7 @@ func ValueFrom(ctx context.Context, response *geni.DocumentResponse, model *Reso
 	return d
 }
 
-func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.DocumentRequest, diag.Diagnostics) {
+func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*genidocument.Request, diag.Diagnostics) {
 	var d diag.Diagnostics
 
 	dateModel, diags := event.DateObjectValueFrom(ctx, resourceModel.Date)
@@ -60,7 +60,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Docume
 		labels = &join
 	}
 
-	documentRequest := &geni.DocumentRequest{
+	documentRequest := &genidocument.Request{
 		Title:       resourceModel.Title.ValueString(),
 		Description: resourceModel.Description.ValueStringPointer(),
 		ContentType: resourceModel.ContentType.ValueStringPointer(),
@@ -95,11 +95,11 @@ func hashMapFrom(slice []string) map[string]struct{} {
 	return hashMap
 }
 
-func UpdateComputedFields(ctx context.Context, response *geni.DocumentResponse, resourceModel *ResourceModel) diag.Diagnostics {
+func UpdateComputedFields(ctx context.Context, response *genidocument.Document, resourceModel *ResourceModel) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
 	if resourceModel.ID.IsNull() || resourceModel.ID.IsUnknown() {
-		resourceModel.ID = types.StringValue(response.Id)
+		resourceModel.ID = types.StringValue(response.ID)
 	}
 
 	if resourceModel.ContentType.IsNull() || resourceModel.ContentType.IsUnknown() {

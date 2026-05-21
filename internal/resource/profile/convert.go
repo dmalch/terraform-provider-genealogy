@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
-func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel *ResourceModel) diag.Diagnostics {
+func ValueFrom(ctx context.Context, profile *geniprofile.Profile, profileModel *ResourceModel) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	if profile.Id != "" {
-		profileModel.ID = types.StringValue(profile.Id)
+	if profile.ID != "" {
+		profileModel.ID = types.StringValue(profile.ID)
 	}
 
 	if profile.Guid != "" {
@@ -84,7 +84,7 @@ func ValueFrom(ctx context.Context, profile *geni.ProfileResponse, profileModel 
 	return d
 }
 
-func detailStringsValueFrom(ctx context.Context, profile *geni.ProfileResponse) (basetypes.MapValue, diag.Diagnostics) {
+func detailStringsValueFrom(ctx context.Context, profile *geniprofile.Profile) (basetypes.MapValue, diag.Diagnostics) {
 	aboutMeMap := make(map[string]string)
 	for locale, localeDetails := range profile.DetailStrings {
 		if localeDetails.AboutMe != nil {
@@ -105,7 +105,7 @@ func detailStringsValueFrom(ctx context.Context, profile *geni.ProfileResponse) 
 // fields for profiles created without a locale tag — without this fallback,
 // importing such a profile produces a null `names` map and the next plan
 // shows a spurious in-place update that recreates the locale entry.
-func namesWithFlatFallback(profile *geni.ProfileResponse) map[string]geni.NameElement {
+func namesWithFlatFallback(profile *geniprofile.Profile) map[string]geniprofile.NameElement {
 	if len(profile.Names) > 0 {
 		return profile.Names
 	}
@@ -118,7 +118,7 @@ func namesWithFlatFallback(profile *geni.ProfileResponse) map[string]geni.NameEl
 		joined := strings.Join(profile.Nicknames, ",")
 		nicknames = &joined
 	}
-	return map[string]geni.NameElement{
+	return map[string]geniprofile.NameElement{
 		"en-US": {
 			FirstName:   profile.FirstName,
 			LastName:    profile.LastName,
@@ -130,7 +130,7 @@ func namesWithFlatFallback(profile *geni.ProfileResponse) map[string]geni.NameEl
 	}
 }
 
-func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement) (basetypes.MapValue, diag.Diagnostics) {
+func NameValueFrom(ctx context.Context, profileNames map[string]geniprofile.NameElement) (basetypes.MapValue, diag.Diagnostics) {
 	if len(profileNames) == 0 {
 		return basetypes.NewMapNull(types.ObjectType{AttrTypes: NameAttributeTypes()}), diag.Diagnostics{}
 	}
@@ -162,56 +162,56 @@ func NameValueFrom(ctx context.Context, profileNames map[string]geni.NameElement
 	return nameMap, d
 }
 
-func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.ProfileRequest, diag.Diagnostics) {
+func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geniprofile.Request, diag.Diagnostics) {
 	var d diag.Diagnostics
 
 	birth, diags := event.ElementFrom(ctx, resourceModel.Birth)
 	d.Append(diags...)
 	if birth == nil {
-		birth = &geni.EventElement{}
+		birth = &geniprofile.EventElement{}
 	}
 
 	baptism, diags := event.ElementFrom(ctx, resourceModel.Baptism)
 	d.Append(diags...)
 	if baptism == nil {
-		baptism = &geni.EventElement{}
+		baptism = &geniprofile.EventElement{}
 	}
 
 	death, diags := event.ElementFrom(ctx, resourceModel.Death)
 	d.Append(diags...)
 	if death == nil {
-		death = &geni.EventElement{}
+		death = &geniprofile.EventElement{}
 	}
 
 	burial, diags := event.ElementFrom(ctx, resourceModel.Burial)
 	d.Append(diags...)
 	if burial == nil {
-		burial = &geni.EventElement{}
+		burial = &geniprofile.EventElement{}
 	}
 
 	currentResidence, diags := event.LocationObjectValueFrom(ctx, resourceModel.CurrentResidence)
 	d.Append(diags...)
 
-	var convertedNames map[string]geni.NameElement
+	var convertedNames map[string]geniprofile.NameElement
 	if len(resourceModel.Names.Elements()) > 0 {
 		convertedNames, diags = NameElementsFrom(ctx, resourceModel.Names)
 		d.Append(diags...)
 	}
 
-	convertedDetails := make(map[string]geni.DetailsString)
+	convertedDetails := make(map[string]geniprofile.DetailsString)
 	if len(resourceModel.About.Elements()) > 0 {
 		var aboutMeMap map[string]*string
 		diags := resourceModel.About.ElementsAs(ctx, &aboutMeMap, false)
 		d.Append(diags...)
 
 		for locale, detailsString := range aboutMeMap {
-			convertedDetails[locale] = geni.DetailsString{
+			convertedDetails[locale] = geniprofile.DetailsString{
 				AboutMe: detailsString,
 			}
 		}
 	}
 
-	profileRequest := &geni.ProfileRequest{
+	profileRequest := &geniprofile.Request{
 		Names:            convertedNames,
 		Gender:           resourceModel.Gender.ValueStringPointer(),
 		Birth:            birth,
@@ -231,17 +231,17 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*geni.Profil
 	return profileRequest, d
 }
 
-func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geni.NameElement, diag.Diagnostics) {
+func NameElementsFrom(ctx context.Context, names types.Map) (map[string]geniprofile.NameElement, diag.Diagnostics) {
 	nameModels, diags := NameModelsFrom(ctx, names)
 
-	var profileNames = make(map[string]geni.NameElement, len(nameModels))
+	var profileNames = make(map[string]geniprofile.NameElement, len(nameModels))
 
 	for locale, nameModel := range nameModels {
 		nicknamesSlice, d := convertToSlice(ctx, nameModel.Nicknames)
 		diags = append(diags, d...)
 		nicknamesCsv := strings.Join(nicknamesSlice, ",")
 
-		profileNames[locale] = geni.NameElement{
+		profileNames[locale] = geniprofile.NameElement{
 			FirstName:   nameModel.FirstName.ValueStringPointer(),
 			MiddleName:  nameModel.MiddleName.ValueStringPointer(),
 			LastName:    nameModel.LastName.ValueStringPointer(),
@@ -265,10 +265,10 @@ func NameModelsFrom(ctx context.Context, names types.Map) (map[string]NameModel,
 	return nameModels, diags
 }
 
-func UpdateComputedFields(ctx context.Context, profile *geni.ProfileResponse, profileModel *ResourceModel) diag.Diagnostics {
+func UpdateComputedFields(ctx context.Context, profile *geniprofile.Profile, profileModel *ResourceModel) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	profileModel.ID = types.StringValue(profile.Id)
+	profileModel.ID = types.StringValue(profile.ID)
 
 	if profile.Guid != "" {
 		profileModel.Guid = types.StringValue(profile.Guid)

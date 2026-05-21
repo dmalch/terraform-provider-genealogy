@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
 )
 
 // Read reads the resource.
@@ -51,11 +52,11 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 
 	// Set data returned by API in identity
-	identityData.ID = types.StringValue(documentResponse.Id)
+	identityData.ID = types.StringValue(documentResponse.ID)
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 
-func (r *Resource) getDocument(ctx context.Context, documentId string) (*geni.DocumentResponse, error) {
+func (r *Resource) getDocument(ctx context.Context, documentId string) (*genidocument.Document, error) {
 	if r.useDocumentCache {
 		return r.cacheClient.GetDocument(ctx, documentId)
 	}
@@ -94,7 +95,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 func validateDocumentImportID(
 	ctx context.Context,
 	id string,
-	fetch func(context.Context, string) (*geni.DocumentResponse, error),
+	fetch func(context.Context, string) (*genidocument.Document, error),
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -113,7 +114,7 @@ func validateDocumentImportID(
 	// The Geni single-resource endpoint sometimes returns 200 with an empty
 	// body for IDs that do not exist (observed on sandbox), instead of 404.
 	// Treat a missing Id field as the same domain signal as ErrResourceNotFound.
-	if response == nil || response.Id == "" {
+	if response == nil || response.ID == "" {
 		diags.AddError(
 			"Document not found",
 			fmt.Sprintf("No Geni document with ID %q exists.", id),

@@ -8,6 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
+	geniprofile "github.com/dmalch/go-geni/profile"
+	geniunion "github.com/dmalch/go-geni/union"
 )
 
 type Client struct {
@@ -28,24 +31,24 @@ func NewClient(client *geni.Client) *Client {
 
 type unionAsyncRequest struct {
 	Id       string
-	Response chan *geni.UnionResponse
+	Response chan *geniunion.Union
 	Error    chan error
 }
 
 type profileAsyncRequest struct {
 	Id       string
-	Response chan *geni.ProfileResponse
+	Response chan *geniprofile.Profile
 	Error    chan error
 }
 
 type documentAsyncRequest struct {
 	Id       string
-	Response chan *geni.DocumentResponse
+	Response chan *genidocument.Document
 	Error    chan error
 }
 
-func (c *Client) GetUnion(ctx context.Context, id string) (*geni.UnionResponse, error) {
-	response := make(chan *geni.UnionResponse)
+func (c *Client) GetUnion(ctx context.Context, id string) (*geniunion.Union, error) {
+	response := make(chan *geniunion.Union)
 	errors := make(chan error)
 
 	c.unionRequests <- unionAsyncRequest{
@@ -66,8 +69,8 @@ func (c *Client) GetUnion(ctx context.Context, id string) (*geni.UnionResponse, 
 	}
 }
 
-func (c *Client) GetProfile(ctx context.Context, id string) (*geni.ProfileResponse, error) {
-	response := make(chan *geni.ProfileResponse)
+func (c *Client) GetProfile(ctx context.Context, id string) (*geniprofile.Profile, error) {
+	response := make(chan *geniprofile.Profile)
 	errors := make(chan error)
 
 	c.profileRequests <- profileAsyncRequest{
@@ -88,8 +91,8 @@ func (c *Client) GetProfile(ctx context.Context, id string) (*geni.ProfileRespon
 	}
 }
 
-func (c *Client) GetDocument(ctx context.Context, id string) (*geni.DocumentResponse, error) {
-	response := make(chan *geni.DocumentResponse)
+func (c *Client) GetDocument(ctx context.Context, id string) (*genidocument.Document, error) {
+	response := make(chan *genidocument.Document)
 	errors := make(chan error)
 
 	c.documentRequests <- documentAsyncRequest{
@@ -234,7 +237,7 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 	}
 
 	if len(keys) == 1 {
-		result, err := c.client.GetUnion(ctx, keys[0])
+		result, err := c.client.Union().Get(ctx, keys[0])
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -248,7 +251,7 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 	}
 
 	if len(keys) > 1 {
-		res, err := c.client.GetUnions(ctx, keys)
+		res, err := c.client.Union().GetBulk(ctx, keys)
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -264,10 +267,10 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 // IDs absent from the bulk results are treated as not-found, because the Geni bulk
 // endpoint silently omits missing IDs from its response — that absence is the domain
 // signal that the union no longer exists.
-func fulfillUnionRequests(batch []unionAsyncRequest, results []geni.UnionResponse) {
-	idToResponse := make(map[string]*geni.UnionResponse, len(results))
+func fulfillUnionRequests(batch []unionAsyncRequest, results []geniunion.Union) {
+	idToResponse := make(map[string]*geniunion.Union, len(results))
 	for i := range results {
-		idToResponse[results[i].Id] = &results[i]
+		idToResponse[results[i].ID] = &results[i]
 	}
 
 	for _, req := range batch {
@@ -293,7 +296,7 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 	}
 
 	if len(keys) == 1 {
-		result, err := c.client.GetProfile(ctx, keys[0])
+		result, err := c.client.Profile().Get(ctx, keys[0])
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -307,7 +310,7 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 	}
 
 	if len(keys) > 1 {
-		res, err := c.client.GetProfiles(ctx, keys)
+		res, err := c.client.Profile().GetBulk(ctx, keys)
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -322,10 +325,10 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 // fulfillProfileRequests dispatches per-request results from a bulk profile response.
 // IDs absent from the bulk results are treated as not-found, because the Geni bulk
 // endpoint silently omits missing IDs from its response.
-func fulfillProfileRequests(batch []profileAsyncRequest, results []geni.ProfileResponse) {
-	idToResponse := make(map[string]*geni.ProfileResponse, len(results))
+func fulfillProfileRequests(batch []profileAsyncRequest, results []geniprofile.Profile) {
+	idToResponse := make(map[string]*geniprofile.Profile, len(results))
 	for i := range results {
-		idToResponse[results[i].Id] = &results[i]
+		idToResponse[results[i].ID] = &results[i]
 	}
 
 	for _, req := range batch {
@@ -351,7 +354,7 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 	}
 
 	if len(keys) == 1 {
-		result, err := c.client.GetDocument(ctx, keys[0])
+		result, err := c.client.Document().Get(ctx, keys[0])
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -365,7 +368,7 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 	}
 
 	if len(keys) > 1 {
-		res, err := c.client.GetDocuments(ctx, keys)
+		res, err := c.client.Document().GetBulk(ctx, keys)
 		if err != nil {
 			for _, req := range batch {
 				req.Error <- err
@@ -380,10 +383,10 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 // fulfillDocumentRequests dispatches per-request results from a bulk document response.
 // IDs absent from the bulk results are treated as not-found, because the Geni bulk
 // endpoint silently omits missing IDs from its response.
-func fulfillDocumentRequests(batch []documentAsyncRequest, results []geni.DocumentResponse) {
-	idToResponse := make(map[string]*geni.DocumentResponse, len(results))
+func fulfillDocumentRequests(batch []documentAsyncRequest, results []genidocument.Document) {
+	idToResponse := make(map[string]*genidocument.Document, len(results))
 	for i := range results {
-		idToResponse[results[i].Id] = &results[i]
+		idToResponse[results[i].ID] = &results[i]
 	}
 
 	for _, req := range batch {

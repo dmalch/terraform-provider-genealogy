@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/go-geni"
+	geniproject "github.com/dmalch/go-geni/project"
 )
 
-func ValueFrom(_ context.Context, response *geni.ProjectResponse, model *Model) diag.Diagnostics {
+func ValueFrom(_ context.Context, response *geniproject.Project, model *Model) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	model.ID = types.StringValue(response.Id)
+	model.ID = types.StringValue(response.ID)
 	model.Name = types.StringValue(response.Name)
 	model.Description = types.StringPointerValue(response.Description)
 	model.UpdatedAt = types.StringValue(response.UpdatedAt)

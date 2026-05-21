@@ -7,7 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
+	geniunion "github.com/dmalch/go-geni/union"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
@@ -18,25 +19,25 @@ func ptr[T any](s T) *T {
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined union response is passed", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:       "union-123",
+		givenResponse := &geniunion.Union{
+			ID:       "union-123",
 			Partners: []string{"profile-1", "profile-2"},
 			Children: []string{"profile-3", "profile-4"},
-			Marriage: &geni.EventElement{
+			Marriage: &geniprofile.EventElement{
 				Name: "Marriage",
-				Date: &geni.DateElement{
+				Date: &geniprofile.DateElement{
 					Day:   ptr[int32](15),
 					Month: ptr[int32](6),
 					Year:  ptr[int32](1990),
 				},
-				Location: &geni.LocationElement{
+				Location: &geniprofile.LocationElement{
 					City:    ptr("Paris"),
 					Country: ptr("France"),
 				},
 			},
-			Divorce: &geni.EventElement{
+			Divorce: &geniprofile.EventElement{
 				Name: "Divorce",
-				Date: &geni.DateElement{
+				Date: &geniprofile.DateElement{
 					Day:   ptr[int32](1),
 					Month: ptr[int32](3),
 					Year:  ptr[int32](2000),
@@ -64,8 +65,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("When partners and children are empty", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id: "union-456",
+		givenResponse := &geniunion.Union{
+			ID: "union-456",
 		}
 
 		model := &ResourceModel{
@@ -83,8 +84,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("When marriage and divorce are nil", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:       "union-789",
+		givenResponse := &geniunion.Union{
+			ID:       "union-789",
 			Partners: []string{"profile-1"},
 		}
 
@@ -101,8 +102,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("Splits API children into biological, foster, and adopted buckets", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:              "union-split",
+		givenResponse := &geniunion.Union{
+			ID:              "union-split",
 			Partners:        []string{"profile-1", "profile-2"},
 			Children:        []string{"profile-3", "profile-4", "profile-5", "profile-6"},
 			FosterChildren:  []string{"profile-4"},
@@ -134,8 +135,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("Clears partners when the API returns no partners", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:       "union-drained",
+		givenResponse := &geniunion.Union{
+			ID:       "union-drained",
 			Children: []string{"profile-3"},
 		}
 
@@ -151,8 +152,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("Clears adopted_children when the API returns no adopted children", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:       "union-drained",
+		givenResponse := &geniunion.Union{
+			ID:       "union-drained",
 			Partners: []string{"profile-1"},
 		}
 
@@ -170,8 +171,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("Clears foster_children when the API returns no foster children", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:       "union-drained",
+		givenResponse := &geniunion.Union{
+			ID:       "union-drained",
 			Partners: []string{"profile-1"},
 		}
 
@@ -189,8 +190,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("Clears children when all children become foster or adopted", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:             "union-drained",
+		givenResponse := &geniunion.Union{
+			ID:             "union-drained",
 			Children:       []string{"profile-1"},
 			FosterChildren: []string{"profile-1"},
 		}
@@ -213,8 +214,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("Leaves foster and adopted null when the response has no subsets", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id:       "union-bio-only",
+		givenResponse := &geniunion.Union{
+			ID:       "union-bio-only",
 			Children: []string{"profile-3"},
 		}
 
@@ -236,34 +237,34 @@ func TestValueFrom(t *testing.T) {
 func TestUpdateComputedFields(t *testing.T) {
 	t.Run("Updates computed fields with events", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id: "union-123",
-			Marriage: &geni.EventElement{
+		givenResponse := &geniunion.Union{
+			ID: "union-123",
+			Marriage: &geniprofile.EventElement{
 				Name:        "Marriage",
 				Description: ptr("A beautiful ceremony"),
-				Date: &geni.DateElement{
+				Date: &geniprofile.DateElement{
 					Year: ptr[int32](1990),
 				},
-				Location: &geni.LocationElement{
+				Location: &geniprofile.LocationElement{
 					City: ptr("Paris"),
 				},
 			},
-			Divorce: &geni.EventElement{
+			Divorce: &geniprofile.EventElement{
 				Name: "Divorce",
-				Date: &geni.DateElement{
+				Date: &geniprofile.DateElement{
 					Year: ptr[int32](2000),
 				},
 			},
 		}
 
 		// Create a model with existing event objects that have unknown computed fields
-		marriageObj, _ := event.ValueFrom(t.Context(), &geni.EventElement{
-			Date: &geni.DateElement{
+		marriageObj, _ := event.ValueFrom(t.Context(), &geniprofile.EventElement{
+			Date: &geniprofile.DateElement{
 				Year: ptr[int32](1990),
 			},
 		})
-		divorceObj, _ := event.ValueFrom(t.Context(), &geni.EventElement{
-			Date: &geni.DateElement{
+		divorceObj, _ := event.ValueFrom(t.Context(), &geniprofile.EventElement{
+			Date: &geniprofile.DateElement{
 				Year: ptr[int32](2000),
 			},
 		})
@@ -283,8 +284,8 @@ func TestUpdateComputedFields(t *testing.T) {
 
 	t.Run("Updates computed fields without events", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.UnionResponse{
-			Id: "union-456",
+		givenResponse := &geniunion.Union{
+			ID: "union-456",
 		}
 
 		model := &ResourceModel{

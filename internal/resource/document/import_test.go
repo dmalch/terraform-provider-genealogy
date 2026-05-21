@@ -8,12 +8,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
 )
 
 func TestValidateDocumentImportID(t *testing.T) {
 	t.Run("Not-found from fetch produces an error diagnostic", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
+		fetch := func(_ context.Context, _ string) (*genidocument.Document, error) {
 			return nil, geni.ErrResourceNotFound
 		}
 
@@ -24,7 +25,7 @@ func TestValidateDocumentImportID(t *testing.T) {
 
 	t.Run("Transport error is surfaced as an error diagnostic", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
+		fetch := func(_ context.Context, _ string) (*genidocument.Document, error) {
 			return nil, errors.New("network exploded")
 		}
 
@@ -35,8 +36,8 @@ func TestValidateDocumentImportID(t *testing.T) {
 
 	t.Run("Empty response Id is treated as not-found", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, _ string) (*geni.DocumentResponse, error) {
-			return &geni.DocumentResponse{}, nil
+		fetch := func(_ context.Context, _ string) (*genidocument.Document, error) {
+			return &genidocument.Document{}, nil
 		}
 
 		diags := validateDocumentImportID(t.Context(), "document-missing", fetch)
@@ -46,8 +47,8 @@ func TestValidateDocumentImportID(t *testing.T) {
 
 	t.Run("Successful fetch yields no diagnostics", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, id string) (*geni.DocumentResponse, error) {
-			return &geni.DocumentResponse{Id: id}, nil
+		fetch := func(_ context.Context, id string) (*genidocument.Document, error) {
+			return &genidocument.Document{ID: id}, nil
 		}
 
 		diags := validateDocumentImportID(t.Context(), "document-42", fetch)

@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
@@ -61,14 +61,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				// need to create a temporary profile and then merge it with the existing
 				// profile.
 
-				tmpProfile, err := r.client.AddPartner(ctx, plan.ID.ValueString())
+				tmpProfile, err := r.client.Union().AddPartner(ctx, plan.ID.ValueString())
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the second partner
-				if err := r.client.MergeProfiles(ctx, partnerId, tmpProfile.Id); err != nil {
+				if err := r.client.Profile().Merge(ctx, partnerId, tmpProfile.ID); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 					return
 				}
@@ -147,14 +147,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 				// profile.
 
 				modifier := modifierFor(childId, fosterSet, adoptedSet)
-				tmpProfile, err := r.client.AddChild(ctx, plan.ID.ValueString(), geni.WithModifier(modifier))
+				tmpProfile, err := r.client.Union().AddChild(ctx, plan.ID.ValueString(), geniprofile.WithModifier(modifier))
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return
 				}
 
 				// Merge the temporary profile with the child profile
-				if err := r.client.MergeProfiles(ctx, childId, tmpProfile.Id); err != nil {
+				if err := r.client.Profile().Merge(ctx, childId, tmpProfile.ID); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 					return
 				}
@@ -181,13 +181,13 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 			wipeEvents = append(wipeEvents, "divorce")
 		}
 		if len(wipeEvents) > 0 {
-			if err := r.client.WipeEventDates(ctx, plan.ID.ValueString(), wipeEvents); err != nil {
+			if err := r.client.Profile().WipeEventDates(ctx, plan.ID.ValueString(), wipeEvents); err != nil {
 				resp.Diagnostics.AddError("Error clearing date fields", err.Error())
 				return
 			}
 		}
 
-		unionResponse, err := r.client.UpdateUnion(ctx, plan.ID.ValueString(), unionRequest)
+		unionResponse, err := r.client.Union().Update(ctx, plan.ID.ValueString(), unionRequest)
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating union", err.Error())
 			return

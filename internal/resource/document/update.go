@@ -37,7 +37,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	documentResponse, err := r.client.UpdateDocument(ctx, plan.ID.ValueString(), documentRequest)
+	documentResponse, err := r.client.Document().Update(ctx, plan.ID.ValueString(), documentRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating document", err.Error())
 		return
@@ -68,7 +68,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		// Untag profiles that are no longer associated with the document
 		for profileId := range knownStateProfileIds {
 			if _, ok := knownPlanProfileIds[profileId]; !ok {
-				if _, err = r.client.UntagDocument(ctx, documentResponse.Id, profileId); err != nil {
+				if _, err = r.client.Document().Untag(ctx, documentResponse.ID, profileId); err != nil {
 					resp.Diagnostics.AddError("Error untagging document", err.Error())
 					return
 				}
@@ -78,7 +78,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		// Tag profiles that are now associated with the document
 		for profileId := range knownPlanProfileIds {
 			if _, ok := knownStateProfileIds[profileId]; !ok {
-				if _, err = r.client.TagDocument(ctx, documentResponse.Id, profileId); err != nil {
+				if _, err = r.client.Document().Tag(ctx, documentResponse.ID, profileId); err != nil {
 					resp.Diagnostics.AddError("Error tagging document", err.Error())
 					return
 				}
@@ -88,7 +88,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	// Link the profile to the projects if specified.
 	for _, projectId := range projectIds {
-		if _, err := r.client.AddDocumentToProject(ctx, documentResponse.Id, projectId); err != nil {
+		if _, err := r.client.Document().AddToProject(ctx, documentResponse.ID, projectId); err != nil {
 			resp.Diagnostics.AddError("Error linking document to project", err.Error())
 			return
 		}
@@ -97,6 +97,6 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
 	// Set data returned by API in identity
-	identityData.ID = types.StringValue(documentResponse.Id)
+	identityData.ID = types.StringValue(documentResponse.ID)
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }

@@ -7,7 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
@@ -18,17 +19,17 @@ func ptr[T any](s T) *T {
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined object is passed", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := geni.DocumentResponse{
-			Id:          "123",
+		givenResponse := genidocument.Document{
+			ID:          "123",
 			Title:       "Test Document",
 			Description: ptr("This is a test document"),
 			ContentType: ptr("text/plain"),
-			Date: &geni.DateElement{
+			Date: &geniprofile.DateElement{
 				Day:   ptr[int32](1),
 				Month: ptr[int32](1),
 				Year:  ptr[int32](2000),
 			},
-			Location: &geni.LocationElement{
+			Location: &geniprofile.LocationElement{
 				City:           ptr("City"),
 				Country:        ptr("Country"),
 				County:         ptr("County"),
@@ -50,7 +51,7 @@ func TestValueFrom(t *testing.T) {
 		diags := ValueFrom(t.Context(), &givenResponse, &convertedModel)
 
 		Expect(diags).To(BeEmpty())
-		Expect(convertedModel.ID.ValueString()).To(Equal(givenResponse.Id))
+		Expect(convertedModel.ID.ValueString()).To(Equal(givenResponse.ID))
 		Expect(convertedModel.Title.ValueString()).To(Equal(givenResponse.Title))
 		Expect(convertedModel.Description.ValueString()).To(Equal(*givenResponse.Description))
 		Expect(convertedModel.ContentType.ValueString()).To(Equal(*givenResponse.ContentType))
@@ -129,8 +130,8 @@ func TestRequestFrom(t *testing.T) {
 func TestUpdateComputedFields(t *testing.T) {
 	t.Run("Sets ID when null", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.DocumentResponse{
-			Id:          "doc-123",
+		givenResponse := &genidocument.Document{
+			ID:          "doc-123",
 			ContentType: ptr("text/plain"),
 			Tags:        []string{"profile-1"},
 			Labels:      []string{"label1"},
@@ -158,8 +159,8 @@ func TestUpdateComputedFields(t *testing.T) {
 
 	t.Run("Does not overwrite existing ID", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.DocumentResponse{
-			Id:          "doc-new",
+		givenResponse := &genidocument.Document{
+			ID:          "doc-new",
 			ContentType: ptr("text/html"),
 			Tags:        []string{},
 			Labels:      []string{},
@@ -187,8 +188,8 @@ func TestUpdateComputedFields(t *testing.T) {
 
 	t.Run("Deduplicates labels in computed fields", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.DocumentResponse{
-			Id:     "doc-456",
+		givenResponse := &genidocument.Document{
+			ID:     "doc-456",
 			Tags:   []string{},
 			Labels: []string{"label1", "label1", "label2"},
 		}

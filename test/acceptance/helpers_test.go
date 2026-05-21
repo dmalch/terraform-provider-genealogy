@@ -37,7 +37,7 @@ func testAccCheckProfileDestroy(s *terraform.State) error {
 		if rs.Type != "geni_profile" {
 			continue
 		}
-		profile, err := client.GetProfile(context.Background(), rs.Primary.ID)
+		profile, err := client.Profile().Get(context.Background(), rs.Primary.ID)
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			continue
 		}
@@ -60,7 +60,7 @@ func testAccCheckDocumentDestroy(s *terraform.State) error {
 		if rs.Type != "geni_document" {
 			continue
 		}
-		_, err := client.GetDocument(context.Background(), rs.Primary.ID)
+		_, err := client.Document().Get(context.Background(), rs.Primary.ID)
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			continue
 		}

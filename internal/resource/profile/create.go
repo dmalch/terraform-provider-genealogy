@@ -27,7 +27,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	profileResponse, err := r.client.CreateProfile(ctx, profileRequest)
+	profileResponse, err := r.client.Profile().Create(ctx, profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating profile", err.Error())
 		return
@@ -35,7 +35,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	// Link the profile to the projects if specified.
 	for _, projectId := range projectIds {
-		if _, err := r.client.AddProfileToProject(ctx, profileResponse.Id, projectId); err != nil {
+		if _, err := r.client.Project().AddProfile(ctx, profileResponse.ID, projectId); err != nil {
 			resp.Diagnostics.AddError("Error linking profile to project", err.Error())
 			return
 		}
@@ -51,7 +51,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	// Set data returned by API in identity
 	identity := ResourceIdentityModel{
-		ID: types.StringValue(profileResponse.Id),
+		ID: types.StringValue(profileResponse.ID),
 	}
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 }

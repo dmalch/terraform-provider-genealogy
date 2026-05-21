@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
 )
 
 // listRequest builds a list.ListRequest carrying the live managed-resource
@@ -38,13 +38,13 @@ func listRequest(t *testing.T, includeResource bool) list.ListRequest {
 func TestDisplayNameFor(t *testing.T) {
 	t.Run("Returns 'Title (id)' for a document with a title", func(t *testing.T) {
 		RegisterTestingT(t)
-		got := displayNameFor(&geni.DocumentResponse{Id: "document-1", Title: "Birth Certificate"})
+		got := displayNameFor(&genidocument.Document{ID: "document-1", Title: "Birth Certificate"})
 		Expect(got).To(Equal("Birth Certificate (document-1)"))
 	})
 
 	t.Run("Falls back to the bare ID when title is empty", func(t *testing.T) {
 		RegisterTestingT(t)
-		got := displayNameFor(&geni.DocumentResponse{Id: "document-2"})
+		got := displayNameFor(&genidocument.Document{ID: "document-2"})
 		Expect(got).To(Equal("document-2"))
 	})
 }
@@ -53,7 +53,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Populates Identity with the document ID", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geni.DocumentResponse{Id: "document-42", Title: "Test Doc"}
+		givenResponse := &genidocument.Document{ID: "document-42", Title: "Test Doc"}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 
@@ -69,7 +69,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Sets a human-readable DisplayName", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geni.DocumentResponse{Id: "document-42", Title: "Test Doc"}
+		givenResponse := &genidocument.Document{ID: "document-42", Title: "Test Doc"}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 
@@ -80,8 +80,8 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Populates Resource via ValueFrom when IncludeResource is true", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, true)
-		givenResponse := &geni.DocumentResponse{
-			Id:          "document-43",
+		givenResponse := &genidocument.Document{
+			ID:          "document-43",
 			Title:       "Birth Certificate",
 			ContentType: ptr("image/png"),
 		}

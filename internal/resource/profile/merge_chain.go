@@ -3,7 +3,7 @@ package profile
 import (
 	"context"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
 // FollowMergedInto walks the merged_into chain starting from initial, fetching
@@ -18,10 +18,10 @@ import (
 // the error so callers can include identity information in diagnostics.
 func FollowMergedInto(
 	ctx context.Context,
-	initial *geni.ProfileResponse,
-	fetch func(context.Context, string) (*geni.ProfileResponse, error),
+	initial *geniprofile.Profile,
+	fetch func(context.Context, string) (*geniprofile.Profile, error),
 	maxHops int,
-) (*geni.ProfileResponse, error) {
+) (*geniprofile.Profile, error) {
 	current := initial
 	for i := 0; i < maxHops && current.Deleted && current.MergedInto != ""; i++ {
 		next, err := fetch(ctx, current.MergedInto)

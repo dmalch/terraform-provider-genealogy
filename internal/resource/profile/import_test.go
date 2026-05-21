@@ -8,12 +8,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
 func TestValidateProfileImportID(t *testing.T) {
 	t.Run("Not-found from fetch produces an error diagnostic", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
+		fetch := func(_ context.Context, _ string) (*geniprofile.Profile, error) {
 			return nil, geni.ErrResourceNotFound
 		}
 
@@ -24,7 +25,7 @@ func TestValidateProfileImportID(t *testing.T) {
 
 	t.Run("Transport error is surfaced as an error diagnostic", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
+		fetch := func(_ context.Context, _ string) (*geniprofile.Profile, error) {
 			return nil, errors.New("network exploded")
 		}
 
@@ -35,8 +36,8 @@ func TestValidateProfileImportID(t *testing.T) {
 
 	t.Run("Empty response Id is treated as not-found", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, _ string) (*geni.ProfileResponse, error) {
-			return &geni.ProfileResponse{}, nil
+		fetch := func(_ context.Context, _ string) (*geniprofile.Profile, error) {
+			return &geniprofile.Profile{}, nil
 		}
 
 		diags := validateProfileImportID(t.Context(), "profile-missing", fetch)
@@ -46,8 +47,8 @@ func TestValidateProfileImportID(t *testing.T) {
 
 	t.Run("Successful fetch yields no diagnostics", func(t *testing.T) {
 		RegisterTestingT(t)
-		fetch := func(_ context.Context, id string) (*geni.ProfileResponse, error) {
-			return &geni.ProfileResponse{Id: id}, nil
+		fetch := func(_ context.Context, id string) (*geniprofile.Profile, error) {
+			return &geniprofile.Profile{ID: id}, nil
 		}
 
 		diags := validateProfileImportID(t.Context(), "profile-42", fetch)

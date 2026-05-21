@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
 // listRequest builds a list.ListRequest carrying the live managed-resource
@@ -39,8 +39,8 @@ func listRequest(t *testing.T, includeResource bool) list.ListRequest {
 func TestDisplayNameFor(t *testing.T) {
 	t.Run("Returns 'First Last (id)' for an en-US profile", func(t *testing.T) {
 		RegisterTestingT(t)
-		got := displayNameFor(&geni.ProfileResponse{
-			Id:        "profile-1",
+		got := displayNameFor(&geniprofile.Profile{
+			ID:        "profile-1",
 			FirstName: ptr("John"),
 			LastName:  ptr("Doe"),
 		})
@@ -49,9 +49,9 @@ func TestDisplayNameFor(t *testing.T) {
 
 	t.Run("Prefers the en-US locale entry from a localized names map", func(t *testing.T) {
 		RegisterTestingT(t)
-		got := displayNameFor(&geni.ProfileResponse{
-			Id: "profile-2",
-			Names: map[string]geni.NameElement{
+		got := displayNameFor(&geniprofile.Profile{
+			ID: "profile-2",
+			Names: map[string]geniprofile.NameElement{
 				"fr":    {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
 				"en-US": {FirstName: ptr("John"), LastName: ptr("Doe")},
 			},
@@ -61,7 +61,7 @@ func TestDisplayNameFor(t *testing.T) {
 
 	t.Run("Falls back to the bare ID when no name fields are populated", func(t *testing.T) {
 		RegisterTestingT(t)
-		got := displayNameFor(&geni.ProfileResponse{Id: "profile-3"})
+		got := displayNameFor(&geniprofile.Profile{ID: "profile-3"})
 		Expect(got).To(Equal("profile-3"))
 	})
 }
@@ -70,7 +70,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Populates Identity with the profile ID", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geni.ProfileResponse{Id: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
+		givenResponse := &geniprofile.Profile{ID: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 
@@ -86,7 +86,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Sets a human-readable DisplayName", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geni.ProfileResponse{Id: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
+		givenResponse := &geniprofile.Profile{ID: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 
@@ -97,8 +97,8 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Populates Resource via ValueFrom when IncludeResource is true", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, true)
-		givenResponse := &geni.ProfileResponse{
-			Id:        "profile-43",
+		givenResponse := &geniprofile.Profile{
+			ID:        "profile-43",
 			Public:    true,
 			FirstName: ptr("John"),
 			LastName:  ptr("Doe"),
@@ -123,7 +123,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Leaves Resource at its schema-null default when IncludeResource is false", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geni.ProfileResponse{Id: "profile-44", FirstName: ptr("John"), LastName: ptr("Doe")}
+		givenResponse := &geniprofile.Profile{ID: "profile-44", FirstName: ptr("John"), LastName: ptr("Doe")}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 

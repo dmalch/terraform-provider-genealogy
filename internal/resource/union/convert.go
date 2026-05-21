@@ -6,15 +6,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/go-geni"
+	geniunion "github.com/dmalch/go-geni/union"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
-func ValueFrom(ctx context.Context, union *geni.UnionResponse, unionModel *ResourceModel) diag.Diagnostics {
+func ValueFrom(ctx context.Context, union *geniunion.Union, unionModel *ResourceModel) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	if union.Id != "" {
-		unionModel.ID = types.StringValue(union.Id)
+	if union.ID != "" {
+		unionModel.ID = types.StringValue(union.ID)
 	}
 
 	tagged := make(map[string]struct{}, len(union.FosterChildren)+len(union.AdoptedChildren))
@@ -51,10 +51,10 @@ func ValueFrom(ctx context.Context, union *geni.UnionResponse, unionModel *Resou
 	return d
 }
 
-func UpdateComputedFields(ctx context.Context, union *geni.UnionResponse, unionModel *ResourceModel) diag.Diagnostics {
+func UpdateComputedFields(ctx context.Context, union *geniunion.Union, unionModel *ResourceModel) diag.Diagnostics {
 	var d diag.Diagnostics
 
-	unionModel.ID = types.StringValue(union.Id)
+	unionModel.ID = types.StringValue(union.ID)
 
 	if union.Marriage != nil {
 		marriage, diags := event.UpdateComputedFieldsInEvent(ctx, unionModel.Marriage, union.Marriage)
@@ -71,7 +71,7 @@ func UpdateComputedFields(ctx context.Context, union *geni.UnionResponse, unionM
 	return d
 }
 
-func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, diag.Diagnostics) {
+func RequestFrom(ctx context.Context, plan ResourceModel) (*geniunion.Request, diag.Diagnostics) {
 	var d diag.Diagnostics
 
 	marriage, diags := event.ElementFrom(ctx, plan.Marriage)
@@ -80,7 +80,7 @@ func RequestFrom(ctx context.Context, plan ResourceModel) (*geni.UnionRequest, d
 	divorce, diags := event.ElementFrom(ctx, plan.Divorce)
 	d.Append(diags...)
 
-	unionRequest := geni.UnionRequest{
+	unionRequest := geniunion.Request{
 		Marriage: marriage,
 		Divorce:  divorce,
 	}

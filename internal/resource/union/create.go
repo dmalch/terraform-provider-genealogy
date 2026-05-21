@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
 // Create creates the resource.
@@ -30,14 +30,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		// so we need to create a temporary partner profile and then merge it with the
 		// existing second partner profile.
 
-		tmpProfile, err := r.client.AddPartner(ctx, partnerIds[0])
+		tmpProfile, err := r.client.Profile().AddPartner(ctx, partnerIds[0])
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 			return
 		}
 
 		// Merge the temporary profile with the second partner
-		if err := r.client.MergeProfiles(ctx, partnerIds[1], tmpProfile.Id); err != nil {
+		if err := r.client.Profile().Merge(ctx, partnerIds[1], tmpProfile.ID); err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
 			return
 		}
@@ -82,7 +82,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 			modifier := modifierFor(childId, fosterSet, adoptedSet)
 
-			var tmpProfile *geni.ProfileResponse
+			var tmpProfile *geniprofile.Profile
 
 			// If the union already exists, we can add children to it
 			if !plan.ID.IsUnknown() && !plan.ID.IsNull() {
@@ -90,7 +90,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 				// we need to create a temporary child profile and then merge it with the
 				// existing child profile.
 				var err error
-				tmpProfile, err = r.client.AddChild(ctx, plan.ID.ValueString(), geni.WithModifier(modifier))
+				tmpProfile, err = r.client.Union().AddChild(ctx, plan.ID.ValueString(), geniprofile.WithModifier(modifier))
 				if err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return
@@ -102,7 +102,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddChild(ctx, partnerIds[0], geni.WithModifier(modifier))
+					tmpProfile, err = r.client.Profile().AddChild(ctx, partnerIds[0], geniprofile.WithModifier(modifier))
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 						return
@@ -114,7 +114,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 					// so we need to create a temporary child profile and then merge it with the
 					// existing child profile.
 					var err error
-					tmpProfile, err = r.client.AddSibling(ctx, allChildrenIds[i+1], geni.WithModifier(modifier))
+					tmpProfile, err = r.client.Profile().AddSibling(ctx, allChildrenIds[i+1], geniprofile.WithModifier(modifier))
 					if err != nil {
 						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 						return
@@ -126,7 +126,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			}
 
 			// Merge the temporary profile with the child profile
-			if err := r.client.MergeProfiles(ctx, childId, tmpProfile.Id); err != nil {
+			if err := r.client.Profile().Merge(ctx, childId, tmpProfile.ID); err != nil {
 				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
 				return
 			}
@@ -144,7 +144,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			return
 		}
 
-		unionResponse, err := r.client.UpdateUnion(ctx, plan.ID.ValueString(), unionRequest)
+		unionResponse, err := r.client.Union().Update(ctx, plan.ID.ValueString(), unionRequest)
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating union", err.Error())
 			return
