@@ -116,6 +116,28 @@ func LocationSchema(description string) schema.SingleNestedAttribute {
 	}
 }
 
+// ComputedLocationSchema is the read-only counterpart of LocationSchema, for
+// resources where the Geni API returns a location but does not accept one as
+// input (e.g. photos).
+func ComputedLocationSchema(description string) schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Computed: true,
+		Attributes: map[string]schema.Attribute{
+			"city":            schema.StringAttribute{Computed: true, Description: "City name."},
+			"country":         schema.StringAttribute{Computed: true, Description: "Country name."},
+			"county":          schema.StringAttribute{Computed: true, Description: "County name."},
+			"latitude":        schema.Float64Attribute{Computed: true, Description: "Latitude coordinate."},
+			"longitude":       schema.Float64Attribute{Computed: true, Description: "Longitude coordinate."},
+			"place_name":      schema.StringAttribute{Computed: true, Description: "Place name."},
+			"state":           schema.StringAttribute{Computed: true, Description: "State name."},
+			"street_address1": schema.StringAttribute{Computed: true, Description: "First line of the street address."},
+			"street_address2": schema.StringAttribute{Computed: true, Description: "Second line of the street address."},
+			"street_address3": schema.StringAttribute{Computed: true, Description: "Third line of the street address."},
+		},
+		Description: description,
+	}
+}
+
 func DateSchema(description string) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional: true,

@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
@@ -51,6 +52,80 @@ func TestAccPhoto_createPhotoWithDescription(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue("geni_photo.test", tfjsonpath.New("description"),
 						knownvalue.StringExact("A photo created by the acceptance test suite.")),
+				},
+			},
+		},
+	})
+}
+
+func TestAccPhoto_updatePhoto(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckPhotoDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_photo" "test" {
+					  title     = "Original title"
+					  file      = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_photo.test", tfjsonpath.New("title"),
+						knownvalue.StringExact("Original title")),
+				},
+			},
+			{
+				Config: `
+					resource "geni_photo" "test" {
+					  title       = "Updated title"
+					  description = "Updated description"
+					  file        = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name   = "cs-white-fff.png"
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_photo.test", tfjsonpath.New("title"),
+						knownvalue.StringExact("Updated title")),
+					statecheck.ExpectKnownValue("geni_photo.test", tfjsonpath.New("description"),
+						knownvalue.StringExact("Updated description")),
+				},
+			},
+		},
+	})
+}
+
+func TestAccPhoto_createPhotoTaggedWithProfile(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckPhotoDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_profile" "subject" {
+					  names = {
+						"en-US" = {
+						  first_name = "Photo"
+						  last_name  = "Subject"
+						}
+					  }
+					  alive  = false
+					  public = true
+					}
+
+					resource "geni_photo" "test" {
+					  title     = "Tagged photo"
+					  file      = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					  profiles  = [geni_profile.subject.id]
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_photo.test", tfjsonpath.New("profiles"),
+						knownvalue.SetSizeExact(1)),
+					statecheck.CompareValueCollection("geni_photo.test", []tfjsonpath.Path{tfjsonpath.New("profiles")},
+						"geni_profile.subject", tfjsonpath.New("id"), compare.ValuesSame()),
 				},
 			},
 		},

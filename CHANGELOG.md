@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* New resource `geni_photo`: manage Geni photos as code. Upload an image as a base64 `file` with a `file_name`, set `title` / `description` / `date` / `album`, and tag profiles via `profiles`. Supports `terraform import` and the standard create/read/update/delete lifecycle; the photo binary is set at creation, so changing `file` replaces the photo. (#119)
+* New resource `geni_photo` and list resource `geni_photo`: manage Geni photos as code. Upload an image as a base64 `file` with a `file_name`, set `title` / `description` / `date` / `album`, and tag profiles via `profiles`; `location`, `guid`, `content_type`, `url`, and `sizes` are exposed as computed attributes. Supports `terraform import`, `terraform query` (the list resource), and the standard create/read/update/delete lifecycle. The photo binary is set at creation, so changing `file` replaces the photo. (#119, #120)
 
 ## 0.21.6
 

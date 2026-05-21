@@ -132,6 +132,7 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		go p.batchClient.UnionBulkProcessor(context.Background())
 		go p.batchClient.ProfileBulkProcessor(context.Background())
 		go p.batchClient.DocumentBulkProcessor(context.Background())
+		go p.batchClient.PhotoBulkProcessor(context.Background())
 	})
 
 	if p.initErr != nil {
@@ -205,5 +206,6 @@ func (p *GeniProvider) ListResources(_ context.Context) []func() list.ListResour
 	return []func() list.ListResource{
 		profile.NewListResource,
 		document.NewListResource,
+		photo.NewListResource,
 	}
 }

@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 var photoIdFormat = regexp.MustCompile(`^photo-\d+$`)
@@ -64,6 +66,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:    true,
 				Description: "The set of profile IDs tagged in the photo.",
 			},
+			"location": event.ComputedLocationSchema("The photo's location, as recorded by Geni. Read-only — the Geni photo API does not accept a location."),
 			"guid": schema.StringAttribute{
 				Computed:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
