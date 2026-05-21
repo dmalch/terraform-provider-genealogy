@@ -1,5 +1,9 @@
 ## 0.21.3 (Unreleased)
 
+BUG FIXES:
+
+* Batch client: a panic inside a batch-read worker goroutine is now recovered and delivered as an error to every request in that batch. Previously an unrecovered panic in a worker would crash the entire provider process and strand every concurrent read waiting on its response channel. (#112)
+
 ## 0.21.2
 
 IMPROVEMENTS:
