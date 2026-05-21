@@ -6,11 +6,17 @@ NC:=\033[0m # No Color
 GOLANGCI_LINT_VERSION := v2.11.4
 GOLANGCI_LINT := bin/golangci-lint
 
+# VERSION and PLATFORM feed build-local's Terraform filesystem-mirror path, so it
+# always matches the latest release tag and the host platform instead of a stale
+# hardcoded value. VERSION falls back to 0.0.0-dev when no tag is reachable.
+VERSION := $(or $(patsubst v%,%,$(shell git describe --tags --abbrev=0 2>/dev/null)),0.0.0-dev)
+PLATFORM := $(shell go env GOOS)_$(shell go env GOARCH)
+
 .PHONY: build-local
 build-local:
 	@echo "${WHITE}=====================${NC}"
 	@echo "${YELLOW}Building...${NC}"
-	go build -o bin/registry.terraform.io/dmalch/geni/0.6.4/darwin_arm64/terraform-provider-genealogy
+	go build -o bin/registry.terraform.io/dmalch/geni/$(VERSION)/$(PLATFORM)/terraform-provider-genealogy
 	@echo "${YELLOW}Building...${NC} ${GREEN}Done${NC}"
 
 .PHONY: build
