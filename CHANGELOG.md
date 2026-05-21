@@ -1,5 +1,9 @@
 ## 0.21.7 (Unreleased)
 
+FEATURES:
+
+* New resource `geni_photo`: manage Geni photos as code. Upload an image as a base64 `file` with a `file_name`, set `title` / `description` / `date` / `album`, and tag profiles via `profiles`. Supports `terraform import` and the standard create/read/update/delete lifecycle; the photo binary is set at creation, so changing `file` replaces the photo. (#119)
+
 ## 0.21.6
 
 BUG FIXES:

@@ -129,6 +129,16 @@ resource "geni_document" "example" {
     geni_profile.child1.id
   ]
 }
+
+resource "geni_photo" "example" {
+  title     = "Family Reunion"
+  file      = filebase64("${path.module}/reunion.jpg")
+  file_name = "reunion.jpg"
+  profiles = [
+    geni_profile.mother.id,
+    geni_profile.father.id,
+  ]
+}
 ```
 
 A document can be created from exactly one of `source_url`, `text` (inline

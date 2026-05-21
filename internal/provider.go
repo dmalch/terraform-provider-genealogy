@@ -22,6 +22,7 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/photo"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/union"
 )
@@ -189,6 +190,7 @@ func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {
 		profile.NewProfileResource,
 		union.NewUnionResource,
 		document.NewResource,
+		photo.NewResource,
 	}
 }
 
