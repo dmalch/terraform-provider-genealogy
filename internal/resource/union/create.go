@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	geniprofile "github.com/dmalch/go-geni/profile"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 // Create creates the resource.
@@ -18,7 +19,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	partnerIds, diags := convertToSlice(ctx, plan.Partners)
+	partnerIds, diags := tfset.Strings(ctx, plan.Partners)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -48,17 +49,17 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	// Set the children. If the union already exists and has children, we can set
 	// them by calling the union/add-child API. If not, we can use profile/add-child
 	// on a parent profile.
-	childrenIds, diags := convertToSlice(ctx, plan.Children)
+	childrenIds, diags := tfset.Strings(ctx, plan.Children)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	fosterIds, diags := convertToSlice(ctx, plan.FosterChildren)
+	fosterIds, diags := tfset.Strings(ctx, plan.FosterChildren)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	adoptedIds, diags := convertToSlice(ctx, plan.AdoptedChildren)
+	adoptedIds, diags := tfset.Strings(ctx, plan.AdoptedChildren)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -69,8 +70,8 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	allChildrenIds = append(allChildrenIds, fosterIds...)
 	allChildrenIds = append(allChildrenIds, adoptedIds...)
 
-	fosterSet := hashMapFrom(fosterIds)
-	adoptedSet := hashMapFrom(adoptedIds)
+	fosterSet := tfset.Index(fosterIds)
+	adoptedSet := tfset.Index(adoptedIds)
 
 	if len(allChildrenIds) > 0 {
 		var skipNextIteration bool

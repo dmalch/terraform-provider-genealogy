@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 // Update updates the resource.
@@ -31,7 +33,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	projectIds, diags := convertToSlice(ctx, plan.Projects)
+	projectIds, diags := tfset.Strings(ctx, plan.Projects)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -51,19 +53,19 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	// Check if profile IDs have changed
 	if !state.Profiles.Equal(plan.Profiles) {
-		planProfileIds, diags := convertToSlice(ctx, plan.Profiles)
+		planProfileIds, diags := tfset.Strings(ctx, plan.Profiles)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		knownPlanProfileIds := hashMapFrom(planProfileIds)
+		knownPlanProfileIds := tfset.Index(planProfileIds)
 
-		stateProfileIds, diags := convertToSlice(ctx, state.Profiles)
+		stateProfileIds, diags := tfset.Strings(ctx, state.Profiles)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		knownStateProfileIds := hashMapFrom(stateProfileIds)
+		knownStateProfileIds := tfset.Index(stateProfileIds)
 
 		// Untag profiles that are no longer associated with the document
 		for profileId := range knownStateProfileIds {

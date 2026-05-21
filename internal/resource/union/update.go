@@ -8,6 +8,7 @@ import (
 
 	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 // Update updates the resource.
@@ -32,19 +33,19 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	// Check if parents were updated
 	if !plan.Partners.Equal(state.Partners) {
-		planPartnerIds, diags := convertToSlice(ctx, plan.Partners)
+		planPartnerIds, diags := tfset.Strings(ctx, plan.Partners)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		knownPlanPartnerIds := hashMapFrom(planPartnerIds)
+		knownPlanPartnerIds := tfset.Index(planPartnerIds)
 
-		statePartnerIds, diags := convertToSlice(ctx, state.Partners)
+		statePartnerIds, diags := tfset.Strings(ctx, state.Partners)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		knownStatePartnerIds := hashMapFrom(statePartnerIds)
+		knownStatePartnerIds := tfset.Index(statePartnerIds)
 
 		for _, partnerId := range statePartnerIds {
 			// If the partner is not in the plan, fail the update because we can't remove
@@ -90,33 +91,33 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		!plan.FosterChildren.Equal(state.FosterChildren) ||
 		!plan.AdoptedChildren.Equal(state.AdoptedChildren) {
 
-		planBio, diags := convertToSlice(ctx, plan.Children)
+		planBio, diags := tfset.Strings(ctx, plan.Children)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		planFoster, diags := convertToSlice(ctx, plan.FosterChildren)
+		planFoster, diags := tfset.Strings(ctx, plan.FosterChildren)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		planAdopted, diags := convertToSlice(ctx, plan.AdoptedChildren)
+		planAdopted, diags := tfset.Strings(ctx, plan.AdoptedChildren)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 
-		stateBio, diags := convertToSlice(ctx, state.Children)
+		stateBio, diags := tfset.Strings(ctx, state.Children)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		stateFoster, diags := convertToSlice(ctx, state.FosterChildren)
+		stateFoster, diags := tfset.Strings(ctx, state.FosterChildren)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		stateAdopted, diags := convertToSlice(ctx, state.AdoptedChildren)
+		stateAdopted, diags := tfset.Strings(ctx, state.AdoptedChildren)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -125,8 +126,8 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		planAll := append(append(append([]string{}, planBio...), planFoster...), planAdopted...)
 		stateAll := append(append(append([]string{}, stateBio...), stateFoster...), stateAdopted...)
 
-		knownPlanAll := hashMapFrom(planAll)
-		knownStateAll := hashMapFrom(stateAll)
+		knownPlanAll := tfset.Index(planAll)
+		knownStateAll := tfset.Index(stateAll)
 
 		for _, childId := range stateAll {
 			// If the child is not in the plan, fail the update because we can't remove
@@ -136,8 +137,8 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 			}
 		}
 
-		fosterSet := hashMapFrom(planFoster)
-		adoptedSet := hashMapFrom(planAdopted)
+		fosterSet := tfset.Index(planFoster)
+		adoptedSet := tfset.Index(planAdopted)
 
 		for _, childId := range planAll {
 			// If the child is not in the state, we need to add it

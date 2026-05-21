@@ -10,6 +10,7 @@ import (
 	geniprofile "github.com/dmalch/go-geni/profile"
 	geniunion "github.com/dmalch/go-geni/union"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 func ptr[T any](s T) *T {
@@ -120,15 +121,15 @@ func TestValueFrom(t *testing.T) {
 
 		Expect(diags.HasError()).To(BeFalse())
 
-		bio, d := convertToSlice(t.Context(), model.Children)
+		bio, d := tfset.Strings(t.Context(), model.Children)
 		Expect(d.HasError()).To(BeFalse())
 		Expect(bio).To(ConsistOf("profile-3", "profile-6"))
 
-		foster, d := convertToSlice(t.Context(), model.FosterChildren)
+		foster, d := tfset.Strings(t.Context(), model.FosterChildren)
 		Expect(d.HasError()).To(BeFalse())
 		Expect(foster).To(ConsistOf("profile-4"))
 
-		adopted, d := convertToSlice(t.Context(), model.AdoptedChildren)
+		adopted, d := tfset.Strings(t.Context(), model.AdoptedChildren)
 		Expect(d.HasError()).To(BeFalse())
 		Expect(adopted).To(ConsistOf("profile-5"))
 	})
@@ -207,7 +208,7 @@ func TestValueFrom(t *testing.T) {
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(model.Children.IsNull()).To(BeTrue())
 
-		foster, d := convertToSlice(t.Context(), model.FosterChildren)
+		foster, d := tfset.Strings(t.Context(), model.FosterChildren)
 		Expect(d.HasError()).To(BeFalse())
 		Expect(foster).To(ConsistOf("profile-1"))
 	})
@@ -355,32 +356,6 @@ func TestRequestFrom(t *testing.T) {
 	})
 }
 
-func TestHashMapFrom(t *testing.T) {
-	t.Run("Creates a hash map from a slice", func(t *testing.T) {
-		RegisterTestingT(t)
-		result := hashMapFrom([]string{"a", "b", "c"})
-
-		Expect(result).To(HaveLen(3))
-		Expect(result).To(HaveKey("a"))
-		Expect(result).To(HaveKey("b"))
-		Expect(result).To(HaveKey("c"))
-	})
-
-	t.Run("Deduplicates entries", func(t *testing.T) {
-		RegisterTestingT(t)
-		result := hashMapFrom([]string{"a", "a", "b"})
-
-		Expect(result).To(HaveLen(2))
-	})
-
-	t.Run("Returns empty map for empty slice", func(t *testing.T) {
-		RegisterTestingT(t)
-		result := hashMapFrom([]string{})
-
-		Expect(result).To(BeEmpty())
-	})
-}
-
 func TestModifierFor(t *testing.T) {
 	RegisterTestingT(t)
 	plan := ResourceModel{
@@ -389,13 +364,13 @@ func TestModifierFor(t *testing.T) {
 		AdoptedChildren: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("adopted-1")}),
 	}
 
-	foster, err := convertToSlice(t.Context(), plan.FosterChildren)
+	foster, err := tfset.Strings(t.Context(), plan.FosterChildren)
 	Expect(err.HasError()).To(BeFalse())
-	adopted, err := convertToSlice(t.Context(), plan.AdoptedChildren)
+	adopted, err := tfset.Strings(t.Context(), plan.AdoptedChildren)
 	Expect(err.HasError()).To(BeFalse())
 
-	fosterSet := hashMapFrom(foster)
-	adoptedSet := hashMapFrom(adopted)
+	fosterSet := tfset.Index(foster)
+	adoptedSet := tfset.Index(adopted)
 
 	Expect(modifierFor("foster-1", fosterSet, adoptedSet)).To(Equal("foster"))
 	Expect(modifierFor("adopted-1", fosterSet, adoptedSet)).To(Equal("adopt"))
@@ -465,32 +440,5 @@ func TestChildrenWithChangedModifier(t *testing.T) {
 			AdoptedChildren: types.SetNull(types.StringType),
 		}
 		Expect(childrenWithChangedModifier(t.Context(), plan, state)).To(BeEmpty())
-	})
-}
-
-func TestConvertToSlice(t *testing.T) {
-	t.Run("Converts a set to a slice", func(t *testing.T) {
-		RegisterTestingT(t)
-		set := types.SetValueMust(types.StringType, []attr.Value{
-			types.StringValue("a"),
-			types.StringValue("b"),
-			types.StringValue("c"),
-		})
-
-		result, diags := convertToSlice(t.Context(), set)
-
-		Expect(diags.HasError()).To(BeFalse())
-		Expect(result).To(HaveLen(3))
-		Expect(result).To(ContainElements("a", "b", "c"))
-	})
-
-	t.Run("Returns empty slice for empty set", func(t *testing.T) {
-		RegisterTestingT(t)
-		set := types.SetValueMust(types.StringType, []attr.Value{})
-
-		result, diags := convertToSlice(t.Context(), set)
-
-		Expect(diags.HasError()).To(BeFalse())
-		Expect(result).To(BeEmpty())
 	})
 }

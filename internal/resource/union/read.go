@@ -13,6 +13,7 @@ import (
 	"github.com/dmalch/go-geni"
 	geniprofile "github.com/dmalch/go-geni/profile"
 	geniunion "github.com/dmalch/go-geni/union"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 // Read reads the resource.
@@ -84,7 +85,7 @@ func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners ty
 	var diags diag.Diagnostics
 
 	// Attempt to find an existing union for partners in the state
-	partnerIds, diags := convertToSlice(ctx, partners)
+	partnerIds, diags := tfset.Strings(ctx, partners)
 	if diags.HasError() {
 		return "", diags
 	}

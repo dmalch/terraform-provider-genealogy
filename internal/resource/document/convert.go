@@ -9,6 +9,7 @@ import (
 
 	genidocument "github.com/dmalch/go-geni/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
+	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
 func ValueFrom(ctx context.Context, response *genidocument.Document, model *ResourceModel) diag.Diagnostics {
@@ -50,7 +51,7 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*genidocumen
 	locationModel, diags := event.LocationObjectValueFrom(ctx, resourceModel.Location)
 	d.Append(diags...)
 
-	labelModels, diags := convertToSlice(ctx, resourceModel.Labels)
+	labelModels, diags := tfset.Strings(ctx, resourceModel.Labels)
 	d.Append(diags...)
 
 	var labels *string
@@ -74,25 +75,6 @@ func RequestFrom(ctx context.Context, resourceModel ResourceModel) (*genidocumen
 	}
 
 	return documentRequest, d
-}
-
-func convertToSlice(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
-	if len(set.Elements()) == 0 {
-		return nil, diag.Diagnostics{}
-	}
-
-	var slice = make([]string, len(set.Elements()))
-	diags := set.ElementsAs(ctx, &slice, false)
-
-	return slice, diags
-}
-
-func hashMapFrom(slice []string) map[string]struct{} {
-	hashMap := make(map[string]struct{}, len(slice))
-	for _, elem := range slice {
-		hashMap[elem] = struct{}{}
-	}
-	return hashMap
 }
 
 func UpdateComputedFields(ctx context.Context, response *genidocument.Document, resourceModel *ResourceModel) diag.Diagnostics {
