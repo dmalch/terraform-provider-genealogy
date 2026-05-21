@@ -15,35 +15,25 @@ import (
 
 type Client struct {
 	client           *geni.Client
-	unionRequests    chan unionAsyncRequest
-	profileRequests  chan profileAsyncRequest
-	documentRequests chan documentAsyncRequest
+	unionRequests    chan asyncRequest[geniunion.Union]
+	profileRequests  chan asyncRequest[geniprofile.Profile]
+	documentRequests chan asyncRequest[genidocument.Document]
 }
 
 func NewClient(client *geni.Client) *Client {
 	return &Client{
 		client:           client,
-		unionRequests:    make(chan unionAsyncRequest),
-		profileRequests:  make(chan profileAsyncRequest),
-		documentRequests: make(chan documentAsyncRequest),
+		unionRequests:    make(chan asyncRequest[geniunion.Union]),
+		profileRequests:  make(chan asyncRequest[geniprofile.Profile]),
+		documentRequests: make(chan asyncRequest[genidocument.Document]),
 	}
 }
 
-type unionAsyncRequest struct {
+// asyncRequest is a single batched read awaiting fulfilment by a batch worker.
+// Exactly one value is ever delivered, on Response or on Error.
+type asyncRequest[T any] struct {
 	Id       string
-	Response chan *geniunion.Union
-	Error    chan error
-}
-
-type profileAsyncRequest struct {
-	Id       string
-	Response chan *geniprofile.Profile
-	Error    chan error
-}
-
-type documentAsyncRequest struct {
-	Id       string
-	Response chan *genidocument.Document
+	Response chan *T
 	Error    chan error
 }
 
@@ -51,7 +41,7 @@ func (c *Client) GetUnion(ctx context.Context, id string) (*geniunion.Union, err
 	response := make(chan *geniunion.Union)
 	errors := make(chan error)
 
-	c.unionRequests <- unionAsyncRequest{
+	c.unionRequests <- asyncRequest[geniunion.Union]{
 		Id:       id,
 		Response: response,
 		Error:    errors,
@@ -73,7 +63,7 @@ func (c *Client) GetProfile(ctx context.Context, id string) (*geniprofile.Profil
 	response := make(chan *geniprofile.Profile)
 	errors := make(chan error)
 
-	c.profileRequests <- profileAsyncRequest{
+	c.profileRequests <- asyncRequest[geniprofile.Profile]{
 		Id:       id,
 		Response: response,
 		Error:    errors,
@@ -95,7 +85,7 @@ func (c *Client) GetDocument(ctx context.Context, id string) (*genidocument.Docu
 	response := make(chan *genidocument.Document)
 	errors := make(chan error)
 
-	c.documentRequests <- documentAsyncRequest{
+	c.documentRequests <- asyncRequest[genidocument.Document]{
 		Id:       id,
 		Response: response,
 		Error:    errors,
@@ -116,7 +106,7 @@ func (c *Client) GetDocument(ctx context.Context, id string) (*genidocument.Docu
 const batchSize = 50
 
 func (c *Client) UnionBulkProcessor(ctx context.Context) {
-	batch := make([]unionAsyncRequest, 0, batchSize)
+	batch := make([]asyncRequest[geniunion.Union], 0, batchSize)
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -126,7 +116,7 @@ func (c *Client) UnionBulkProcessor(ctx context.Context) {
 			batch = append(batch, req)
 			if len(batch) >= batchSize {
 				// copy the batch to a new slice
-				requests := make([]unionAsyncRequest, len(batch))
+				requests := make([]asyncRequest[geniunion.Union], len(batch))
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
@@ -135,7 +125,7 @@ func (c *Client) UnionBulkProcessor(ctx context.Context) {
 		case <-ticker.C:
 			if len(batch) > 0 {
 				// copy the batch to a new slice
-				requests := make([]unionAsyncRequest, len(batch))
+				requests := make([]asyncRequest[geniunion.Union], len(batch))
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
@@ -152,7 +142,7 @@ func (c *Client) UnionBulkProcessor(ctx context.Context) {
 }
 
 func (c *Client) ProfileBulkProcessor(ctx context.Context) {
-	batch := make([]profileAsyncRequest, 0, batchSize)
+	batch := make([]asyncRequest[geniprofile.Profile], 0, batchSize)
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -162,7 +152,7 @@ func (c *Client) ProfileBulkProcessor(ctx context.Context) {
 			batch = append(batch, req)
 			if len(batch) >= batchSize {
 				// copy the batch to a new slice
-				requests := make([]profileAsyncRequest, len(batch))
+				requests := make([]asyncRequest[geniprofile.Profile], len(batch))
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
@@ -171,7 +161,7 @@ func (c *Client) ProfileBulkProcessor(ctx context.Context) {
 		case <-ticker.C:
 			if len(batch) > 0 {
 				// copy the batch to a new slice
-				requests := make([]profileAsyncRequest, len(batch))
+				requests := make([]asyncRequest[geniprofile.Profile], len(batch))
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
@@ -188,7 +178,7 @@ func (c *Client) ProfileBulkProcessor(ctx context.Context) {
 }
 
 func (c *Client) DocumentBulkProcessor(ctx context.Context) {
-	batch := make([]documentAsyncRequest, 0, batchSize)
+	batch := make([]asyncRequest[genidocument.Document], 0, batchSize)
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -198,7 +188,7 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 			batch = append(batch, req)
 			if len(batch) >= batchSize {
 				// copy the batch to a new slice
-				requests := make([]documentAsyncRequest, len(batch))
+				requests := make([]asyncRequest[genidocument.Document], len(batch))
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
@@ -207,7 +197,7 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 		case <-ticker.C:
 			if len(batch) > 0 {
 				// copy the batch to a new slice
-				requests := make([]documentAsyncRequest, len(batch))
+				requests := make([]asyncRequest[genidocument.Document], len(batch))
 				copy(requests, batch)
 				batch = batch[:0] // Reset batch
 
@@ -223,7 +213,33 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 	}
 }
 
-func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncRequest) {
+// recoverBatch converts a panic in a batch worker into an error delivered to
+// every request in the batch. Batch workers run in their own goroutines, so an
+// unrecovered panic would crash the entire provider process. Because a worker
+// only panics before it has answered any request (the panic-prone work — the
+// API call — happens up front, before any channel send), broadcasting the error
+// also unblocks every caller that would otherwise wait forever on its response
+// channel. The send is abandoned if ctx is cancelled so the worker cannot leak.
+func recoverBatch[T any](ctx context.Context, kind string, batch []asyncRequest[T]) {
+	r := recover()
+	if r == nil {
+		return
+	}
+
+	err := fmt.Errorf("recovered from panic while processing %s batch: %v", kind, r)
+	tflog.Error(ctx, "Panic in batch processor", map[string]interface{}{"error": err})
+
+	for _, req := range batch {
+		select {
+		case req.Error <- err:
+		case <-ctx.Done():
+		}
+	}
+}
+
+func (c *Client) processBatchOfUnions(ctx context.Context, batch []asyncRequest[geniunion.Union]) {
+	defer recoverBatch(ctx, "union", batch)
+
 	// Create a hashset to store unique IDs
 	ids := make(map[string]struct{}, len(batch))
 	for _, req := range batch {
@@ -267,7 +283,7 @@ func (c *Client) processBatchOfUnions(ctx context.Context, batch []unionAsyncReq
 // IDs absent from the bulk results are treated as not-found, because the Geni bulk
 // endpoint silently omits missing IDs from its response — that absence is the domain
 // signal that the union no longer exists.
-func fulfillUnionRequests(batch []unionAsyncRequest, results []geniunion.Union) {
+func fulfillUnionRequests(batch []asyncRequest[geniunion.Union], results []geniunion.Union) {
 	idToResponse := make(map[string]*geniunion.Union, len(results))
 	for i := range results {
 		idToResponse[results[i].ID] = &results[i]
@@ -282,7 +298,9 @@ func fulfillUnionRequests(batch []unionAsyncRequest, results []geniunion.Union) 
 	}
 }
 
-func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyncRequest) {
+func (c *Client) processBatchOfProfiles(ctx context.Context, batch []asyncRequest[geniprofile.Profile]) {
+	defer recoverBatch(ctx, "profile", batch)
+
 	// Create a hashset to store unique IDs
 	ids := make(map[string]struct{}, len(batch))
 	for _, req := range batch {
@@ -325,7 +343,7 @@ func (c *Client) processBatchOfProfiles(ctx context.Context, batch []profileAsyn
 // fulfillProfileRequests dispatches per-request results from a bulk profile response.
 // IDs absent from the bulk results are treated as not-found, because the Geni bulk
 // endpoint silently omits missing IDs from its response.
-func fulfillProfileRequests(batch []profileAsyncRequest, results []geniprofile.Profile) {
+func fulfillProfileRequests(batch []asyncRequest[geniprofile.Profile], results []geniprofile.Profile) {
 	idToResponse := make(map[string]*geniprofile.Profile, len(results))
 	for i := range results {
 		idToResponse[results[i].ID] = &results[i]
@@ -340,7 +358,9 @@ func fulfillProfileRequests(batch []profileAsyncRequest, results []geniprofile.P
 	}
 }
 
-func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAsyncRequest) {
+func (c *Client) processBatchOfDocuments(ctx context.Context, batch []asyncRequest[genidocument.Document]) {
+	defer recoverBatch(ctx, "document", batch)
+
 	// Create a hashset to store unique IDs
 	ids := make(map[string]struct{}, len(batch))
 	for _, req := range batch {
@@ -383,7 +403,7 @@ func (c *Client) processBatchOfDocuments(ctx context.Context, batch []documentAs
 // fulfillDocumentRequests dispatches per-request results from a bulk document response.
 // IDs absent from the bulk results are treated as not-found, because the Geni bulk
 // endpoint silently omits missing IDs from its response.
-func fulfillDocumentRequests(batch []documentAsyncRequest, results []genidocument.Document) {
+func fulfillDocumentRequests(batch []asyncRequest[genidocument.Document], results []genidocument.Document) {
 	idToResponse := make(map[string]*genidocument.Document, len(results))
 	for i := range results {
 		idToResponse[results[i].ID] = &results[i]
