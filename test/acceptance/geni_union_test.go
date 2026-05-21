@@ -867,6 +867,12 @@ func TestAccUnion_createUnionWithTwoPartnersAndDetails(t *testing.T) {
 			{
 				Config: unionWithTwoPartnersAndDetails(),
 				ConfigStateChecks: []statecheck.StateCheck{
+					// Geni auto-generates the marriage/divorce event name from the
+					// partner names with non-deterministic ordering — accept either.
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("name"),
+						knownvalue.StringRegexp(regexp.MustCompile(`^Marriage of (John and Jane|Jane and John) Doe$`))),
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("divorce").AtMapKey("name"),
+						knownvalue.StringRegexp(regexp.MustCompile(`^Divorce of (John and Jane|Jane and John) Doe$`))),
 					statecheck.ExpectKnownValue("geni_profile.husband", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("John")),
 					statecheck.ExpectKnownValue("geni_profile.wife", tfjsonpath.New("names").AtMapKey("en-US").AtMapKey("first_name"), knownvalue.StringExact("Jane")),
 					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("partners"), knownvalue.SetSizeExact(2)),
@@ -911,7 +917,6 @@ func unionWithTwoPartnersAndDetails() string {
 		  ]
 
 		  marriage = {
-			name = "Marriage of John and Jane Doe"
 			date = {
 			  range = "between"
 			  year = 1980
@@ -935,7 +940,6 @@ func unionWithTwoPartnersAndDetails() string {
 		  }
 
 		  divorce = {
-			name = "Divorce of John and Jane Doe"
 			date = {
 			  range = "between"
 			  year = 1980
