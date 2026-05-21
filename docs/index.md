@@ -18,6 +18,6 @@ This provider enables managing data on Geni.com through Terraform. It exposes co
 
 - `access_token` (String, Sensitive) The Access Token for the Geni API. Can also be set with the GENI_ACCESS_TOKEN environment variable. If not provided, the provider will attempt to do a browser-based OAuth login flow.
 - `auto_update_merged_profiles` (Boolean) Whether to automatically update merged profiles in the state
-- `use_document_cache` (Boolean) Whether to use the document cache for faster lookups
-- `use_profile_cache` (Boolean) Whether to use the profile cache for faster lookups
+- `use_document_cache` (Boolean, Deprecated) Whether to use the document cache for faster lookups. Deprecated: superseded by the always-on batch client; will be removed in a future release.
+- `use_profile_cache` (Boolean, Deprecated) Whether to use the profile cache for faster lookups. Deprecated: superseded by the always-on batch client; will be removed in a future release.
 - `use_sandbox_env` (Boolean) Whether to use the Geni Sandbox environment. Can also be set with the GENI_USE_SANDBOX environment variable.
