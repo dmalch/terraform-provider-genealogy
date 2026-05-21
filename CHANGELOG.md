@@ -1,5 +1,9 @@
 ## 0.21.6 (Unreleased)
 
+BUG FIXES:
+
+* `geni_union`: a partial failure while building a union no longer leaks data on Geni. A union is assembled by creating temporary profiles and merging them into the real ones; when a `Merge` step failed, the orphan temporary profile was left live on Geni and untracked, and a failed `Create` also stranded the partially-built union — so the next apply created another. Now the orphan temporary profile is deleted on a failed merge, and a partially-built union is saved to state so Terraform tracks it and converges it on the next apply. (#118)
+
 ## 0.21.5
 
 IMPROVEMENTS:

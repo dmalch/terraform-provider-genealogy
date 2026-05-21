@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
@@ -19,6 +18,16 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
+	// A union is built by creating temporary profiles and merging them into the
+	// real ones (Geni cannot link existing profiles directly). If a step fails
+	// after the union exists, persist it so Terraform tracks the partial union
+	// instead of stranding it and creating another on the next apply.
+	defer func() {
+		if resp.Diagnostics.HasError() {
+			persistPartialUnion(ctx, resp, plan)
+		}
+	}()
+
 	partnerIds, diags := tfset.Strings(ctx, plan.Partners)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -28,22 +37,16 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	// If there are two partners, we can create a union by calling the profile/add-partner API
 	if len(plan.Partners.Elements()) == 2 {
 		// It is impossible to create a union from two existing profiles using the API,
-		// so we need to create a temporary partner profile and then merge it with the
-		// existing second partner profile.
-
-		tmpProfile, err := r.client.Profile().AddPartner(ctx, partnerIds[0])
+		// so we create a temporary partner profile and merge it with the existing
+		// second partner profile.
+		tmpProfile, err := r.addAndMerge(ctx, partnerIds[1], func(ctx context.Context) (*geniprofile.Profile, error) {
+			return r.client.Profile().AddPartner(ctx, partnerIds[0])
+		})
+		plan.ID = unionIDFrom(plan.ID, tmpProfile)
 		if err != nil {
 			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 			return
 		}
-
-		// Merge the temporary profile with the second partner
-		if err := r.client.Profile().Merge(ctx, partnerIds[1], tmpProfile.ID); err != nil {
-			resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error merging profiles", err.Error())
-			return
-		}
-
-		plan.ID = types.StringValue(tmpProfile.Unions[0])
 	}
 
 	// Set the children. If the union already exists and has children, we can set
@@ -83,57 +86,40 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 			modifier := modifierFor(childId, fosterSet, adoptedSet)
 
+			// It is impossible to add an existing child profile to a union using
+			// the API, so create a temporary child profile and merge it with the
+			// existing child profile. addAndMerge deletes the temp profile if the
+			// merge fails.
 			var tmpProfile *geniprofile.Profile
-
-			// If the union already exists, we can add children to it
-			if !plan.ID.IsUnknown() && !plan.ID.IsNull() {
-				// It is impossible to add an existing child profile to a union using the API, so
-				// we need to create a temporary child profile and then merge it with the
-				// existing child profile.
-				var err error
-				tmpProfile, err = r.client.Union().AddChild(ctx, plan.ID.ValueString(), geniprofile.WithModifier(modifier))
-				if err != nil {
-					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
-					return
-				}
-			} else {
-				// When one parent is known, we can add a child to the parent
-				if len(partnerIds) > 0 {
-					// It is impossible to add an existing child profile to a parent using the API,
-					// so we need to create a temporary child profile and then merge it with the
-					// existing child profile.
-					var err error
-					tmpProfile, err = r.client.Profile().AddChild(ctx, partnerIds[0], geniprofile.WithModifier(modifier))
-					if err != nil {
-						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
-						return
-					}
-				} else if len(partnerIds) == 0 && len(allChildrenIds) > 1 {
-					// If there are no partners, we can add a child as a sibling to the next child
-					// in the union using the profile/add-sibling API.
-					// It is impossible to add an existing child profile to a sibling using the API,
-					// so we need to create a temporary child profile and then merge it with the
-					// existing child profile.
-					var err error
-					tmpProfile, err = r.client.Profile().AddSibling(ctx, allChildrenIds[i+1], geniprofile.WithModifier(modifier))
-					if err != nil {
-						resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
-						return
-					}
-
-					// Skip the next iteration because we already added the child
-					skipNextIteration = true
-				}
+			var err error
+			switch {
+			case !plan.ID.IsUnknown() && !plan.ID.IsNull():
+				// The union already exists — add the child to it.
+				tmpProfile, err = r.addAndMerge(ctx, childId, func(ctx context.Context) (*geniprofile.Profile, error) {
+					return r.client.Union().AddChild(ctx, plan.ID.ValueString(), geniprofile.WithModifier(modifier))
+				})
+			case len(partnerIds) > 0:
+				// When one parent is known, add the child to the parent.
+				tmpProfile, err = r.addAndMerge(ctx, childId, func(ctx context.Context) (*geniprofile.Profile, error) {
+					return r.client.Profile().AddChild(ctx, partnerIds[0], geniprofile.WithModifier(modifier))
+				})
+			case len(allChildrenIds) > 1:
+				// With no partners, add the child as a sibling of the next child.
+				tmpProfile, err = r.addAndMerge(ctx, childId, func(ctx context.Context) (*geniprofile.Profile, error) {
+					return r.client.Profile().AddSibling(ctx, allChildrenIds[i+1], geniprofile.WithModifier(modifier))
+				})
+				// Skip the next iteration because we already added that child.
+				skipNextIteration = true
+			default:
+				// A single child with no parents cannot be attached; ValidateConfig
+				// rejects this configuration before Create runs.
+				continue
 			}
 
-			// Merge the temporary profile with the child profile
-			if err := r.client.Profile().Merge(ctx, childId, tmpProfile.ID); err != nil {
-				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error merging profiles", err.Error())
+			plan.ID = unionIDFrom(plan.ID, tmpProfile)
+			if err != nil {
+				resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 				return
-			}
-
-			if plan.ID.IsUnknown() || plan.ID.IsNull() {
-				plan.ID = types.StringValue(tmpProfile.Unions[0])
 			}
 		}
 	}
