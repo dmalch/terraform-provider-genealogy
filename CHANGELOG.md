@@ -1,5 +1,9 @@
 ## 0.21.5 (Unreleased)
 
+IMPROVEMENTS:
+
+* Internal refactor: the provider's API clients and one-time init guard move from package-level globals onto the `GeniProvider` instance, so each provider instance is self-contained and `Configure` is unit-testable. No behavioural change. Relevant only to those building the provider from source. (#115)
+
 ## 0.21.4
 
 IMPROVEMENTS:

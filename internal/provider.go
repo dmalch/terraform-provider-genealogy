@@ -28,16 +28,18 @@ import (
 
 var _ provider.ProviderWithListResources = (*GeniProvider)(nil)
 
+// GeniProvider holds the configured API clients. State lives on the instance
+// (not in package globals) so each provider is self-contained: every
+// GeniProvider.New() is independent, and Configure is unit-testable.
 type GeniProvider struct {
+	// once guards one-time creation of the clients and batch-processor
+	// goroutines; Configure may be invoked more than once on an instance.
+	once        sync.Once
+	initErr     error
+	client      *geni.Client
+	batchClient *genibatch.Client
+	cacheClient *genicache.Client
 }
-
-var (
-	initClientOnce = sync.Once{}
-	initClientErr  error
-	client         *geni.Client
-	batchClient    *genibatch.Client
-	cacheClient    *genicache.Client
-)
 
 func New() provider.Provider {
 	return &GeniProvider{}
@@ -119,42 +121,42 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
 	}
 
-	initClientOnce.Do(func() {
-		client = geni.NewClient(tokenSource, useSandboxEnv)
-		batchClient = genibatch.NewClient(client)
-		cacheClient, initClientErr = genicache.NewClient(client, batchClient)
-		if initClientErr != nil {
+	p.once.Do(func() {
+		p.client = geni.NewClient(tokenSource, useSandboxEnv)
+		p.batchClient = genibatch.NewClient(p.client)
+		p.cacheClient, p.initErr = genicache.NewClient(p.client, p.batchClient)
+		if p.initErr != nil {
 			return
 		}
-		go batchClient.UnionBulkProcessor(context.Background())
-		go batchClient.ProfileBulkProcessor(context.Background())
-		go batchClient.DocumentBulkProcessor(context.Background())
+		go p.batchClient.UnionBulkProcessor(context.Background())
+		go p.batchClient.ProfileBulkProcessor(context.Background())
+		go p.batchClient.DocumentBulkProcessor(context.Background())
 	})
 
-	if initClientErr != nil {
-		resp.Diagnostics.AddError("error initializing cache client", initClientErr.Error())
+	if p.initErr != nil {
+		resp.Diagnostics.AddError("error initializing cache client", p.initErr.Error())
 		return
 	}
 
 	resp.ResourceData = &config.ClientData{
-		Client:                   client,
-		BatchClient:              batchClient,
-		CacheClient:              cacheClient,
+		Client:                   p.client,
+		BatchClient:              p.batchClient,
+		CacheClient:              p.cacheClient,
 		UseProfileCache:          cfg.UseProfileCache.ValueBool(),
 		UseDocumentCache:         cfg.UseDocumentCache.ValueBool(),
 		AutoUpdateMergedProfiles: cfg.AutoUpdateMergedProfiles.ValueBool(),
 	}
 
 	resp.DataSourceData = &config.ClientData{
-		Client:                   client,
-		BatchClient:              batchClient,
-		CacheClient:              cacheClient,
+		Client:                   p.client,
+		BatchClient:              p.batchClient,
+		CacheClient:              p.cacheClient,
 		UseProfileCache:          cfg.UseProfileCache.ValueBool(),
 		AutoUpdateMergedProfiles: cfg.AutoUpdateMergedProfiles.ValueBool(),
 	}
 
 	resp.ListResourceData = &config.ClientData{
-		Client: client,
+		Client: p.client,
 	}
 }
 
