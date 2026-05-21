@@ -1,4 +1,10 @@
-## 0.21.4 (Unreleased)
+## 0.21.5 (Unreleased)
+
+## 0.21.4
+
+IMPROVEMENTS:
+
+* Internal refactor: the duplicated `convertToSlice` / `hashMapFrom` set helpers — previously copy-pasted across the profile, union, and document resource packages — are consolidated into a single `internal/tfset` package. No behavioural change; relevant only to those building the provider from source. (#113)
 
 ## 0.21.3
 
