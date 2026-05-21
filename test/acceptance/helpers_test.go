@@ -71,3 +71,24 @@ func testAccCheckDocumentDestroy(s *terraform.State) error {
 	}
 	return nil
 }
+
+func testAccCheckPhotoDestroy(s *terraform.State) error {
+	if testAccessToken == "" {
+		return nil
+	}
+	client := newTestClient()
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "geni_photo" {
+			continue
+		}
+		_, err := client.Photo().Get(context.Background(), rs.Primary.ID)
+		if errors.Is(err, geni.ErrResourceNotFound) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("error checking photo %s: %w", rs.Primary.ID, err)
+		}
+		return fmt.Errorf("photo %s still exists", rs.Primary.ID)
+	}
+	return nil
+}
