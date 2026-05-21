@@ -31,7 +31,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		}
 	}
 
-	photoResponse, err := r.client.Photo().Get(ctx, state.ID.ValueString())
+	photoResponse, err := r.getPhoto(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			resp.Diagnostics.AddWarning("Photo not found", "The photo was not found in the Geni API. Removing from state.")
@@ -71,11 +71,17 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 		}
 	}
 
-	resp.Diagnostics.Append(validatePhotoImportID(ctx, importID, r.client.Photo().Get)...)
+	resp.Diagnostics.Append(validatePhotoImportID(ctx, importID, r.getPhoto)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("id"), req, resp)
+}
+
+// getPhoto fetches a photo through the batch client, which coalesces the
+// concurrent reads Terraform issues when refreshing many photos at once.
+func (r *Resource) getPhoto(ctx context.Context, photoId string) (*geniphoto.Photo, error) {
+	return r.batchClient.GetPhoto(ctx, photoId)
 }
 
 // validatePhotoImportID round-trips the API to confirm the imported photo exists

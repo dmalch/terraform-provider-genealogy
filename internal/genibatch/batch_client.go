@@ -9,6 +9,7 @@ import (
 
 	"github.com/dmalch/go-geni"
 	genidocument "github.com/dmalch/go-geni/document"
+	geniphoto "github.com/dmalch/go-geni/photo"
 	geniprofile "github.com/dmalch/go-geni/profile"
 	geniunion "github.com/dmalch/go-geni/union"
 )
@@ -18,6 +19,7 @@ type Client struct {
 	unionRequests    chan asyncRequest[geniunion.Union]
 	profileRequests  chan asyncRequest[geniprofile.Profile]
 	documentRequests chan asyncRequest[genidocument.Document]
+	photoRequests    chan asyncRequest[geniphoto.Photo]
 }
 
 func NewClient(client *geni.Client) *Client {
@@ -26,6 +28,7 @@ func NewClient(client *geni.Client) *Client {
 		unionRequests:    make(chan asyncRequest[geniunion.Union]),
 		profileRequests:  make(chan asyncRequest[geniprofile.Profile]),
 		documentRequests: make(chan asyncRequest[genidocument.Document]),
+		photoRequests:    make(chan asyncRequest[geniphoto.Photo]),
 	}
 }
 
@@ -414,6 +417,124 @@ func fulfillDocumentRequests(batch []asyncRequest[genidocument.Document], result
 			req.Response <- result
 		} else {
 			req.Error <- fmt.Errorf("document %s not found in the response: %w", req.Id, geni.ErrResourceNotFound)
+		}
+	}
+}
+
+func (c *Client) GetPhoto(ctx context.Context, id string) (*geniphoto.Photo, error) {
+	response := make(chan *geniphoto.Photo)
+	errors := make(chan error)
+
+	c.photoRequests <- asyncRequest[geniphoto.Photo]{
+		Id:       id,
+		Response: response,
+		Error:    errors,
+	}
+
+	select {
+	case res := <-response:
+		return res, nil
+	case err := <-errors:
+		tflog.Error(ctx, "Error processing request", map[string]interface{}{"error": err})
+		return nil, err
+	case <-ctx.Done():
+		tflog.Error(ctx, "Context done", map[string]interface{}{"error": ctx.Err()})
+		return nil, ctx.Err()
+	}
+}
+
+func (c *Client) PhotoBulkProcessor(ctx context.Context) {
+	batch := make([]asyncRequest[geniphoto.Photo], 0, batchSize)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case req := <-c.photoRequests:
+			batch = append(batch, req)
+			if len(batch) >= batchSize {
+				// copy the batch to a new slice
+				requests := make([]asyncRequest[geniphoto.Photo], len(batch))
+				copy(requests, batch)
+				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfPhotos(ctx, requests)
+			}
+		case <-ticker.C:
+			if len(batch) > 0 {
+				// copy the batch to a new slice
+				requests := make([]asyncRequest[geniphoto.Photo], len(batch))
+				copy(requests, batch)
+				batch = batch[:0] // Reset batch
+
+				go c.processBatchOfPhotos(ctx, requests)
+			}
+		case <-ctx.Done():
+			err := ctx.Err()
+			if err != nil {
+				tflog.Error(ctx, "Context done", map[string]interface{}{"error": err})
+			}
+			return
+		}
+	}
+}
+
+func (c *Client) processBatchOfPhotos(ctx context.Context, batch []asyncRequest[geniphoto.Photo]) {
+	defer recoverBatch(ctx, "photo", batch)
+
+	// Create a hashset to store unique IDs
+	ids := make(map[string]struct{}, len(batch))
+	for _, req := range batch {
+		ids[req.Id] = struct{}{}
+	}
+
+	// Get keys from the hashset as a slice
+	keys := make([]string, 0, len(ids))
+	for id := range ids {
+		keys = append(keys, id)
+	}
+
+	if len(keys) == 1 {
+		result, err := c.client.Photo().Get(ctx, keys[0])
+		if err != nil {
+			for _, req := range batch {
+				req.Error <- err
+			}
+			return
+		}
+
+		for _, req := range batch {
+			req.Response <- result
+		}
+	}
+
+	if len(keys) > 1 {
+		res, err := c.client.Photo().GetBulk(ctx, keys)
+		if err != nil {
+			for _, req := range batch {
+				req.Error <- err
+			}
+			return
+		}
+
+		fulfillPhotoRequests(batch, res.Results)
+	}
+}
+
+// fulfillPhotoRequests dispatches per-request results from a bulk photo response.
+// IDs absent from the bulk results are treated as not-found, because the Geni bulk
+// endpoint silently omits missing IDs from its response.
+func fulfillPhotoRequests(batch []asyncRequest[geniphoto.Photo], results []geniphoto.Photo) {
+	idToResponse := make(map[string]*geniphoto.Photo, len(results))
+	for i := range results {
+		idToResponse[results[i].ID] = &results[i]
+	}
+
+	for _, req := range batch {
+		if result, ok := idToResponse[req.Id]; ok {
+			req.Response <- result
+		} else {
+			req.Error <- fmt.Errorf("photo %s not found in the response: %w", req.Id, geni.ErrResourceNotFound)
 		}
 	}
 }

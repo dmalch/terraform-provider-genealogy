@@ -8,6 +8,7 @@ import (
 
 	"github.com/dmalch/go-geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
+	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 )
 
 var _ resource.Resource = &Resource{}
@@ -16,7 +17,8 @@ var _ resource.ResourceWithImportState = &Resource{}
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	client *geni.Client
+	client      *geni.Client
+	batchClient *genibatch.Client
 }
 
 func NewResource() resource.Resource {
@@ -49,4 +51,5 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 	}
 
 	r.client = cfg.Client
+	r.batchClient = cfg.BatchClient
 }

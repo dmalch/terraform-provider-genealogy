@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	geniphoto "github.com/dmalch/go-geni/photo"
+	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
 // ValueFrom populates model from a Geni photo response. File and FileName are
@@ -35,11 +36,16 @@ func ValueFrom(ctx context.Context, response *geniphoto.Photo, model *ResourceMo
 	d.Append(diags...)
 	model.Sizes = sizes
 
+	location, diags := event.LocationValueFrom(ctx, response.Location)
+	d.Append(diags...)
+	model.Location = location
+
 	return d
 }
 
 // RequestFrom builds the Geni update request from model. The photo file is set
-// only at creation (the schema marks it RequiresReplace), so it is not sent.
+// only at creation (the schema marks it RequiresReplace), and location is
+// read-only, so neither is sent.
 func RequestFrom(model ResourceModel) *geniphoto.Request {
 	return &geniphoto.Request{
 		Title:       model.Title.ValueString(),
@@ -75,6 +81,11 @@ func UpdateComputedFields(ctx context.Context, response *geniphoto.Photo, model 
 	sizes, diags := types.MapValueFrom(ctx, types.StringType, response.Sizes)
 	d.Append(diags...)
 	model.Sizes = sizes
+
+	// Location is read-only — always taken from the API response.
+	location, diags := event.LocationValueFrom(ctx, response.Location)
+	d.Append(diags...)
+	model.Location = location
 
 	return d
 }

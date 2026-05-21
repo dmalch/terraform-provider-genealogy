@@ -78,3 +78,24 @@ func TestAccUnion_importNonExistentIdFails(t *testing.T) {
 		},
 	})
 }
+
+func TestAccPhoto_importNonExistentIdFails(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_photo" "missing" {
+					  title     = "placeholder"
+					  file      = filebase64("${path.module}/assets/cs-white-fff.png")
+					  file_name = "cs-white-fff.png"
+					}
+				`,
+				ResourceName:  "geni_photo.missing",
+				ImportState:   true,
+				ImportStateId: "photo-99999999999",
+				ExpectError:   regexp.MustCompile(`(?s)Photo not found`),
+			},
+		},
+	})
+}

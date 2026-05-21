@@ -35,6 +35,23 @@ description: |-
 - `content_type` (String) The photo's content type, as detected by Geni from the upload.
 - `created_at` (String) When the photo was created.
 - `guid` (String) The photo's legacy global identifier.
+- `location` (Attributes) The photo's location, as recorded by Geni. Read-only — the Geni photo API does not accept a location. (see [below for nested schema](#nestedatt--location))
 - `sizes` (Map of String) Image URLs keyed by Geni size name (e.g. "small", "medium", "large").
 - `updated_at` (String) When the photo was last updated.
 - `url` (String) The Geni API URL for the photo.
+
+<a id="nestedatt--location"></a>
+### Nested Schema for `location`
+
+Read-Only:
+
+- `city` (String) City name.
+- `country` (String) Country name.
+- `county` (String) County name.
+- `latitude` (Number) Latitude coordinate.
+- `longitude` (Number) Longitude coordinate.
+- `place_name` (String) Place name.
+- `state` (String) State name.
+- `street_address1` (String) First line of the street address.
+- `street_address2` (String) Second line of the street address.
+- `street_address3` (String) Third line of the street address.

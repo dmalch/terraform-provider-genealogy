@@ -8,6 +8,7 @@ import (
 
 	"github.com/dmalch/go-geni"
 	genidocument "github.com/dmalch/go-geni/document"
+	geniphoto "github.com/dmalch/go-geni/photo"
 	geniprofile "github.com/dmalch/go-geni/profile"
 	geniunion "github.com/dmalch/go-geni/union"
 )
@@ -93,6 +94,23 @@ func TestFulfillProfileRequests(t *testing.T) {
 	})
 }
 
+func TestFulfillPhotoRequests(t *testing.T) {
+	t.Run("Missing ID in bulk response surfaces ErrResourceNotFound", func(t *testing.T) {
+		RegisterTestingT(t)
+		missing := asyncRequest[geniphoto.Photo]{
+			Id:       "photo-missing",
+			Response: make(chan *geniphoto.Photo, 1),
+			Error:    make(chan error, 1),
+		}
+
+		fulfillPhotoRequests([]asyncRequest[geniphoto.Photo]{missing}, nil)
+
+		var err error
+		Expect(missing.Error).To(Receive(&err))
+		Expect(errors.Is(err, geni.ErrResourceNotFound)).To(BeTrue())
+	})
+}
+
 // TestProcessBatchPanicRecovery verifies that a panic inside a batch worker
 // goroutine is recovered and broadcast as an error to every request in the
 // batch, rather than crashing the provider process and stranding every caller.
@@ -164,6 +182,30 @@ func TestProcessBatchPanicRecovery(t *testing.T) {
 		c.processBatchOfDocuments(t.Context(), []asyncRequest[genidocument.Document]{req1, req2})
 
 		for _, req := range []asyncRequest[genidocument.Document]{req1, req2} {
+			var err error
+			Expect(req.Error).To(Receive(&err))
+			Expect(err).To(MatchError(ContainSubstring("panic")))
+			Expect(req.Response).ToNot(Receive())
+		}
+	})
+
+	t.Run("A panic in the photo batch worker fails every request", func(t *testing.T) {
+		RegisterTestingT(t)
+		c := &Client{}
+		req1 := asyncRequest[geniphoto.Photo]{
+			Id:       "photo-1",
+			Response: make(chan *geniphoto.Photo, 1),
+			Error:    make(chan error, 1),
+		}
+		req2 := asyncRequest[geniphoto.Photo]{
+			Id:       "photo-2",
+			Response: make(chan *geniphoto.Photo, 1),
+			Error:    make(chan error, 1),
+		}
+
+		c.processBatchOfPhotos(t.Context(), []asyncRequest[geniphoto.Photo]{req1, req2})
+
+		for _, req := range []asyncRequest[geniphoto.Photo]{req1, req2} {
 			var err error
 			Expect(req.Error).To(Receive(&err))
 			Expect(err).To(MatchError(ContainSubstring("panic")))
