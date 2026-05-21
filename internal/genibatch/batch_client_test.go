@@ -7,6 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
+	geniprofile "github.com/dmalch/go-geni/profile"
+	geniunion "github.com/dmalch/go-geni/union"
 )
 
 func TestFulfillDocumentRequests(t *testing.T) {
@@ -14,7 +17,7 @@ func TestFulfillDocumentRequests(t *testing.T) {
 		RegisterTestingT(t)
 		missing := documentAsyncRequest{
 			Id:       "document-missing",
-			Response: make(chan *geni.DocumentResponse, 1),
+			Response: make(chan *genidocument.Document, 1),
 			Error:    make(chan error, 1),
 		}
 
@@ -30,23 +33,23 @@ func TestFulfillDocumentRequests(t *testing.T) {
 		RegisterTestingT(t)
 		hit := documentAsyncRequest{
 			Id:       "document-hit",
-			Response: make(chan *geni.DocumentResponse, 1),
+			Response: make(chan *genidocument.Document, 1),
 			Error:    make(chan error, 1),
 		}
 		miss := documentAsyncRequest{
 			Id:       "document-miss",
-			Response: make(chan *geni.DocumentResponse, 1),
+			Response: make(chan *genidocument.Document, 1),
 			Error:    make(chan error, 1),
 		}
 
 		fulfillDocumentRequests(
 			[]documentAsyncRequest{hit, miss},
-			[]geni.DocumentResponse{{Id: "document-hit", Title: "found"}},
+			[]genidocument.Document{{ID: "document-hit", Title: "found"}},
 		)
 
-		var hitResp *geni.DocumentResponse
+		var hitResp *genidocument.Document
 		Expect(hit.Response).To(Receive(&hitResp))
-		Expect(hitResp.Id).To(Equal("document-hit"))
+		Expect(hitResp.ID).To(Equal("document-hit"))
 		Expect(hit.Error).ToNot(Receive())
 
 		var missErr error
@@ -61,7 +64,7 @@ func TestFulfillUnionRequests(t *testing.T) {
 		RegisterTestingT(t)
 		missing := unionAsyncRequest{
 			Id:       "union-missing",
-			Response: make(chan *geni.UnionResponse, 1),
+			Response: make(chan *geniunion.Union, 1),
 			Error:    make(chan error, 1),
 		}
 
@@ -78,7 +81,7 @@ func TestFulfillProfileRequests(t *testing.T) {
 		RegisterTestingT(t)
 		missing := profileAsyncRequest{
 			Id:       "profile-missing",
-			Response: make(chan *geni.ProfileResponse, 1),
+			Response: make(chan *geniprofile.Profile, 1),
 			Error:    make(chan error, 1),
 		}
 

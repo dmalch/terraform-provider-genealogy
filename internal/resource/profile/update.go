@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
@@ -39,7 +39,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		removedAboutKeys := findRemovedKeys(state.About, plan.About)
 
 		for _, removedAboutKey := range removedAboutKeys {
-			profileRequest.DetailStrings[removedAboutKey] = geni.DetailsString{}
+			profileRequest.DetailStrings[removedAboutKey] = geniprofile.DetailsString{}
 		}
 	}
 
@@ -54,13 +54,13 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	// for events where the plan keeps the date but clears at least one sub-field.
 	wipeEvents := planDateWipes(state, plan)
 	if len(wipeEvents) > 0 {
-		if err := r.client.WipeEventDates(ctx, plan.ID.ValueString(), wipeEvents); err != nil {
+		if err := r.client.Profile().WipeEventDates(ctx, plan.ID.ValueString(), wipeEvents); err != nil {
 			resp.Diagnostics.AddError("Error clearing date fields", err.Error())
 			return
 		}
 	}
 
-	profileResponse, err := r.client.UpdateProfile(ctx, plan.ID.ValueString(), profileRequest)
+	profileResponse, err := r.client.Profile().Update(ctx, plan.ID.ValueString(), profileRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating profile", err.Error())
 		return
@@ -68,7 +68,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	// Link the profile to the projects if specified.
 	for _, projectId := range projectIds {
-		if _, err := r.client.AddProfileToProject(ctx, profileResponse.Id, projectId); err != nil {
+		if _, err := r.client.Project().AddProfile(ctx, profileResponse.ID, projectId); err != nil {
 			resp.Diagnostics.AddError("Error linking profile to project", err.Error())
 			return
 		}
@@ -83,7 +83,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
 	// Set data returned by API in identity
-	identityData.ID = types.StringValue(profileResponse.Id)
+	identityData.ID = types.StringValue(profileResponse.ID)
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 }
 

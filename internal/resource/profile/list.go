@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/listresource"
 )
@@ -60,8 +61,8 @@ func (r *listResource) List(ctx context.Context, req list.ListRequest, stream *l
 
 func streamManagedProfiles(ctx context.Context, c *geni.Client, req list.ListRequest) iter.Seq[list.ListResult] {
 	return listresource.Paginate(ctx,
-		func(ctx context.Context, page int) ([]geni.ProfileResponse, int, error) {
-			bulk, err := c.GetManagedProfiles(ctx, page)
+		func(ctx context.Context, page int) ([]geniprofile.Profile, int, error) {
+			bulk, err := c.User().ManagedProfiles(ctx, page)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -72,7 +73,7 @@ func streamManagedProfiles(ctx context.Context, c *geni.Client, req list.ListReq
 				diag.NewErrorDiagnostic("Error listing profiles", err.Error()),
 			}}
 		},
-		func(p geni.ProfileResponse) (list.ListResult, bool) {
+		func(p geniprofile.Profile) (list.ListResult, bool) {
 			return buildListResult(ctx, &p, req)
 		})
 }
@@ -82,21 +83,21 @@ func streamManagedProfiles(ctx context.Context, c *geni.Client, req list.ListReq
 // name fields; we prefer the localized en-US entry when present and fall
 // back to the flat fields otherwise. When nothing is populated the bare ID
 // is returned so the result is still visually identifiable.
-func displayNameFor(p *geni.ProfileResponse) string {
+func displayNameFor(p *geniprofile.Profile) string {
 	first, last := canonicalFirstLast(p)
 	switch {
 	case first != "" && last != "":
-		return fmt.Sprintf("%s %s (%s)", first, last, p.Id)
+		return fmt.Sprintf("%s %s (%s)", first, last, p.ID)
 	case first != "":
-		return fmt.Sprintf("%s (%s)", first, p.Id)
+		return fmt.Sprintf("%s (%s)", first, p.ID)
 	case last != "":
-		return fmt.Sprintf("%s (%s)", last, p.Id)
+		return fmt.Sprintf("%s (%s)", last, p.ID)
 	default:
-		return p.Id
+		return p.ID
 	}
 }
 
-func canonicalFirstLast(p *geni.ProfileResponse) (string, string) {
+func canonicalFirstLast(p *geniprofile.Profile) (string, string) {
 	if name, ok := p.Names["en-US"]; ok {
 		return stringFromPtr(name.FirstName), stringFromPtr(name.LastName)
 	}
@@ -120,13 +121,13 @@ func stringFromPtr(s *string) string {
 // case the result's Diagnostics already carry the offending error.
 func buildListResult(
 	ctx context.Context,
-	resp *geni.ProfileResponse,
+	resp *geniprofile.Profile,
 	req list.ListRequest,
 ) (list.ListResult, bool) {
 	result := req.NewListResult(ctx)
 
 	identity := ResourceIdentityModel{
-		ID: types.StringValue(resp.Id),
+		ID: types.StringValue(resp.ID),
 	}
 	diags := result.Identity.Set(ctx, identity)
 	result.Diagnostics.Append(diags...)

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/listresource"
 )
@@ -56,8 +57,8 @@ func (r *listResource) List(ctx context.Context, req list.ListRequest, stream *l
 
 func streamUploadedDocuments(ctx context.Context, c *geni.Client, req list.ListRequest) iter.Seq[list.ListResult] {
 	return listresource.Paginate(ctx,
-		func(ctx context.Context, page int) ([]geni.DocumentResponse, int, error) {
-			bulk, err := c.GetUploadedDocuments(ctx, page)
+		func(ctx context.Context, page int) ([]genidocument.Document, int, error) {
+			bulk, err := c.User().UploadedDocuments(ctx, page)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -68,7 +69,7 @@ func streamUploadedDocuments(ctx context.Context, c *geni.Client, req list.ListR
 				diag.NewErrorDiagnostic("Error listing documents", err.Error()),
 			}}
 		},
-		func(d geni.DocumentResponse) (list.ListResult, bool) {
+		func(d genidocument.Document) (list.ListResult, bool) {
 			return buildListResult(ctx, &d, req)
 		})
 }
@@ -76,11 +77,11 @@ func streamUploadedDocuments(ctx context.Context, c *geni.Client, req list.ListR
 // displayNameFor produces a human-readable label for a document in query
 // output. The Title is the obvious choice; we fall back to the bare ID when
 // it is absent so the result remains visually identifiable.
-func displayNameFor(d *geni.DocumentResponse) string {
+func displayNameFor(d *genidocument.Document) string {
 	if d.Title == "" {
-		return d.Id
+		return d.ID
 	}
-	return fmt.Sprintf("%s (%s)", d.Title, d.Id)
+	return fmt.Sprintf("%s (%s)", d.Title, d.ID)
 }
 
 // buildListResult turns one API response into a list.ListResult whose Identity
@@ -90,13 +91,13 @@ func displayNameFor(d *geni.DocumentResponse) string {
 // `import { identity = ... }`.
 func buildListResult(
 	ctx context.Context,
-	resp *geni.DocumentResponse,
+	resp *genidocument.Document,
 	req list.ListRequest,
 ) (list.ListResult, bool) {
 	result := req.NewListResult(ctx)
 
 	identity := ResourceIdentityModel{
-		ID: types.StringValue(resp.Id),
+		ID: types.StringValue(resp.ID),
 	}
 	diags := result.Identity.Set(ctx, identity)
 	result.Diagnostics.Append(diags...)

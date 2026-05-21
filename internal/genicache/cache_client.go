@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/dmalch/go-geni"
+	genidocument "github.com/dmalch/go-geni/document"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 )
 
@@ -44,7 +46,7 @@ func NewClient(client *geni.Client, batchClient *genibatch.Client) (*Client, err
 	}, nil
 }
 
-func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.ProfileResponse, error) {
+func (c *Client) GetProfile(ctx context.Context, profileId string) (*geniprofile.Profile, error) {
 	if err := c.initProfileCache(ctx); err != nil {
 		tflog.Error(ctx, "Error initializing cache", map[string]interface{}{"error": err})
 		return nil, err
@@ -64,7 +66,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.Profil
 			}
 
 			// Store the retrieved profile in the cache
-			if err := c.storeInCache(ctx, profile.Id, *profile); err != nil {
+			if err := c.storeInCache(ctx, profile.ID, *profile); err != nil {
 				tflog.Error(ctx, "Error storing profile in cache", map[string]interface{}{"error": err})
 				return nil, err
 			}
@@ -76,7 +78,7 @@ func (c *Client) GetProfile(ctx context.Context, profileId string) (*geni.Profil
 		return nil, err
 	}
 
-	var profile geni.ProfileResponse
+	var profile geniprofile.Profile
 	if err := gob.NewDecoder(bytes.NewReader(data)).Decode(&profile); err != nil {
 		tflog.Error(ctx, "Error decoding profile", map[string]interface{}{"error": err})
 		return nil, err
@@ -92,14 +94,14 @@ func (c *Client) initProfileCache(ctx context.Context) error {
 	// If the cache is empty, retrieve all managed profiles
 	if !c.profileCacheInitialized {
 		// Retrieve the first page of managed profiles using the API
-		profiles, err := c.client.GetManagedProfiles(ctx, 1)
+		profiles, err := c.client.User().ManagedProfiles(ctx, 1)
 		if err != nil {
 			tflog.Error(ctx, "Error retrieving managed profiles", map[string]interface{}{"error": err})
 			return err
 		}
 
 		for _, profile := range profiles.Results {
-			if err := c.storeInCache(ctx, profile.Id, profile); err != nil {
+			if err := c.storeInCache(ctx, profile.ID, profile); err != nil {
 				tflog.Error(ctx, "Error storing profile in cache", map[string]interface{}{"error": err})
 				return err
 			}
@@ -107,14 +109,14 @@ func (c *Client) initProfileCache(ctx context.Context) error {
 
 		// Retrieve all managed profiles using the API, run up to 200 times
 		for i := 0; i < 200 && len(profiles.Results) == maxProfilesPerPage; i++ {
-			profiles, err = c.client.GetManagedProfiles(ctx, profiles.Page+1)
+			profiles, err = c.client.User().ManagedProfiles(ctx, profiles.Page+1)
 			if err != nil {
 				tflog.Error(ctx, "Error retrieving managed profiles", map[string]interface{}{"error": err})
 				return err
 			}
 
 			for _, profile := range profiles.Results {
-				if err := c.storeInCache(ctx, profile.Id, profile); err != nil {
+				if err := c.storeInCache(ctx, profile.ID, profile); err != nil {
 					tflog.Error(ctx, "Error storing profile in cache", map[string]interface{}{"error": err})
 					return err
 				}
@@ -139,7 +141,7 @@ func (c *Client) storeInCache(ctx context.Context, id string, object any) error 
 	return nil
 }
 
-func (c *Client) GetDocument(ctx context.Context, documentId string) (*geni.DocumentResponse, error) {
+func (c *Client) GetDocument(ctx context.Context, documentId string) (*genidocument.Document, error) {
 	if err := c.initDocumentCache(ctx); err != nil {
 		tflog.Error(ctx, "Error initializing cache", map[string]interface{}{"error": err})
 		return nil, err
@@ -152,14 +154,14 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*geni.Docu
 			tflog.Debug(ctx, "Document not found in cache", map[string]interface{}{"documentId": documentId})
 
 			// If the document is not found in the cache, retrieve it using GetDocument method
-			document, err := c.client.GetDocument(ctx, documentId)
+			document, err := c.client.Document().Get(ctx, documentId)
 			if err != nil {
 				tflog.Error(ctx, "Error retrieving document", map[string]interface{}{"error": err})
 				return nil, err
 			}
 
 			// Store the retrieved document in the cache
-			if err := c.storeInCache(ctx, document.Id, *document); err != nil {
+			if err := c.storeInCache(ctx, document.ID, *document); err != nil {
 				tflog.Error(ctx, "Error storing document in cache", map[string]interface{}{"error": err})
 				return nil, err
 			}
@@ -171,7 +173,7 @@ func (c *Client) GetDocument(ctx context.Context, documentId string) (*geni.Docu
 		return nil, err
 	}
 
-	var document geni.DocumentResponse
+	var document genidocument.Document
 	if err := gob.NewDecoder(bytes.NewReader(data)).Decode(&document); err != nil {
 		tflog.Error(ctx, "Error decoding document", map[string]interface{}{"error": err})
 		return nil, err
@@ -187,14 +189,14 @@ func (c *Client) initDocumentCache(ctx context.Context) error {
 	// If the cache is empty, retrieve all managed documents
 	if !c.documentCacheInitialized {
 		// Retrieve the first page of managed documents using the API
-		documents, err := c.client.GetUploadedDocuments(ctx, 1)
+		documents, err := c.client.User().UploadedDocuments(ctx, 1)
 		if err != nil {
 			tflog.Error(ctx, "Error retrieving managed documents", map[string]interface{}{"error": err})
 			return err
 		}
 
 		for _, document := range documents.Results {
-			if err := c.storeInCache(ctx, document.Id, document); err != nil {
+			if err := c.storeInCache(ctx, document.ID, document); err != nil {
 				tflog.Error(ctx, "Error storing document in cache", map[string]interface{}{"error": err})
 				return err
 			}
@@ -203,14 +205,14 @@ func (c *Client) initDocumentCache(ctx context.Context) error {
 		// Retrieve all managed documents using the API, run up to 200 times
 		// 50 is the maximum number of documents per page
 		for i := 0; i < 200 && len(documents.Results) == maxDocumentsPerPage; i++ {
-			documents, err = c.client.GetUploadedDocuments(ctx, documents.Page+1)
+			documents, err = c.client.User().UploadedDocuments(ctx, documents.Page+1)
 			if err != nil {
 				tflog.Error(ctx, "Error retrieving managed documents", map[string]interface{}{"error": err})
 				return err
 			}
 
 			for _, document := range documents.Results {
-				if err := c.storeInCache(ctx, document.Id, document); err != nil {
+				if err := c.storeInCache(ctx, document.ID, document); err != nil {
 					tflog.Error(ctx, "Error storing document in cache", map[string]interface{}{"error": err})
 					return err
 				}

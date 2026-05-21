@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	resourceprofile "github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
 )
 
@@ -39,7 +40,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		resp.Diagnostics.AddError("Error reading profile", err.Error())
 		return
 	}
-	if response == nil || response.Id == "" {
+	if response == nil || response.ID == "" {
 		resp.Diagnostics.AddError(
 			"Profile not found",
 			fmt.Sprintf("No Geni profile with identifier %q exists.", lookup),
@@ -51,7 +52,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		if !d.autoUpdateMergedProfiles {
 			resp.Diagnostics.AddError(
 				"Profile is deleted",
-				fmt.Sprintf("Profile %q is deleted on Geni. Set the provider's `auto_update_merged_profiles = true` to follow merge chains automatically.", response.Id),
+				fmt.Sprintf("Profile %q is deleted on Geni. Set the provider's `auto_update_merged_profiles = true` to follow merge chains automatically.", response.ID),
 			)
 			return
 		}
@@ -78,7 +79,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (d *DataSource) getProfile(ctx context.Context, idOrGuid string) (*geni.ProfileResponse, error) {
+func (d *DataSource) getProfile(ctx context.Context, idOrGuid string) (*geniprofile.Profile, error) {
 	if d.useProfileCache {
 		return d.cacheClient.GetProfile(ctx, idOrGuid)
 	}

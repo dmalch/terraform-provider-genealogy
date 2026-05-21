@@ -33,7 +33,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	documentResponse, err := r.client.CreateDocument(ctx, documentRequest)
+	documentResponse, err := r.client.Document().Create(ctx, documentRequest)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating document", err.Error())
 		return
@@ -47,7 +47,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	// Tag the document with the person IDs
 	for _, profileId := range profileIds {
-		if _, err = r.client.TagDocument(ctx, documentResponse.Id, profileId); err != nil {
+		if _, err = r.client.Document().Tag(ctx, documentResponse.ID, profileId); err != nil {
 			resp.Diagnostics.AddError("Error tagging document", err.Error())
 			return
 		}
@@ -55,7 +55,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	// Link the profile to the projects if specified.
 	for _, projectId := range projectIds {
-		if _, err := r.client.AddDocumentToProject(ctx, documentResponse.Id, projectId); err != nil {
+		if _, err := r.client.Document().AddToProject(ctx, documentResponse.ID, projectId); err != nil {
 			resp.Diagnostics.AddError("Error linking document to project", err.Error())
 			return
 		}

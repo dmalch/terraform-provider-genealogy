@@ -17,7 +17,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	documentResponse, err := d.client.GetProject(ctx, data.ID.ValueString())
+	documentResponse, err := d.client.Project().Get(ctx, data.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrResourceNotFound) {
 			resp.Diagnostics.AddWarning("Project not found", "The project was not found in the Geni API.")

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
 func ptr[T any](s T) *T {
@@ -111,16 +111,16 @@ func TestElementFrom(t *testing.T) {
 func TestValueFrom(t *testing.T) {
 	t.Run("full event with date and location", func(t *testing.T) {
 		RegisterTestingT(t)
-		eventElement := &geni.EventElement{
+		eventElement := &geniprofile.EventElement{
 			Name:        "Birth",
 			Description: ptr("Born in city"),
-			Date: &geni.DateElement{
+			Date: &geniprofile.DateElement{
 				Circa: ptr(false),
 				Day:   ptr(int32(15)),
 				Month: ptr(int32(3)),
 				Year:  ptr(int32(1990)),
 			},
-			Location: &geni.LocationElement{
+			Location: &geniprofile.LocationElement{
 				City:    ptr("Springfield"),
 				Country: ptr("US"),
 			},
@@ -155,7 +155,7 @@ func TestValueFrom(t *testing.T) {
 		// `cause_of_death` is set. The schema validator requires user-set
 		// events to carry date or location, so this shape can only come
 		// from auto-creation and must not flap the refresh plan.
-		eventElement := &geni.EventElement{Name: "Death of John Doe"}
+		eventElement := &geniprofile.EventElement{Name: "Death of John Doe"}
 
 		result, diags := ValueFrom(t.Context(), eventElement)
 
@@ -165,9 +165,9 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("event with date set is kept regardless of name", func(t *testing.T) {
 		RegisterTestingT(t)
-		eventElement := &geni.EventElement{
+		eventElement := &geniprofile.EventElement{
 			Name: "Death of John Doe",
-			Date: &geni.DateElement{Year: ptr(int32(1980))},
+			Date: &geniprofile.DateElement{Year: ptr(int32(1980))},
 		}
 
 		result, diags := ValueFrom(t.Context(), eventElement)
@@ -178,9 +178,9 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("event with location set is kept regardless of name", func(t *testing.T) {
 		RegisterTestingT(t)
-		eventElement := &geni.EventElement{
+		eventElement := &geniprofile.EventElement{
 			Name:     "Birth of John Doe",
-			Location: &geni.LocationElement{City: ptr("Springfield")},
+			Location: &geniprofile.LocationElement{City: ptr("Springfield")},
 		}
 
 		result, diags := ValueFrom(t.Context(), eventElement)
@@ -193,7 +193,7 @@ func TestValueFrom(t *testing.T) {
 func TestDateValueFrom(t *testing.T) {
 	t.Run("full date", func(t *testing.T) {
 		RegisterTestingT(t)
-		dateElement := &geni.DateElement{
+		dateElement := &geniprofile.DateElement{
 			Circa: ptr(true),
 			Day:   ptr(int32(25)),
 			Month: ptr(int32(12)),
@@ -227,7 +227,7 @@ func TestDateValueFrom(t *testing.T) {
 func TestDateRangeValueFrom(t *testing.T) {
 	t.Run("full range date", func(t *testing.T) {
 		RegisterTestingT(t)
-		dateElement := &geni.DateElement{
+		dateElement := &geniprofile.DateElement{
 			Range:    ptr("between"),
 			Circa:    ptr(true),
 			Day:      ptr(int32(1)),
@@ -271,7 +271,7 @@ func TestDateRangeValueFrom(t *testing.T) {
 func TestLocationValueFrom(t *testing.T) {
 	t.Run("full location", func(t *testing.T) {
 		RegisterTestingT(t)
-		locationElement := &geni.LocationElement{
+		locationElement := &geniprofile.LocationElement{
 			City:           ptr("London"),
 			Country:        ptr("UK"),
 			County:         ptr("Greater London"),
@@ -432,7 +432,7 @@ func TestUpdateComputedFieldsInEvent(t *testing.T) {
 				"date":        types.ObjectNull(DateRangeModel{}.AttributeTypes()),
 				"location":    types.ObjectNull(LocationModel{}.AttributeTypes()),
 			})
-		eventElement := &geni.EventElement{
+		eventElement := &geniprofile.EventElement{
 			Name:        "Marriage",
 			Description: ptr("Wedding ceremony"),
 		}
@@ -499,7 +499,7 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 				"street_address2": types.StringValue("Street Address 2"),
 				"street_address3": types.StringValue("Street Address 3"),
 			})
-		givenLocationResponse := &geni.LocationElement{
+		givenLocationResponse := &geniprofile.LocationElement{
 			City:           ptr("City Response"),
 			Country:        ptr("Country Response"),
 			County:         ptr("County Response"),
@@ -533,7 +533,7 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 				"street_address2": types.StringNull(),
 				"street_address3": types.StringNull(),
 			})
-		givenLocationResponse := &geni.LocationElement{
+		givenLocationResponse := &geniprofile.LocationElement{
 			City:           ptr("City Response"),
 			Country:        ptr("Country Response"),
 			County:         ptr("County Response"),
@@ -572,7 +572,7 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 				"street_address2": types.StringNull(),
 				"street_address3": types.StringNull(),
 			})
-		givenLocationResponse := &geni.LocationElement{
+		givenLocationResponse := &geniprofile.LocationElement{
 			City:           ptr("City Response"),
 			Country:        ptr("Country Response"),
 			County:         ptr("County Response"),

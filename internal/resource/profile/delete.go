@@ -17,11 +17,11 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 		return
 	}
 
-	err := r.client.DeleteProfile(ctx, state.ID.ValueString())
+	err := r.client.Profile().Delete(ctx, state.ID.ValueString())
 	if err != nil {
 		if errors.Is(err, geni.ErrAccessDenied) {
 			// Check if the profile has been deleted in Geni.
-			profile, err := r.client.GetProfile(ctx, state.ID.ValueString())
+			profile, err := r.client.Profile().Get(ctx, state.ID.ValueString())
 			if err != nil {
 				resp.Diagnostics.AddError("Error reading profile", err.Error())
 				return

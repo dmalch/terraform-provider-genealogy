@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmalch/go-geni"
+	geniprofile "github.com/dmalch/go-geni/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
@@ -18,8 +18,8 @@ func ptr[T any](s T) *T {
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined object is passed", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenProfile := &geni.ProfileResponse{
-			Id:          "123",
+		givenProfile := &geniprofile.Profile{
+			ID:          "123",
 			Guid:        "abcdef0123456789abcdef0123456789",
 			FirstName:   ptr("John"),
 			LastName:    ptr("Doe"),
@@ -30,7 +30,7 @@ func TestValueFrom(t *testing.T) {
 			AboutMe:     ptr("This is a test profile"),
 			Public:      true,
 			IsAlive:     true,
-			Names: map[string]geni.NameElement{
+			Names: map[string]geniprofile.NameElement{
 				"en": {
 					FirstName:  ptr("John"),
 					MiddleName: ptr("A"),
@@ -42,29 +42,29 @@ func TestValueFrom(t *testing.T) {
 			Title:      "Dr.",
 			Occupation: "Astronaut",
 			Suffix:     "Jr.",
-			Birth: &geni.EventElement{
-				Date: &geni.DateElement{
+			Birth: &geniprofile.EventElement{
+				Date: &geniprofile.DateElement{
 					Day:   ptr[int32](1),
 					Month: ptr[int32](1),
 					Year:  ptr[int32](2000),
 				},
 			},
-			Baptism: &geni.EventElement{
-				Date: &geni.DateElement{
+			Baptism: &geniprofile.EventElement{
+				Date: &geniprofile.DateElement{
 					Day:   ptr[int32](1),
 					Month: ptr[int32](1),
 					Year:  ptr[int32](2000),
 				},
 			},
-			Death: &geni.EventElement{
-				Date: &geni.DateElement{
+			Death: &geniprofile.EventElement{
+				Date: &geniprofile.DateElement{
 					Day:   ptr[int32](1),
 					Month: ptr[int32](1),
 					Year:  ptr[int32](2000),
 				},
 			},
-			Burial: &geni.EventElement{
-				Date: &geni.DateElement{
+			Burial: &geniprofile.EventElement{
+				Date: &geniprofile.DateElement{
 					Day:   ptr[int32](1),
 					Month: ptr[int32](1),
 					Year:  ptr[int32](2000),
@@ -77,7 +77,7 @@ func TestValueFrom(t *testing.T) {
 		diags := ValueFrom(t.Context(), givenProfile, actualValue)
 
 		Expect(diags.HasError()).To(BeFalse())
-		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.Id))
+		Expect(actualValue.ID.ValueString()).To(Equal(givenProfile.ID))
 		Expect(actualValue.Guid.ValueString()).To(Equal(givenProfile.Guid))
 		Expect(actualValue.Title.ValueString()).To(Equal(givenProfile.Title))
 		Expect(actualValue.Occupation.ValueString()).To(Equal(givenProfile.Occupation))
@@ -107,7 +107,7 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("when the response has no guid, model.Guid is a null string", func(t *testing.T) {
 		RegisterTestingT(t)
-		given := &geni.ProfileResponse{Id: "profile-1"}
+		given := &geniprofile.Profile{ID: "profile-1"}
 		actual := &ResourceModel{}
 
 		Expect(ValueFrom(t.Context(), given, actual).HasError()).To(BeFalse())
@@ -116,7 +116,7 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("when the response has no project memberships, Projects is a typed null Set[String]", func(t *testing.T) {
 		RegisterTestingT(t)
-		given := &geni.ProfileResponse{Id: "profile-1"}
+		given := &geniprofile.Profile{ID: "profile-1"}
 		actual := &ResourceModel{}
 
 		Expect(ValueFrom(t.Context(), given, actual).HasError()).To(BeFalse())
@@ -126,8 +126,8 @@ func TestValueFrom(t *testing.T) {
 
 	t.Run("when about me in multiple languages is defiled", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenProfile := &geni.ProfileResponse{
-			DetailStrings: map[string]geni.DetailsString{
+		givenProfile := &geniprofile.Profile{
+			DetailStrings: map[string]geniprofile.DetailsString{
 				"en-US": {
 					AboutMe: ptr("This is a test profile in English"),
 				},
@@ -243,17 +243,17 @@ func TestRequestFrom(t *testing.T) {
 func TestUpdateComputedFields(t *testing.T) {
 	t.Run("Updates ID, unions, events, about, deleted, merged_into, and created_at", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenProfile := &geni.ProfileResponse{
-			Id:     "profile-123",
+		givenProfile := &geniprofile.Profile{
+			ID:     "profile-123",
 			Unions: []string{"union-1", "union-2"},
 			// Projects intentionally omitted: Create/Update pass the pre-link
 			// API response, so it is stale and must not overwrite plan.Projects.
 			Projects: []string{"project-stale"},
-			Birth: &geni.EventElement{
+			Birth: &geniprofile.EventElement{
 				Name: "Birth",
-				Date: &geni.DateElement{Year: ptr[int32](1990)},
+				Date: &geniprofile.DateElement{Year: ptr[int32](1990)},
 			},
-			DetailStrings: map[string]geni.DetailsString{
+			DetailStrings: map[string]geniprofile.DetailsString{
 				"en-US": {AboutMe: ptr("Updated about")},
 			},
 			Deleted:    true,
@@ -327,8 +327,8 @@ func TestNameElementsFrom(t *testing.T) {
 func TestValueFromEdgeCases(t *testing.T) {
 	t.Run("Empty profile with no names, no events", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenProfile := &geni.ProfileResponse{
-			Id: "profile-empty",
+		givenProfile := &geniprofile.Profile{
+			ID: "profile-empty",
 		}
 
 		actualValue := &ResourceModel{}
@@ -345,9 +345,9 @@ func TestValueFromEdgeCases(t *testing.T) {
 
 	t.Run("Profile with only DetailStrings", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenProfile := &geni.ProfileResponse{
-			Id: "profile-details",
-			DetailStrings: map[string]geni.DetailsString{
+		givenProfile := &geniprofile.Profile{
+			ID: "profile-details",
+			DetailStrings: map[string]geniprofile.DetailsString{
 				"en-US": {AboutMe: ptr("English bio")},
 				"de-DE": {AboutMe: ptr("German bio")},
 			},
@@ -368,7 +368,7 @@ func TestValueFromEdgeCases(t *testing.T) {
 func TestNameValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined object is passed", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenNames := map[string]geni.NameElement{
+		givenNames := map[string]geniprofile.NameElement{
 			"en": {
 				FirstName:   ptr("John"),
 				MiddleName:  ptr("A"),
@@ -420,10 +420,10 @@ func TestNameValueFrom(t *testing.T) {
 func TestNamesWithFlatFallback(t *testing.T) {
 	t.Run("Returns the API names map as-is when it has entries", func(t *testing.T) {
 		RegisterTestingT(t)
-		original := map[string]geni.NameElement{
+		original := map[string]geniprofile.NameElement{
 			"fr": {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
 		}
-		profile := &geni.ProfileResponse{
+		profile := &geniprofile.Profile{
 			Names:     original,
 			FirstName: ptr("ignored-because-map-is-populated"),
 		}
@@ -435,7 +435,7 @@ func TestNamesWithFlatFallback(t *testing.T) {
 
 	t.Run("Synthesizes an en-US entry from flat fields when the map is empty", func(t *testing.T) {
 		RegisterTestingT(t)
-		profile := &geni.ProfileResponse{
+		profile := &geniprofile.Profile{
 			FirstName:   ptr("John"),
 			MiddleName:  ptr("A"),
 			LastName:    ptr("Doe"),
@@ -457,7 +457,7 @@ func TestNamesWithFlatFallback(t *testing.T) {
 
 	t.Run("Joins flat nicknames into a comma-separated string", func(t *testing.T) {
 		RegisterTestingT(t)
-		profile := &geni.ProfileResponse{
+		profile := &geniprofile.Profile{
 			FirstName: ptr("John"),
 			Nicknames: []string{"Johnny", "JD"},
 		}
@@ -469,7 +469,7 @@ func TestNamesWithFlatFallback(t *testing.T) {
 
 	t.Run("Returns the original empty map when nothing populated", func(t *testing.T) {
 		RegisterTestingT(t)
-		profile := &geni.ProfileResponse{}
+		profile := &geniprofile.Profile{}
 
 		result := namesWithFlatFallback(profile)
 
@@ -481,7 +481,7 @@ func TestNamesWithFlatFallback(t *testing.T) {
 		// of presence — synthesize so the en-US entry exists for downstream
 		// state writing.
 		RegisterTestingT(t)
-		profile := &geni.ProfileResponse{
+		profile := &geniprofile.Profile{
 			Nicknames: []string{"Jay"},
 		}
 
@@ -497,8 +497,8 @@ func TestNamesWithFlatFallback(t *testing.T) {
 func TestValueFrom_NamesFlatFallback(t *testing.T) {
 	t.Run("ValueFrom hydrates names from flat fields when the API map is empty", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.ProfileResponse{
-			Id:        "profile-42",
+		givenResponse := &geniprofile.Profile{
+			ID:        "profile-42",
 			Public:    true,
 			FirstName: ptr("John"),
 			LastName:  ptr("Doe"),
@@ -519,12 +519,12 @@ func TestValueFrom_NamesFlatFallback(t *testing.T) {
 
 	t.Run("ValueFrom keeps API names when both the map and flat fields are populated", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.ProfileResponse{
-			Id:        "profile-43",
+		givenResponse := &geniprofile.Profile{
+			ID:        "profile-43",
 			Public:    true,
 			FirstName: ptr("ignored"),
 			LastName:  ptr("ignored"),
-			Names: map[string]geni.NameElement{
+			Names: map[string]geniprofile.NameElement{
 				"fr": {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
 			},
 		}
@@ -544,8 +544,8 @@ func TestValueFrom_NamesFlatFallback(t *testing.T) {
 
 	t.Run("ValueFrom returns null names when neither the map nor flat fields are populated", func(t *testing.T) {
 		RegisterTestingT(t)
-		givenResponse := &geni.ProfileResponse{
-			Id:     "profile-44",
+		givenResponse := &geniprofile.Profile{
+			ID:     "profile-44",
 			Public: true,
 		}
 
