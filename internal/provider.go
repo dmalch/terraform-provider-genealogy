@@ -61,11 +61,15 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 			},
 			"use_profile_cache": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Whether to use the profile cache for faster lookups",
+				Description: "Whether to use the profile cache for faster lookups. Deprecated: superseded by the always-on batch client; will be removed in a future release.",
+				DeprecationMessage: "The provider's batch client already coalesces profile reads, so this cache offers no benefit and forces a slow preload of every managed profile. " +
+					"This attribute will be removed in a future release; remove it from your provider configuration.",
 			},
 			"use_document_cache": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Whether to use the document cache for faster lookups",
+				Description: "Whether to use the document cache for faster lookups. Deprecated: superseded by the always-on batch client; will be removed in a future release.",
+				DeprecationMessage: "The provider's batch client already coalesces document reads, so this cache offers no benefit and forces a slow preload of every uploaded document. " +
+					"This attribute will be removed in a future release; remove it from your provider configuration.",
 			},
 			"auto_update_merged_profiles": schema.BoolAttribute{
 				Optional:    true,

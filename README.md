@@ -31,11 +31,14 @@ provider "geni" {
   attempt a browser-based OAuth flow to obtain one. Falls back to the `GENI_ACCESS_TOKEN` environment variable.
 * `use_sandbox_env`: (Optional) Use the Geni sandbox environment. Default is `false`. Falls back to the
   `GENI_USE_SANDBOX` environment variable (set to `true` to enable).
-* `use_profile_cache` (Optional) Whether to use the profile cache for faster lookups. It preloads all profiles managed
-  by the current user, which may be slow for those with many profiles. Not recommended for use with the `-target` flag.
-* `use_document_cache` (Optional) Whether to use the document cache for faster lookups. It preloads all documents
-  uploaded by the current user, which may be slow for those with many documents. Not recommended for use with the
-  `-target` flag.
+* `use_profile_cache` (Optional, **Deprecated**) Whether to use the profile cache for faster lookups. It preloads all
+  profiles managed by the current user, which may be slow for those with many profiles. Not recommended for use with the
+  `-target` flag. Superseded by the always-on batch client, which coalesces reads without the preload cost — this
+  attribute will be removed in a future release.
+* `use_document_cache` (Optional, **Deprecated**) Whether to use the document cache for faster lookups. It preloads all
+  documents uploaded by the current user, which may be slow for those with many documents. Not recommended for use with
+  the `-target` flag. Superseded by the always-on batch client, which coalesces reads without the preload cost — this
+  attribute will be removed in a future release.
 * `auto_update_merged_profiles` (Optional) When a managed profile has been merged into another on Geni, automatically
   refresh its id in state on the next read instead of failing.
 

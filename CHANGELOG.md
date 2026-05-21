@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * Upgrade the `github.com/dmalch/go-geni` dependency from `v0.1.0` to `v1.2.0`, its first stable release. Every Geni resource now lives in its own sub-package reached through a typed accessor on the client façade (e.g. `client.Profile().Get`, `client.Union().AddChild`), and the OAuth callback server swapped `labstack/echo` for the standard library — dropping four transitive dependencies. The provider was migrated to the new API surface; runtime behaviour for every resource, data source, schema, and acceptance test is unchanged. Relevant only to those building the provider from source.
 
+BEHAVIORAL CHANGES:
+
+* The `use_profile_cache` and `use_document_cache` provider attributes are deprecated; setting either now emits a deprecation warning. The provider's always-on batch client already coalesces reads, so the preload-everything cache is redundant — and slow for large managed sets (hence the long-standing `-target` caveat). The attributes still function unchanged for now and will be removed in a future release; remove them from your provider configuration. (#111)
+
 ## 0.21.1
 
 BUG FIXES:
