@@ -44,7 +44,7 @@ func (r *Resource) ValidateConfig(ctx context.Context, req resource.ValidateConf
 		{fieldFosterChildren, path.Root(fieldFosterChildren), data.FosterChildren},
 		{fieldAdoptedChildren, path.Root(fieldAdoptedChildren), data.AdoptedChildren},
 	}
-	for i := 0; i < len(childSets); i++ {
+	for i := range childSets {
 		left := setIDs(childSets[i].set)
 		for j := i + 1; j < len(childSets); j++ {
 			right := setIDs(childSets[j].set)
