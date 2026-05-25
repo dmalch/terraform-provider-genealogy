@@ -159,6 +159,24 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 			return
 		}
 
+		// Pre-wipe entire events that the plan removes (block dropped entirely).
+		// Geni's union endpoint rejects null ("value must be a hash!") so the
+		// only sentinel that works is {} (empty hash). We must do this before
+		// the regular Update so omitempty doesn't silently skip the cleared field.
+		var wholeEventWipeKeys []string
+		if !state.Marriage.IsNull() && plan.Marriage.IsNull() {
+			wholeEventWipeKeys = append(wholeEventWipeKeys, "marriage")
+		}
+		if !state.Divorce.IsNull() && plan.Divorce.IsNull() {
+			wholeEventWipeKeys = append(wholeEventWipeKeys, "divorce")
+		}
+		if len(wholeEventWipeKeys) > 0 {
+			if err := r.client.Profile().WipeEvents(ctx, plan.ID.ValueString(), wholeEventWipeKeys); err != nil {
+				resp.Diagnostics.AddError("Error clearing event fields", err.Error())
+				return
+			}
+		}
+
 		// Pre-wipe event dates that the plan partially clears — Geni's PATCH
 		// deep-merges nested objects so per-key nulls inside `date` are no-ops
 		// (#94). Cost is one extra PATCH per Update that hits this case.

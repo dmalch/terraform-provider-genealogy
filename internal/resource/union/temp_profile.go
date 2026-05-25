@@ -29,7 +29,7 @@ func (r *Resource) addAndMerge(
 		return nil, err
 	}
 
-	if err := r.client.Profile().Merge(ctx, realID, tmp.ID); err != nil {
+	if _, err := r.client.Profile().Merge(ctx, realID, tmp.ID); err != nil {
 		if delErr := r.client.Profile().Delete(ctx, tmp.ID); delErr != nil {
 			tflog.Error(ctx, "failed to delete orphan temporary profile after a failed merge",
 				map[string]interface{}{"profile_id": tmp.ID, "error": delErr})

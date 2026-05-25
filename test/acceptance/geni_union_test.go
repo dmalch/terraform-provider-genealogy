@@ -1319,3 +1319,84 @@ func TestAccUnion_clearMarriageDateSubFieldPersists(t *testing.T) {
 		},
 	})
 }
+
+// TestAccUnion_clearMarriageEntirelyPersists verifies that removing the entire
+// marriage block from HCL causes the event to be cleared on Geni server-side
+// and stays cleared (no drift) on the next plan. This exercises the fix in
+// go-geni where Request.Marriage was tagged omitempty, causing nil to be
+// dropped from the wire body; Geni saw no field and silently kept the event.
+func TestAccUnion_clearMarriageEntirelyPersists(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "geni_profile" "husband" {
+					  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_profile" "wife" {
+					  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_union" "doe_family" {
+					  partners = [geni_profile.husband.id, geni_profile.wife.id]
+					  marriage = {
+						date = {
+						  year  = 1909
+						  month = 8
+						  range = "before"
+						}
+					  }
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage").AtMapKey("date").AtMapKey("year"), knownvalue.Int32Exact(1909)),
+				},
+			},
+			{
+				Config: `
+					resource "geni_profile" "husband" {
+					  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_profile" "wife" {
+					  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_union" "doe_family" {
+					  partners = [geni_profile.husband.id, geni_profile.wife.id]
+					  # marriage block intentionally absent
+					}
+				`,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue("geni_union.doe_family", tfjsonpath.New("marriage"), knownvalue.Null()),
+				},
+			},
+			{
+				// Refresh + plan only. Asserts no drift on Geni's side after the clear.
+				Config: `
+					resource "geni_profile" "husband" {
+					  names = { "en-US" = { first_name = "John", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_profile" "wife" {
+					  names = { "en-US" = { first_name = "Jane", last_name = "Doe" } }
+					  alive  = false
+					  public = true
+					}
+					resource "geni_union" "doe_family" {
+					  partners = [geni_profile.husband.id, geni_profile.wife.id]
+					}
+				`,
+				PlanOnly: true,
+			},
+		},
+	})
+}
