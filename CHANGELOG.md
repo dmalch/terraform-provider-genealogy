@@ -1,5 +1,13 @@
 ## 0.22.1 (Unreleased)
 
+BUG FIXES:
+
+* `resource/union`: clear `marriage` and `divorce` when the block is removed
+  from configuration. The provider now calls go-geni's new `WipeEvents`,
+  which POSTs `{"marriage": {"date": {}, "location": {}}}` — the only
+  payload Geni's union endpoint honors as a clear. (Geni rejects
+  `"marriage": null` with HTTP 500 and silently deep-merges `"marriage": {}`.)
+
 ## 0.22.0
 
 FEATURES:
