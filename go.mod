@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/allegro/bigcache/v3 v3.1.0
-	github.com/dmalch/go-geni v1.9.1
+	github.com/dmalch/go-geni v1.9.2
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
