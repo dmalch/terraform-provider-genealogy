@@ -1,4 +1,6 @@
-## 0.22.3 (Unreleased)
+## 0.22.4 (Unreleased)
+
+## 0.22.3
 
 BUG FIXES:
 
