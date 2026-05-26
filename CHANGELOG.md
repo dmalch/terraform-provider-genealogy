@@ -1,5 +1,17 @@
 ## 0.22.3 (Unreleased)
 
+BUG FIXES:
+
+* `resource/geni_document`, `resource/geni_photo`: a `terraform destroy`
+  now correctly observes the resource as gone on the next `Read`.
+  Previously Geni's empty bulk-envelope reply (`{"results": []}`) to a
+  singular `/api/<id>` GET against a deleted document or photo was
+  silently unmarshaled into a zero-valued struct, so the provider
+  treated the deleted resource as still present and reported drift
+  (and acceptance tests' `CheckDestroy` fixture reported "still
+  exists"). Fixed in go-geni v1.9.2 by translating that response shape
+  into `ErrResourceNotFound`. (#123)
+
 ## 0.22.2
 
 BUG FIXES:
