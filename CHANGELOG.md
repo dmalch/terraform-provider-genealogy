@@ -1,5 +1,16 @@
 ## 0.22.2 (Unreleased)
 
+BUG FIXES:
+
+* Retry HTTP/2 `RST_STREAM` errors (`CANCEL` / `REFUSED_STREAM`). Geni's
+  HTTP/2 frontend cancels streams instead of returning 429 when a client
+  exceeds its rolling rate-limit window, so a high-parallelism
+  `terraform apply` (e.g. `-parallelism=200` against ~1k pending
+  `geni_profile` creates) could cascade-fail once the window was
+  exhausted. Those failures are now classified as transient and retried;
+  the dynamic limiter re-tunes from `X-API-Rate-*` response headers on
+  the next successful response. Ships in go-geni v1.9.1. (#122)
+
 ## 0.22.1
 
 BUG FIXES:
