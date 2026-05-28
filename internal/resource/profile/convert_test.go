@@ -241,13 +241,15 @@ func TestRequestFrom(t *testing.T) {
 }
 
 func TestUpdateComputedFields(t *testing.T) {
-	t.Run("Updates ID, unions, events, about, deleted, merged_into, and created_at", func(t *testing.T) {
+	t.Run("Updates ID, events, about, deleted, merged_into, and created_at", func(t *testing.T) {
 		RegisterTestingT(t)
 		givenProfile := &geniprofile.Profile{
-			ID:     "profile-123",
-			Unions: []string{"union-1", "union-2"},
-			// Projects intentionally omitted: Create/Update pass the pre-link
-			// API response, so it is stale and must not overwrite plan.Projects.
+			ID: "profile-123",
+			// Unions and Projects intentionally set to stale values: the
+			// Create/Update API response is captured before sibling
+			// geni_union / project link operations in the same plan graph
+			// land, so it must not overwrite the planned values.
+			Unions:   []string{"union-stale-1", "union-stale-2"},
 			Projects: []string{"project-stale"},
 			Birth: &geniprofile.EventElement{
 				Name: "Birth",
@@ -261,6 +263,9 @@ func TestUpdateComputedFields(t *testing.T) {
 			CreatedAt:  "1719709400",
 		}
 
+		planUnions, planUnionsDiags := types.SetValueFrom(t.Context(), types.StringType, []string{"union-from-plan"})
+		Expect(planUnionsDiags.HasError()).To(BeFalse())
+
 		planProjects, planProjectsDiags := types.SetValueFrom(t.Context(), types.StringType, []string{"project-from-plan"})
 		Expect(planProjectsDiags.HasError()).To(BeFalse())
 
@@ -271,6 +276,7 @@ func TestUpdateComputedFields(t *testing.T) {
 			Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
 			CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
 			About:            types.MapNull(types.StringType),
+			Unions:           planUnions,
 			Projects:         planProjects,
 		}
 
@@ -278,7 +284,13 @@ func TestUpdateComputedFields(t *testing.T) {
 
 		Expect(diags.HasError()).To(BeFalse())
 		Expect(model.ID.ValueString()).To(Equal("profile-123"))
-		Expect(model.Unions.Elements()).To(HaveLen(2))
+		// Unions in the plan must survive: the API response passed to
+		// UpdateComputedFields is captured before sibling geni_union
+		// creates/destroys land, so its Unions field is an intermediate
+		// value and must not overwrite the plan (issue #128).
+		var actualUnions []string
+		Expect(model.Unions.ElementsAs(t.Context(), &actualUnions, false).HasError()).To(BeFalse())
+		Expect(actualUnions).To(ConsistOf("union-from-plan"))
 		// Projects in the plan must survive: the API response passed to
 		// UpdateComputedFields is captured before AddProfileToProject runs,
 		// so its Projects field is stale and must not overwrite the plan.
