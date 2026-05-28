@@ -1,5 +1,15 @@
 ## 0.22.4 (Unreleased)
 
+BUG FIXES:
+
+* `resource/geni_profile`: stop overwriting the `unions` computed set in
+  state from the Geni API response captured during Create/Update. When
+  sibling `geni_union` resources are being created or destroyed in the
+  same plan graph, that response reflects an intermediate Geni state and
+  caused Terraform to surface `Provider produced inconsistent result
+  after apply` on `.unions`. The Read path now solely populates `unions`
+  from the API on the next refresh. (#128)
+
 ## 0.22.3
 
 BUG FIXES:

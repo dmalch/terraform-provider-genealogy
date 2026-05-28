@@ -277,9 +277,12 @@ func UpdateComputedFields(ctx context.Context, profile *geniprofile.Profile, pro
 		profileModel.Guid = types.StringNull()
 	}
 
-	unions, diags := types.SetValueFrom(ctx, types.StringType, profile.Unions)
-	d.Append(diags...)
-	profileModel.Unions = unions
+	// Unions is intentionally not updated here: in the same plan graph
+	// that updates this profile, sibling geni_union creates/destroys may
+	// not yet have applied when the API response is captured, so
+	// profile.Unions is an intermediate value and would trigger
+	// Terraform's post-apply consistency check on .unions (issue #128).
+	// The Read path's ValueFrom populates unions on the next refresh.
 
 	// Projects is intentionally not updated here: Create/Update pass the
 	// pre-link API response (the AddProfileToProject calls fire afterwards),
