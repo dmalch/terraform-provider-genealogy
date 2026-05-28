@@ -97,11 +97,9 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Description: "Nested maps of locales to name fields to values.",
 			},
 			"unions": schema.SetAttribute{
-				ElementType:   types.StringType,
-				Computed:      true,
-				Optional:      true,
-				PlanModifiers: []planmodifier.Set{setplanmodifier.UseStateForUnknown()},
-				Description:   "List of union IDs.",
+				ElementType: types.StringType,
+				Computed:    true,
+				Description: "List of union IDs the profile belongs to. Computed from Geni on refresh.",
 			},
 			"projects": schema.SetAttribute{
 				ElementType: types.StringType,

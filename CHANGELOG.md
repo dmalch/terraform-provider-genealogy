@@ -1,5 +1,21 @@
 ## 0.22.6 (Unreleased)
 
+BREAKING CHANGES:
+
+* `resource/geni_profile`: the `unions` attribute is now read-only.
+  It was previously declared `Optional + Computed`, but the provider
+  has never sent `unions` to the Geni API — any HCL block setting
+  `unions = [...]` was a no-op and must be removed from configuration.
+
+BUG FIXES:
+
+* `resource/geni_profile`: removing `UseStateForUnknown` from `unions`
+  eliminates the root cause of the post-apply consistency error
+  addressed by the #128 workaround. Plans now show
+  `unions = (known after apply)` whenever the profile is updated,
+  matching the fact that sibling `geni_union` create/destroy in the
+  same apply can change the value.
+
 ## 0.22.5
 
 IMPROVEMENTS:

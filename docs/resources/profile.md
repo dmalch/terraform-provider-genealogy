@@ -39,11 +39,11 @@ description: |-
 - `projects` (Set of String) List of project IDs.
 - `suffix` (String) Profile's name suffix (e.g. "Jr.", "III").
 - `title` (String) Profile's name title (e.g. "Dr.", "Sir").
-- `unions` (Set of String) List of union IDs.
 
 ### Read-Only
 
 - `guid` (String) The globally unique identifier (GUID) for the profile, as assigned by Geni.
+- `unions` (Set of String) List of union IDs the profile belongs to. Computed from Geni on refresh.
 
 <a id="nestedatt--baptism"></a>
 ### Nested Schema for `baptism`
