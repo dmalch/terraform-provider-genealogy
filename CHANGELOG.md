@@ -1,4 +1,10 @@
-## 0.22.5 (Unreleased)
+## 0.22.6 (Unreleased)
+
+## 0.22.5
+
+IMPROVEMENTS:
+
+* Bump `github.com/dmalch/go-geni` to v1.16.0. (#130)
 
 ## 0.22.4
 
