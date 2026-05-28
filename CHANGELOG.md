@@ -1,4 +1,6 @@
-## 0.22.6 (Unreleased)
+## 0.23.1 (Unreleased)
+
+## 0.23.0
 
 BREAKING CHANGES:
 
