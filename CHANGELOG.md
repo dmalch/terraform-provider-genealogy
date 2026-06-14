@@ -1,5 +1,14 @@
 ## 0.23.1 (Unreleased)
 
+BUG FIXES:
+
+* Bump `github.com/dmalch/go-geni` to v1.21.1: transient Geni `502`/`503`/`504`
+  responses (the "Geni Will Be Right Back!" maintenance page) are now retried
+  with backoff instead of aborting the operation on the first attempt, and
+  error output no longer dumps the full HTML body. A brief Geni
+  maintenance/instability window during `terraform plan`/refresh no longer
+  fails the whole plan. (#136)
+
 ## 0.23.0
 
 BREAKING CHANGES:
