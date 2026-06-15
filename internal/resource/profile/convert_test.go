@@ -301,6 +301,62 @@ func TestUpdateComputedFields(t *testing.T) {
 		Expect(model.About.ElementsAs(t.Context(), &actualAbout, false).HasError()).To(BeFalse())
 		Expect(actualAbout).To(HaveKeyWithValue("en-US", "Updated about"))
 	})
+
+	t.Run("Preserves a known created_at when the API returns a different value (Geni merge)", func(t *testing.T) {
+		RegisterTestingT(t)
+		// A Geni merge makes the survivor inherit the older created_at. The plan
+		// pins created_at to the prior state value via UseStateForUnknown, so on
+		// Update the model already carries a known value. UpdateComputedFields
+		// must not overwrite it with the server value, or Terraform reports
+		// "inconsistent result after apply" on .created_at (#134). The next Read
+		// reconciles the server value into state.
+		givenProfile := &geniprofile.Profile{
+			ID:        "profile-123",
+			CreatedAt: "1779831386", // older value the survivor inherited on merge
+		}
+
+		model := &ResourceModel{
+			Birth:            types.ObjectNull(event.EventModelAttributeTypes()),
+			Baptism:          types.ObjectNull(event.EventModelAttributeTypes()),
+			Death:            types.ObjectNull(event.EventModelAttributeTypes()),
+			Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
+			CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
+			About:            types.MapNull(types.StringType),
+			Projects:         types.SetNull(types.StringType),
+			CreatedAt:        types.StringValue("1779831518"), // value pinned from prior state
+		}
+
+		diags := UpdateComputedFields(t.Context(), givenProfile, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.CreatedAt.ValueString()).To(Equal("1779831518"))
+	})
+
+	t.Run("Adopts created_at from the API when the plan value is unknown (Create)", func(t *testing.T) {
+		RegisterTestingT(t)
+		// On Create the plan's created_at is Unknown (UseStateForUnknown yields
+		// unknown with no prior state), so the server value must be adopted.
+		givenProfile := &geniprofile.Profile{
+			ID:        "profile-123",
+			CreatedAt: "1719709400",
+		}
+
+		model := &ResourceModel{
+			Birth:            types.ObjectNull(event.EventModelAttributeTypes()),
+			Baptism:          types.ObjectNull(event.EventModelAttributeTypes()),
+			Death:            types.ObjectNull(event.EventModelAttributeTypes()),
+			Burial:           types.ObjectNull(event.EventModelAttributeTypes()),
+			CurrentResidence: types.ObjectNull(event.LocationModelAttributeTypes()),
+			About:            types.MapNull(types.StringType),
+			Projects:         types.SetNull(types.StringType),
+			CreatedAt:        types.StringUnknown(),
+		}
+
+		diags := UpdateComputedFields(t.Context(), givenProfile, model)
+
+		Expect(diags.HasError()).To(BeFalse())
+		Expect(model.CreatedAt.ValueString()).To(Equal("1719709400"))
+	})
 }
 
 func TestNameElementsFrom(t *testing.T) {

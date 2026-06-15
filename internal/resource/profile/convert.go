@@ -319,7 +319,16 @@ func UpdateComputedFields(ctx context.Context, profile *geniprofile.Profile, pro
 
 	profileModel.Deleted = types.BoolValue(profile.Deleted)
 	profileModel.MergedInto = types.StringValue(profile.MergedInto)
-	profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
+
+	// created_at is pinned to the prior state value by UseStateForUnknown, so on
+	// Update the plan carries a known value. A Geni merge makes the survivor
+	// inherit a different (older) created_at; overwriting the planned value here
+	// would violate Terraform's plan/apply consistency contract (#134). Only
+	// adopt the server value when the plan left it unset (Create); the next Read
+	// reconciles any server-side change into state.
+	if profileModel.CreatedAt.IsNull() || profileModel.CreatedAt.IsUnknown() {
+		profileModel.CreatedAt = types.StringValue(profile.CreatedAt)
+	}
 
 	return d
 }

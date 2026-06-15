@@ -1,5 +1,22 @@
 ## 0.23.2 (Unreleased)
 
+BUG FIXES:
+
+* `resource/geni_profile`: an in-place update no longer fails with "Provider
+  produced inconsistent result after apply" on `created_at` when the profile's
+  `created_at` changed on Geni out-of-band — for example after the profile
+  absorbed a duplicate via a Geni merge, where the survivor inherits the older
+  `created_at`. The planned (state-pinned) value is now preserved on Update, and
+  the server value is reconciled into state on the next refresh. (#134)
+
+* `resource/geni_union`: adding partners or children is now idempotent on apply.
+  When Geni has already auto-merged the duplicate union server-side (identical
+  partner set), the provider previously re-added an edge that already existed,
+  failed with "access denied", and tainted the resource — forcing a spurious
+  destroy/recreate and a manual `terraform untaint`. The provider now reads the
+  union's live membership first, skips edges that already exist, and remaps to
+  the surviving canonical union when the tracked union was absorbed. (#138)
+
 ## 0.23.1
 
 BUG FIXES:
