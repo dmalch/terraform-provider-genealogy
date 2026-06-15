@@ -3,6 +3,7 @@ package union
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -77,6 +78,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	adoptedSet := tfset.Index(adoptedIds)
 
 	if len(allChildrenIds) > 0 {
+		// When the union already exists, fetch its live membership once so a
+		// child that Geni already migrated onto it (e.g. via an auto-merge of a
+		// duplicate union) is skipped instead of re-added — a redundant add fails
+		// with "access denied" and taints the resource (#138).
+		var liveResolvedID string
+		var liveChildren map[string]struct{}
+		membersFetched := false
+
 		var skipNextIteration bool
 		for i, childId := range allChildrenIds {
 			if skipNextIteration {
@@ -95,8 +104,21 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 			switch {
 			case !plan.ID.IsUnknown() && !plan.ID.IsNull():
 				// The union already exists — add the child to it.
+				if !membersFetched {
+					var diags diag.Diagnostics
+					liveResolvedID, _, liveChildren, diags = r.currentUnionMembers(ctx, plan.ID.ValueString(), plan.Partners)
+					resp.Diagnostics.Append(diags...)
+					if resp.Diagnostics.HasError() {
+						return
+					}
+					membersFetched = true
+				}
+				if _, ok := liveChildren[childId]; ok {
+					// Already a child of the live union — nothing to add.
+					continue
+				}
 				tmpProfile, err = r.addAndMerge(ctx, childId, func(ctx context.Context) (*geniprofile.Profile, error) {
-					return r.client.Union().AddChild(ctx, plan.ID.ValueString(), geniprofile.WithModifier(modifier))
+					return r.client.Union().AddChild(ctx, liveResolvedID, geniprofile.WithModifier(modifier))
 				})
 			case len(partnerIds) > 0:
 				// When one parent is known, add the child to the parent.

@@ -3,6 +3,7 @@ package union
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -31,8 +32,30 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		}
 	}
 
+	partnersChanged := !plan.Partners.Equal(state.Partners)
+	childrenChanged := !plan.Children.Equal(state.Children) ||
+		!plan.FosterChildren.Equal(state.FosterChildren) ||
+		!plan.AdoptedChildren.Equal(state.AdoptedChildren)
+
+	// Fetch the live union membership once so edge-adds stay idempotent: Geni
+	// may have auto-merged the canonical union (and migrated children onto it)
+	// out-of-band, so re-adding an edge that already exists returns "access
+	// denied" and taints the resource (#138). resolvedID is the union to target
+	// for add-calls — possibly remapped to the surviving union — while plan.ID
+	// in state is left untouched for the next Read to reconcile.
+	var resolvedID string
+	var livePartners, liveChildren map[string]struct{}
+	if partnersChanged || childrenChanged {
+		var diags diag.Diagnostics
+		resolvedID, livePartners, liveChildren, diags = r.currentUnionMembers(ctx, plan.ID.ValueString(), state.Partners)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Check if parents were updated
-	if !plan.Partners.Equal(state.Partners) {
+	if partnersChanged {
 		planPartnerIds, diags := tfset.Strings(ctx, plan.Partners)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -58,11 +81,17 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		for _, partnerId := range planPartnerIds {
 			// If the partner is not in the state, we need to add it
 			if _, ok := knownStatePartnerIds[partnerId]; !ok {
+				// Skip partners already present on the live union (e.g. Geni
+				// auto-merged it onto the canonical union); re-adding would fail
+				// with "access denied" and taint the resource (#138).
+				if _, ok := livePartners[partnerId]; ok {
+					continue
+				}
 				// It is impossible to add an existing profile to a union using the
 				// API, so create a temporary profile and merge it with the existing
 				// one. addAndMerge deletes the temp profile if the merge fails.
 				if _, err := r.addAndMerge(ctx, partnerId, func(ctx context.Context) (*geniprofile.Profile, error) {
-					return r.client.Union().AddPartner(ctx, plan.ID.ValueString())
+					return r.client.Union().AddPartner(ctx, resolvedID)
 				}); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldPartners), "Error adding partner", err.Error())
 					return
@@ -81,10 +110,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	// Check if any of the three child sets were updated
-	if !plan.Children.Equal(state.Children) ||
-		!plan.FosterChildren.Equal(state.FosterChildren) ||
-		!plan.AdoptedChildren.Equal(state.AdoptedChildren) {
-
+	if childrenChanged {
 		planBio, diags := tfset.Strings(ctx, plan.Children)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -137,12 +163,19 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		for _, childId := range planAll {
 			// If the child is not in the state, we need to add it
 			if _, ok := knownStateAll[childId]; !ok {
+				// Skip children already present on the live union (e.g. Geni
+				// auto-merged it onto the canonical union and migrated the child);
+				// re-adding would fail with "access denied" and taint the
+				// resource (#138).
+				if _, ok := liveChildren[childId]; ok {
+					continue
+				}
 				// It is impossible to add an existing profile to a union using the
 				// API, so create a temporary profile and merge it with the existing
 				// one. addAndMerge deletes the temp profile if the merge fails.
 				modifier := modifierFor(childId, fosterSet, adoptedSet)
 				if _, err := r.addAndMerge(ctx, childId, func(ctx context.Context) (*geniprofile.Profile, error) {
-					return r.client.Union().AddChild(ctx, plan.ID.ValueString(), geniprofile.WithModifier(modifier))
+					return r.client.Union().AddChild(ctx, resolvedID, geniprofile.WithModifier(modifier))
 				}); err != nil {
 					resp.Diagnostics.AddAttributeError(path.Root(fieldChildren), "Error adding child with ID="+childId, err.Error())
 					return
