@@ -1,4 +1,12 @@
-## 0.23.3 (Unreleased)
+## 0.24.0 (Unreleased)
+
+BREAKING CHANGES:
+
+* The deprecated `use_profile_cache` and `use_document_cache` provider attributes
+  have been removed (deprecated in v0.21.2, #111). The provider's always-on batch
+  client already coalesces reads, so the preload-everything cache offered no
+  benefit and was slow for large managed sets. Remove these attributes from your
+  provider configuration. (#111)
 
 ## 0.23.2
 

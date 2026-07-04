@@ -9,7 +9,6 @@ import (
 	"github.com/dmalch/go-geni"
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
-	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 )
 
 var _ resource.Resource = &Resource{}
@@ -17,10 +16,8 @@ var _ resource.ResourceWithIdentity = &Resource{} // new interface
 
 type Resource struct {
 	resource.ResourceWithConfigure
-	client           *geni.Client
-	batchClient      *genibatch.Client
-	cacheClient      *genicache.Client
-	useDocumentCache bool
+	client      *geni.Client
+	batchClient *genibatch.Client
 }
 
 func NewResource() resource.Resource {
@@ -54,6 +51,4 @@ func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, r
 
 	r.client = cfg.Client
 	r.batchClient = cfg.BatchClient
-	r.cacheClient = cfg.CacheClient
-	r.useDocumentCache = cfg.UseDocumentCache
 }
