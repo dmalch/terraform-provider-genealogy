@@ -80,8 +80,5 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func (d *DataSource) getProfile(ctx context.Context, idOrGuid string) (*geniprofile.Profile, error) {
-	if d.useProfileCache {
-		return d.cacheClient.GetProfile(ctx, idOrGuid)
-	}
 	return d.batchClient.GetProfile(ctx, idOrGuid)
 }

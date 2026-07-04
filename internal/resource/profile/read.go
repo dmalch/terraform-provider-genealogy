@@ -97,10 +97,6 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 }
 
 func (r *Resource) getProfile(ctx context.Context, profileId string) (*geniprofile.Profile, error) {
-	if r.useProfileCache {
-		return r.cacheClient.GetProfile(ctx, profileId)
-	}
-
 	return r.batchClient.GetProfile(ctx, profileId)
 }
 

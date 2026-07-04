@@ -20,7 +20,6 @@ import (
 	profiledatasource "github.com/dmalch/terraform-provider-genealogy/internal/datasource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/datasource/project"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
-	"github.com/dmalch/terraform-provider-genealogy/internal/genicache"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/photo"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/profile"
@@ -36,10 +35,8 @@ type GeniProvider struct {
 	// once guards one-time creation of the clients and batch-processor
 	// goroutines; Configure may be invoked more than once on an instance.
 	once        sync.Once
-	initErr     error
 	client      *geni.Client
 	batchClient *genibatch.Client
-	cacheClient *genicache.Client
 }
 
 func New() provider.Provider {
@@ -61,18 +58,6 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 			"use_sandbox_env": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Whether to use the Geni Sandbox environment. Can also be set with the GENI_USE_SANDBOX environment variable.",
-			},
-			"use_profile_cache": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Whether to use the profile cache for faster lookups. Deprecated: superseded by the always-on batch client; will be removed in a future release.",
-				DeprecationMessage: "The provider's batch client already coalesces profile reads, so this cache offers no benefit and forces a slow preload of every managed profile. " +
-					"This attribute will be removed in a future release; remove it from your provider configuration.",
-			},
-			"use_document_cache": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Whether to use the document cache for faster lookups. Deprecated: superseded by the always-on batch client; will be removed in a future release.",
-				DeprecationMessage: "The provider's batch client already coalesces document reads, so this cache offers no benefit and forces a slow preload of every uploaded document. " +
-					"This attribute will be removed in a future release; remove it from your provider configuration.",
 			},
 			"auto_update_merged_profiles": schema.BoolAttribute{
 				Optional:    true,
@@ -125,35 +110,21 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	p.once.Do(func() {
 		p.client = geni.NewClient(tokenSource, useSandboxEnv)
 		p.batchClient = genibatch.NewClient(p.client)
-		p.cacheClient, p.initErr = genicache.NewClient(p.client, p.batchClient)
-		if p.initErr != nil {
-			return
-		}
 		go p.batchClient.UnionBulkProcessor(context.Background())
 		go p.batchClient.ProfileBulkProcessor(context.Background())
 		go p.batchClient.DocumentBulkProcessor(context.Background())
 		go p.batchClient.PhotoBulkProcessor(context.Background())
 	})
 
-	if p.initErr != nil {
-		resp.Diagnostics.AddError("error initializing cache client", p.initErr.Error())
-		return
-	}
-
 	resp.ResourceData = &config.ClientData{
 		Client:                   p.client,
 		BatchClient:              p.batchClient,
-		CacheClient:              p.cacheClient,
-		UseProfileCache:          cfg.UseProfileCache.ValueBool(),
-		UseDocumentCache:         cfg.UseDocumentCache.ValueBool(),
 		AutoUpdateMergedProfiles: cfg.AutoUpdateMergedProfiles.ValueBool(),
 	}
 
 	resp.DataSourceData = &config.ClientData{
 		Client:                   p.client,
 		BatchClient:              p.batchClient,
-		CacheClient:              p.cacheClient,
-		UseProfileCache:          cfg.UseProfileCache.ValueBool(),
 		AutoUpdateMergedProfiles: cfg.AutoUpdateMergedProfiles.ValueBool(),
 	}
 

@@ -107,8 +107,6 @@ func configureProvider(t *testing.T, p *GeniProvider, accessToken string) *provi
 	raw := tftypes.NewValue(schemaResp.Schema.Type().TerraformType(ctx), map[string]tftypes.Value{
 		"access_token":                tftypes.NewValue(tftypes.String, accessToken),
 		"use_sandbox_env":             tftypes.NewValue(tftypes.Bool, nil),
-		"use_profile_cache":           tftypes.NewValue(tftypes.Bool, nil),
-		"use_document_cache":          tftypes.NewValue(tftypes.Bool, nil),
 		"auto_update_merged_profiles": tftypes.NewValue(tftypes.Bool, nil),
 	})
 
