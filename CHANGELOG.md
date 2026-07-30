@@ -1,4 +1,36 @@
-## 0.25.1 (Unreleased)
+## 0.26.0 (Unreleased)
+
+FEATURES:
+
+* The provider can now log in **once** instead of once a day. Geni's access
+  tokens last 24 hours and the browser flow the provider has always used
+  returns nothing to renew them with, so a `terraform apply` on a new day
+  opened a browser. Supplying the OAuth application's client secret switches
+  the login to Geni's server-side flow, which returns a refresh token; the
+  provider then renews in the background and writes the result back to
+  `~/.genealogy/geni_token.json`. Without a secret nothing changes.
+
+  Two new provider attributes, `client_secret` (sensitive) and `client_id`,
+  resolved in descending precedence:
+
+  1. `GENI_CLIENT_SECRET` / `GENI_CLIENT_ID` (`GENI_SANDBOX_*` under the
+     sandbox environment);
+  2. the `provider "geni"` block;
+  3. `~/.genealogy/config.json`, written by `geni config client-secret` in the
+     [geni CLI](https://github.com/dmalch/go-geni) — so one command configures
+     both tools, the way they already share a token cache.
+
+  The id travels with the secret at each level: a level that supplies only a
+  secret keeps the built-in application id, and a level that supplies only an
+  id never picks up a secret belonging to a different application. Prefer the
+  environment variable or the CLI config over the provider block — a secret in
+  a `.tf` file tends to end up in version control.
+
+  Getting a secret: your application's page under
+  [Geni developer apps](https://www.geni.com/platform/developer/apps).
+  Renewal is best-effort — if Geni rejects the stored refresh token the
+  provider falls back to the browser, and if Geni is merely unreachable it
+  reports that rather than opening one.
 
 ## 0.25.0
 
