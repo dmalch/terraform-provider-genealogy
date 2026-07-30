@@ -1,4 +1,34 @@
-## 0.24.1 (Unreleased)
+## 0.25.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* Upgraded `github.com/dmalch/go-geni` from v1.21.1 to v1.28.0. The provider
+  drives the same browser OAuth handshake and the same
+  `~/.genealogy/geni_token.json` cache as the `geni` CLI, so its fixes land
+  here too:
+  * The OAuth callback listener no longer leaks. It was shut down only when
+    the login succeeded, so Ctrl-C, the five-minute timeout and a state
+    mismatch all left port 8080 held for the life of the process — and a
+    `terraform apply` that had to authenticate after an interrupted one
+    failed on a port its own predecessor was squatting.
+  * A busy callback port is reported before a browser tab opens, rather than
+    after.
+  * The callback binds `127.0.0.1` instead of every interface. It carries an
+    access token in its query string and had no business being reachable from
+    the local network.
+  * A login is no longer rejected outright when Geni's callback omits
+    `expires_in`; the documented 24-hour lifetime is assumed instead of
+    discarding a valid token.
+
+BEHAVIORAL CHANGES:
+
+* The token cache is written with mode `0600` instead of `0644`, through a
+  temporary file and a rename. An existing world-readable cache is replaced on
+  the next login. If something other than your own user account reads
+  `~/.genealogy/geni_token.json`, it will stop being able to.
+* The authorization screen is requested with `display=web` rather than
+  `display=mobile`, so the consent page renders at desktop size. Same redirect
+  target, same parameters — verified against the live API.
 
 ## 0.24.0
 
