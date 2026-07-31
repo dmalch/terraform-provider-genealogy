@@ -19,6 +19,7 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/config"
 	profiledatasource "github.com/dmalch/terraform-provider-genealogy/internal/datasource/profile"
 	"github.com/dmalch/terraform-provider-genealogy/internal/datasource/project"
+	"github.com/dmalch/terraform-provider-genealogy/internal/geniapp"
 	"github.com/dmalch/terraform-provider-genealogy/internal/genibatch"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/document"
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/photo"
@@ -54,6 +55,15 @@ func (p *GeniProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The Access Token for the Geni API. Can also be set with the GENI_ACCESS_TOKEN environment variable. If not provided, the provider will attempt to do a browser-based OAuth login flow.",
+			},
+			"client_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The OAuth client id of your own registered Geni application, if you do not want to use the built-in one. Can also be set with the GENI_CLIENT_ID environment variable (GENI_SANDBOX_CLIENT_ID under the sandbox environment). Supply it together with `client_secret`.",
+			},
+			"client_secret": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The OAuth client secret of the Geni application. Supplying it switches the browser login to Geni's server-side flow, which returns a refresh token, so the provider renews the token in the background instead of opening a browser every 24 hours. Can also be set with the GENI_CLIENT_SECRET environment variable (GENI_SANDBOX_CLIENT_SECRET under the sandbox environment), or with `geni config client-secret` in the geni CLI, which stores it in ~/.genealogy/config.json alongside the shared token cache.",
 			},
 			"use_sandbox_env": schema.BoolAttribute{
 				Optional:    true,
@@ -93,15 +103,12 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	var tokenSource = oauth2.ReuseTokenSource(nil,
-		auth.NewCachingTokenSource(
-			cacheFilePath,
-			auth.NewAuthTokenSource(&oauth2.Config{
-				ClientID: clientId(useSandboxEnv),
-				Endpoint: oauth2.Endpoint{
-					AuthURL: geni.BaseURL(useSandboxEnv) + "platform/oauth/authorize",
-				},
-			})))
+	app := geniapp.Resolve(geniapp.Explicit{
+		ClientID:     cfg.ClientID.ValueString(),
+		ClientSecret: cfg.ClientSecret.ValueString(),
+	}, useSandboxEnv)
+
+	tokenSource := browserTokenSource(app, auth.GeniEndpoint(geni.BaseURL(useSandboxEnv)), cacheFilePath)
 
 	if accessToken != "" {
 		tokenSource = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
@@ -133,6 +140,38 @@ func (p *GeniProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 }
 
+// browserTokenSource builds the token source behind an interactive
+// login.
+//
+// With a client secret it runs Geni's server-side flow, which returns a
+// refresh token, and renews from it instead of opening a browser once a
+// day. Renewing happens inside the caching source, below
+// oauth2.ReuseTokenSource: Geni rotates the refresh token on every
+// renewal, so a refresher above the cache would renew into memory and
+// lose the new token when Terraform exits — which, for a provider, is
+// after every single command.
+//
+// Without a secret this is the client-side flow the provider has always
+// used, and its 24-hour token.
+// The endpoint is a parameter rather than derived here so a test can
+// stand one up and exercise the refresh without a browser.
+func browserTokenSource(app geniapp.Credentials, endpoint oauth2.Endpoint, cacheFilePath string) oauth2.TokenSource {
+	oauthConfig := &oauth2.Config{
+		ClientID:     app.ClientID,
+		ClientSecret: app.ClientSecret,
+		Endpoint:     endpoint,
+	}
+
+	if !app.Refreshable() {
+		return oauth2.ReuseTokenSource(nil,
+			auth.NewCachingTokenSource(cacheFilePath, auth.NewAuthTokenSource(oauthConfig)))
+	}
+
+	codeSource := auth.NewCodeTokenSource(oauthConfig)
+	return oauth2.ReuseTokenSource(nil,
+		auth.NewRefreshingCachingTokenSource(cacheFilePath, codeSource, codeSource))
+}
+
 func tokenCacheFilePath(useSandboxEnv bool) (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -145,16 +184,6 @@ func tokenCacheFilePath(useSandboxEnv bool) (string, error) {
 	}
 
 	return cacheFilePath, nil
-}
-
-func clientId(useSandboxEnv bool) string {
-	if useSandboxEnv {
-		// Sandbox client ID
-		return "8"
-	}
-
-	// Production client ID
-	return "1855"
 }
 
 func (p *GeniProvider) Resources(_ context.Context) []func() resource.Resource {

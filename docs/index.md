@@ -18,4 +18,6 @@ This provider enables managing data on Geni.com through Terraform. It exposes co
 
 - `access_token` (String, Sensitive) The Access Token for the Geni API. Can also be set with the GENI_ACCESS_TOKEN environment variable. If not provided, the provider will attempt to do a browser-based OAuth login flow.
 - `auto_update_merged_profiles` (Boolean) Whether to automatically update merged profiles in the state
+- `client_id` (String) The OAuth client id of your own registered Geni application, if you do not want to use the built-in one. Can also be set with the GENI_CLIENT_ID environment variable (GENI_SANDBOX_CLIENT_ID under the sandbox environment). Supply it together with `client_secret`.
+- `client_secret` (String, Sensitive) The OAuth client secret of the Geni application. Supplying it switches the browser login to Geni's server-side flow, which returns a refresh token, so the provider renews the token in the background instead of opening a browser every 24 hours. Can also be set with the GENI_CLIENT_SECRET environment variable (GENI_SANDBOX_CLIENT_SECRET under the sandbox environment), or with `geni config client-secret` in the geni CLI, which stores it in ~/.genealogy/config.json alongside the shared token cache.
 - `use_sandbox_env` (Boolean) Whether to use the Geni Sandbox environment. Can also be set with the GENI_USE_SANDBOX environment variable.
