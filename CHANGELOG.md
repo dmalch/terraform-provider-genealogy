@@ -1,4 +1,6 @@
-## 0.26.0 (Unreleased)
+## 0.26.1 (Unreleased)
+
+## 0.26.0
 
 FEATURES:
 
