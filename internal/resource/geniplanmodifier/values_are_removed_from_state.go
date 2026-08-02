@@ -2,6 +2,7 @@ package geniplanmodifier
 
 import (
 	"context"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -24,10 +25,5 @@ func ValuesAreRemovedFromState(_ context.Context, req planmodifier.SetRequest, r
 }
 
 func contains(elements []attr.Value, v attr.Value) bool {
-	for _, p := range elements {
-		if v.Equal(p) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(elements, v.Equal)
 }

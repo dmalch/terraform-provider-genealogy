@@ -12,34 +12,30 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
-func ptr[T any](s T) *T {
-	return &s
-}
-
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined object is passed", func(t *testing.T) {
 		RegisterTestingT(t)
 		givenResponse := genidocument.Document{
 			ID:          "123",
 			Title:       "Test Document",
-			Description: ptr("This is a test document"),
-			ContentType: ptr("text/plain"),
+			Description: new("This is a test document"),
+			ContentType: new("text/plain"),
 			Date: &geniprofile.DateElement{
-				Day:   ptr[int32](1),
-				Month: ptr[int32](1),
-				Year:  ptr[int32](2000),
+				Day:   new(int32(1)),
+				Month: new(int32(1)),
+				Year:  new(int32(2000)),
 			},
 			Location: &geniprofile.LocationElement{
-				City:           ptr("City"),
-				Country:        ptr("Country"),
-				County:         ptr("County"),
-				Latitude:       ptr(1.0),
-				Longitude:      ptr(2.0),
-				PlaceName:      ptr("Place Name"),
-				State:          ptr("State"),
-				StreetAddress1: ptr("Street Address 1"),
-				StreetAddress2: ptr("Street Address 2"),
-				StreetAddress3: ptr("Street Address 3"),
+				City:           new("City"),
+				Country:        new("Country"),
+				County:         new("County"),
+				Latitude:       new(1.0),
+				Longitude:      new(2.0),
+				PlaceName:      new("Place Name"),
+				State:          new("State"),
+				StreetAddress1: new("Street Address 1"),
+				StreetAddress2: new("Street Address 2"),
+				StreetAddress3: new("Street Address 3"),
 			},
 			Tags:      []string{"tag1", "tag2"},
 			Labels:    []string{"label1", "label2"},
@@ -132,7 +128,7 @@ func TestUpdateComputedFields(t *testing.T) {
 		RegisterTestingT(t)
 		givenResponse := &genidocument.Document{
 			ID:          "doc-123",
-			ContentType: ptr("text/plain"),
+			ContentType: new("text/plain"),
 			Tags:        []string{"profile-1"},
 			Labels:      []string{"label1"},
 			CreatedAt:   "1719709400",
@@ -161,7 +157,7 @@ func TestUpdateComputedFields(t *testing.T) {
 		RegisterTestingT(t)
 		givenResponse := &genidocument.Document{
 			ID:          "doc-new",
-			ContentType: ptr("text/html"),
+			ContentType: new("text/html"),
 			Tags:        []string{},
 			Labels:      []string{},
 			CreatedAt:   "1719709500",

@@ -41,8 +41,8 @@ func TestDisplayNameFor(t *testing.T) {
 		RegisterTestingT(t)
 		got := displayNameFor(&geniprofile.Profile{
 			ID:        "profile-1",
-			FirstName: ptr("John"),
-			LastName:  ptr("Doe"),
+			FirstName: new("John"),
+			LastName:  new("Doe"),
 		})
 		Expect(got).To(Equal("John Doe (profile-1)"))
 	})
@@ -52,8 +52,8 @@ func TestDisplayNameFor(t *testing.T) {
 		got := displayNameFor(&geniprofile.Profile{
 			ID: "profile-2",
 			Names: map[string]geniprofile.NameElement{
-				"fr":    {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
-				"en-US": {FirstName: ptr("John"), LastName: ptr("Doe")},
+				"fr":    {FirstName: new("Jean"), LastName: new("Dupont")},
+				"en-US": {FirstName: new("John"), LastName: new("Doe")},
 			},
 		})
 		Expect(got).To(Equal("John Doe (profile-2)"))
@@ -70,7 +70,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Populates Identity with the profile ID", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geniprofile.Profile{ID: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
+		givenResponse := &geniprofile.Profile{ID: "profile-42", FirstName: new("John"), LastName: new("Doe")}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 
@@ -86,7 +86,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Sets a human-readable DisplayName", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geniprofile.Profile{ID: "profile-42", FirstName: ptr("John"), LastName: ptr("Doe")}
+		givenResponse := &geniprofile.Profile{ID: "profile-42", FirstName: new("John"), LastName: new("Doe")}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 
@@ -100,8 +100,8 @@ func TestBuildListResult(t *testing.T) {
 		givenResponse := &geniprofile.Profile{
 			ID:        "profile-43",
 			Public:    true,
-			FirstName: ptr("John"),
-			LastName:  ptr("Doe"),
+			FirstName: new("John"),
+			LastName:  new("Doe"),
 		}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
@@ -123,7 +123,7 @@ func TestBuildListResult(t *testing.T) {
 	t.Run("Leaves Resource at its schema-null default when IncludeResource is false", func(t *testing.T) {
 		RegisterTestingT(t)
 		req := listRequest(t, false)
-		givenResponse := &geniprofile.Profile{ID: "profile-44", FirstName: ptr("John"), LastName: ptr("Doe")}
+		givenResponse := &geniprofile.Profile{ID: "profile-44", FirstName: new("John"), LastName: new("Doe")}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
 

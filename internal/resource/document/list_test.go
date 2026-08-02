@@ -83,7 +83,7 @@ func TestBuildListResult(t *testing.T) {
 		givenResponse := &genidocument.Document{
 			ID:          "document-43",
 			Title:       "Birth Certificate",
-			ContentType: ptr("image/png"),
+			ContentType: new("image/png"),
 		}
 
 		result, ok := buildListResult(t.Context(), givenResponse, req)
