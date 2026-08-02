@@ -54,10 +54,10 @@ func (c *Client) GetUnion(ctx context.Context, id string) (*geniunion.Union, err
 	case res := <-response:
 		return res, nil
 	case err := <-errors:
-		tflog.Error(ctx, "Error processing request", map[string]interface{}{"error": err})
+		tflog.Error(ctx, "Error processing request", map[string]any{"error": err})
 		return nil, err
 	case <-ctx.Done():
-		tflog.Error(ctx, "Context done", map[string]interface{}{"error": ctx.Err()})
+		tflog.Error(ctx, "Context done", map[string]any{"error": ctx.Err()})
 		return nil, ctx.Err()
 	}
 }
@@ -76,10 +76,10 @@ func (c *Client) GetProfile(ctx context.Context, id string) (*geniprofile.Profil
 	case res := <-response:
 		return res, nil
 	case err := <-errors:
-		tflog.Error(ctx, "Error processing request", map[string]interface{}{"error": err})
+		tflog.Error(ctx, "Error processing request", map[string]any{"error": err})
 		return nil, err
 	case <-ctx.Done():
-		tflog.Error(ctx, "Context done", map[string]interface{}{"error": ctx.Err()})
+		tflog.Error(ctx, "Context done", map[string]any{"error": ctx.Err()})
 		return nil, ctx.Err()
 	}
 }
@@ -98,10 +98,10 @@ func (c *Client) GetDocument(ctx context.Context, id string) (*genidocument.Docu
 	case res := <-response:
 		return res, nil
 	case err := <-errors:
-		tflog.Error(ctx, "Error processing request", map[string]interface{}{"error": err})
+		tflog.Error(ctx, "Error processing request", map[string]any{"error": err})
 		return nil, err
 	case <-ctx.Done():
-		tflog.Error(ctx, "Context done", map[string]interface{}{"error": ctx.Err()})
+		tflog.Error(ctx, "Context done", map[string]any{"error": ctx.Err()})
 		return nil, ctx.Err()
 	}
 }
@@ -137,7 +137,7 @@ func (c *Client) UnionBulkProcessor(ctx context.Context) {
 		case <-ctx.Done():
 			err := ctx.Err()
 			if err != nil {
-				tflog.Error(ctx, "Context done", map[string]interface{}{"error": err})
+				tflog.Error(ctx, "Context done", map[string]any{"error": err})
 			}
 			return
 		}
@@ -173,7 +173,7 @@ func (c *Client) ProfileBulkProcessor(ctx context.Context) {
 		case <-ctx.Done():
 			err := ctx.Err()
 			if err != nil {
-				tflog.Error(ctx, "Context done", map[string]interface{}{"error": err})
+				tflog.Error(ctx, "Context done", map[string]any{"error": err})
 			}
 			return
 		}
@@ -209,7 +209,7 @@ func (c *Client) DocumentBulkProcessor(ctx context.Context) {
 		case <-ctx.Done():
 			err := ctx.Err()
 			if err != nil {
-				tflog.Error(ctx, "Context done", map[string]interface{}{"error": err})
+				tflog.Error(ctx, "Context done", map[string]any{"error": err})
 			}
 			return
 		}
@@ -230,7 +230,7 @@ func recoverBatch[T any](ctx context.Context, kind string, batch []asyncRequest[
 	}
 
 	err := fmt.Errorf("recovered from panic while processing %s batch: %v", kind, r)
-	tflog.Error(ctx, "Panic in batch processor", map[string]interface{}{"error": err})
+	tflog.Error(ctx, "Panic in batch processor", map[string]any{"error": err})
 
 	for _, req := range batch {
 		select {
@@ -435,10 +435,10 @@ func (c *Client) GetPhoto(ctx context.Context, id string) (*geniphoto.Photo, err
 	case res := <-response:
 		return res, nil
 	case err := <-errors:
-		tflog.Error(ctx, "Error processing request", map[string]interface{}{"error": err})
+		tflog.Error(ctx, "Error processing request", map[string]any{"error": err})
 		return nil, err
 	case <-ctx.Done():
-		tflog.Error(ctx, "Context done", map[string]interface{}{"error": ctx.Err()})
+		tflog.Error(ctx, "Context done", map[string]any{"error": ctx.Err()})
 		return nil, ctx.Err()
 	}
 }
@@ -472,7 +472,7 @@ func (c *Client) PhotoBulkProcessor(ctx context.Context) {
 		case <-ctx.Done():
 			err := ctx.Err()
 			if err != nil {
-				tflog.Error(ctx, "Context done", map[string]interface{}{"error": err})
+				tflog.Error(ctx, "Context done", map[string]any{"error": err})
 			}
 			return
 		}

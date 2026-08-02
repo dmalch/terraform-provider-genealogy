@@ -11,10 +11,6 @@ import (
 	geniprofile "github.com/dmalch/go-geni/profile"
 )
 
-func ptr[T any](s T) *T {
-	return &s
-}
-
 func TestElementFrom(t *testing.T) {
 	t.Run("regular case", func(t *testing.T) {
 		RegisterTestingT(t)
@@ -113,16 +109,16 @@ func TestValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		eventElement := &geniprofile.EventElement{
 			Name:        "Birth",
-			Description: ptr("Born in city"),
+			Description: new("Born in city"),
 			Date: &geniprofile.DateElement{
-				Circa: ptr(false),
-				Day:   ptr(int32(15)),
-				Month: ptr(int32(3)),
-				Year:  ptr(int32(1990)),
+				Circa: new(false),
+				Day:   new(int32(15)),
+				Month: new(int32(3)),
+				Year:  new(int32(1990)),
 			},
 			Location: &geniprofile.LocationElement{
-				City:    ptr("Springfield"),
-				Country: ptr("US"),
+				City:    new("Springfield"),
+				Country: new("US"),
 			},
 		}
 
@@ -167,7 +163,7 @@ func TestValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		eventElement := &geniprofile.EventElement{
 			Name: "Death of John Doe",
-			Date: &geniprofile.DateElement{Year: ptr(int32(1980))},
+			Date: &geniprofile.DateElement{Year: new(int32(1980))},
 		}
 
 		result, diags := ValueFrom(t.Context(), eventElement)
@@ -180,7 +176,7 @@ func TestValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		eventElement := &geniprofile.EventElement{
 			Name:     "Birth of John Doe",
-			Location: &geniprofile.LocationElement{City: ptr("Springfield")},
+			Location: &geniprofile.LocationElement{City: new("Springfield")},
 		}
 
 		result, diags := ValueFrom(t.Context(), eventElement)
@@ -194,10 +190,10 @@ func TestDateValueFrom(t *testing.T) {
 	t.Run("full date", func(t *testing.T) {
 		RegisterTestingT(t)
 		dateElement := &geniprofile.DateElement{
-			Circa: ptr(true),
-			Day:   ptr(int32(25)),
-			Month: ptr(int32(12)),
-			Year:  ptr(int32(1900)),
+			Circa: new(true),
+			Day:   new(int32(25)),
+			Month: new(int32(12)),
+			Year:  new(int32(1900)),
 		}
 
 		result, diags := DateValueFrom(t.Context(), dateElement)
@@ -228,15 +224,15 @@ func TestDateRangeValueFrom(t *testing.T) {
 	t.Run("full range date", func(t *testing.T) {
 		RegisterTestingT(t)
 		dateElement := &geniprofile.DateElement{
-			Range:    ptr("between"),
-			Circa:    ptr(true),
-			Day:      ptr(int32(1)),
-			Month:    ptr(int32(1)),
-			Year:     ptr(int32(1800)),
-			EndCirca: ptr(false),
-			EndDay:   ptr(int32(31)),
-			EndMonth: ptr(int32(12)),
-			EndYear:  ptr(int32(1850)),
+			Range:    new("between"),
+			Circa:    new(true),
+			Day:      new(int32(1)),
+			Month:    new(int32(1)),
+			Year:     new(int32(1800)),
+			EndCirca: new(false),
+			EndDay:   new(int32(31)),
+			EndMonth: new(int32(12)),
+			EndYear:  new(int32(1850)),
 		}
 
 		result, diags := DateRangeValueFrom(t.Context(), dateElement)
@@ -272,16 +268,16 @@ func TestLocationValueFrom(t *testing.T) {
 	t.Run("full location", func(t *testing.T) {
 		RegisterTestingT(t)
 		locationElement := &geniprofile.LocationElement{
-			City:           ptr("London"),
-			Country:        ptr("UK"),
-			County:         ptr("Greater London"),
-			Latitude:       ptr(51.5074),
-			Longitude:      ptr(-0.1278),
-			PlaceName:      ptr("Westminster"),
-			State:          ptr("England"),
-			StreetAddress1: ptr("10 Downing St"),
-			StreetAddress2: ptr("Suite 1"),
-			StreetAddress3: ptr("Floor 2"),
+			City:           new("London"),
+			Country:        new("UK"),
+			County:         new("Greater London"),
+			Latitude:       new(51.5074),
+			Longitude:      new(-0.1278),
+			PlaceName:      new("Westminster"),
+			State:          new("England"),
+			StreetAddress1: new("10 Downing St"),
+			StreetAddress2: new("Suite 1"),
+			StreetAddress3: new("Floor 2"),
 		}
 
 		result, diags := LocationValueFrom(t.Context(), locationElement)
@@ -434,7 +430,7 @@ func TestUpdateComputedFieldsInEvent(t *testing.T) {
 			})
 		eventElement := &geniprofile.EventElement{
 			Name:        "Marriage",
-			Description: ptr("Wedding ceremony"),
+			Description: new("Wedding ceremony"),
 		}
 
 		result, diags := UpdateComputedFieldsInEvent(t.Context(), eventObject, eventElement)
@@ -500,16 +496,16 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 				"street_address3": types.StringValue("Street Address 3"),
 			})
 		givenLocationResponse := &geniprofile.LocationElement{
-			City:           ptr("City Response"),
-			Country:        ptr("Country Response"),
-			County:         ptr("County Response"),
-			Latitude:       ptr(1.1),
-			Longitude:      ptr(2.1),
-			PlaceName:      ptr("Place Name Response"),
-			State:          ptr("State Response"),
-			StreetAddress1: ptr("Street Address 1 Response"),
-			StreetAddress2: ptr("Street Address 2 Response"),
-			StreetAddress3: ptr("Street Address 3 Response"),
+			City:           new("City Response"),
+			Country:        new("Country Response"),
+			County:         new("County Response"),
+			Latitude:       new(1.1),
+			Longitude:      new(2.1),
+			PlaceName:      new("Place Name Response"),
+			State:          new("State Response"),
+			StreetAddress1: new("Street Address 1 Response"),
+			StreetAddress2: new("Street Address 2 Response"),
+			StreetAddress3: new("Street Address 3 Response"),
 		}
 		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, givenLocationResponse)
 		Expect(diags).To(BeEmpty())
@@ -534,16 +530,16 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 				"street_address3": types.StringNull(),
 			})
 		givenLocationResponse := &geniprofile.LocationElement{
-			City:           ptr("City Response"),
-			Country:        ptr("Country Response"),
-			County:         ptr("County Response"),
-			Latitude:       ptr(1.1),
-			Longitude:      ptr(2.1),
-			PlaceName:      ptr("Place Name Response"),
-			State:          ptr("State Response"),
-			StreetAddress1: ptr("Street Address 1 Response"),
-			StreetAddress2: ptr("Street Address 2 Response"),
-			StreetAddress3: ptr("Street Address 3 Response"),
+			City:           new("City Response"),
+			Country:        new("Country Response"),
+			County:         new("County Response"),
+			Latitude:       new(1.1),
+			Longitude:      new(2.1),
+			PlaceName:      new("Place Name Response"),
+			State:          new("State Response"),
+			StreetAddress1: new("Street Address 1 Response"),
+			StreetAddress2: new("Street Address 2 Response"),
+			StreetAddress3: new("Street Address 3 Response"),
 		}
 		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, givenLocationResponse)
 		Expect(diags).To(BeEmpty())
@@ -573,16 +569,16 @@ func TestUpdateComputedFieldsInLocationObject(t *testing.T) {
 				"street_address3": types.StringNull(),
 			})
 		givenLocationResponse := &geniprofile.LocationElement{
-			City:           ptr("City Response"),
-			Country:        ptr("Country Response"),
-			County:         ptr("County Response"),
-			Latitude:       ptr(0.0),
-			Longitude:      ptr(0.0),
-			PlaceName:      ptr("Place Name Response"),
-			State:          ptr("State Response"),
-			StreetAddress1: ptr("Street Address 1 Response"),
-			StreetAddress2: ptr("Street Address 2 Response"),
-			StreetAddress3: ptr("Street Address 3 Response"),
+			City:           new("City Response"),
+			Country:        new("Country Response"),
+			County:         new("County Response"),
+			Latitude:       new(0.0),
+			Longitude:      new(0.0),
+			PlaceName:      new("Place Name Response"),
+			State:          new("State Response"),
+			StreetAddress1: new("Street Address 1 Response"),
+			StreetAddress2: new("Street Address 2 Response"),
+			StreetAddress3: new("Street Address 3 Response"),
 		}
 		updatedLocationObject, diags := UpdateComputedFieldsInLocationObject(t.Context(), givenLocationObject, givenLocationResponse)
 		Expect(diags).To(BeEmpty())

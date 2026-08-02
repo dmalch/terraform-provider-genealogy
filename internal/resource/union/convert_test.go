@@ -13,10 +13,6 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/tfset"
 )
 
-func ptr[T any](s T) *T {
-	return &s
-}
-
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined union response is passed", func(t *testing.T) {
 		RegisterTestingT(t)
@@ -27,21 +23,21 @@ func TestValueFrom(t *testing.T) {
 			Marriage: &geniprofile.EventElement{
 				Name: "Marriage",
 				Date: &geniprofile.DateElement{
-					Day:   ptr[int32](15),
-					Month: ptr[int32](6),
-					Year:  ptr[int32](1990),
+					Day:   new(int32(15)),
+					Month: new(int32(6)),
+					Year:  new(int32(1990)),
 				},
 				Location: &geniprofile.LocationElement{
-					City:    ptr("Paris"),
-					Country: ptr("France"),
+					City:    new("Paris"),
+					Country: new("France"),
 				},
 			},
 			Divorce: &geniprofile.EventElement{
 				Name: "Divorce",
 				Date: &geniprofile.DateElement{
-					Day:   ptr[int32](1),
-					Month: ptr[int32](3),
-					Year:  ptr[int32](2000),
+					Day:   new(int32(1)),
+					Month: new(int32(3)),
+					Year:  new(int32(2000)),
 				},
 			},
 		}
@@ -242,18 +238,18 @@ func TestUpdateComputedFields(t *testing.T) {
 			ID: "union-123",
 			Marriage: &geniprofile.EventElement{
 				Name:        "Marriage",
-				Description: ptr("A beautiful ceremony"),
+				Description: new("A beautiful ceremony"),
 				Date: &geniprofile.DateElement{
-					Year: ptr[int32](1990),
+					Year: new(int32(1990)),
 				},
 				Location: &geniprofile.LocationElement{
-					City: ptr("Paris"),
+					City: new("Paris"),
 				},
 			},
 			Divorce: &geniprofile.EventElement{
 				Name: "Divorce",
 				Date: &geniprofile.DateElement{
-					Year: ptr[int32](2000),
+					Year: new(int32(2000)),
 				},
 			},
 		}
@@ -261,12 +257,12 @@ func TestUpdateComputedFields(t *testing.T) {
 		// Create a model with existing event objects that have unknown computed fields
 		marriageObj, _ := event.ValueFrom(t.Context(), &geniprofile.EventElement{
 			Date: &geniprofile.DateElement{
-				Year: ptr[int32](1990),
+				Year: new(int32(1990)),
 			},
 		})
 		divorceObj, _ := event.ValueFrom(t.Context(), &geniprofile.EventElement{
 			Date: &geniprofile.DateElement{
-				Year: ptr[int32](2000),
+				Year: new(int32(2000)),
 			},
 		})
 

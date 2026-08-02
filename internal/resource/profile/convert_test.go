@@ -11,30 +11,26 @@ import (
 	"github.com/dmalch/terraform-provider-genealogy/internal/resource/event"
 )
 
-func ptr[T any](s T) *T {
-	return &s
-}
-
 func TestValueFrom(t *testing.T) {
 	t.Run("Happy path, when a fully defined object is passed", func(t *testing.T) {
 		RegisterTestingT(t)
 		givenProfile := &geniprofile.Profile{
 			ID:          "123",
 			Guid:        "abcdef0123456789abcdef0123456789",
-			FirstName:   ptr("John"),
-			LastName:    ptr("Doe"),
-			MiddleName:  ptr("A"),
-			MaidenName:  ptr("Smith"),
-			DisplayName: ptr("John A Doe"),
-			Gender:      ptr("male"),
-			AboutMe:     ptr("This is a test profile"),
+			FirstName:   new("John"),
+			LastName:    new("Doe"),
+			MiddleName:  new("A"),
+			MaidenName:  new("Smith"),
+			DisplayName: new("John A Doe"),
+			Gender:      new("male"),
+			AboutMe:     new("This is a test profile"),
 			Public:      true,
 			IsAlive:     true,
 			Names: map[string]geniprofile.NameElement{
 				"en": {
-					FirstName:  ptr("John"),
-					MiddleName: ptr("A"),
-					LastName:   ptr("Doe"),
+					FirstName:  new("John"),
+					MiddleName: new("A"),
+					LastName:   new("Doe"),
 				},
 			},
 			Unions:     []string{"union1", "union2"},
@@ -44,30 +40,30 @@ func TestValueFrom(t *testing.T) {
 			Suffix:     "Jr.",
 			Birth: &geniprofile.EventElement{
 				Date: &geniprofile.DateElement{
-					Day:   ptr[int32](1),
-					Month: ptr[int32](1),
-					Year:  ptr[int32](2000),
+					Day:   new(int32(1)),
+					Month: new(int32(1)),
+					Year:  new(int32(2000)),
 				},
 			},
 			Baptism: &geniprofile.EventElement{
 				Date: &geniprofile.DateElement{
-					Day:   ptr[int32](1),
-					Month: ptr[int32](1),
-					Year:  ptr[int32](2000),
+					Day:   new(int32(1)),
+					Month: new(int32(1)),
+					Year:  new(int32(2000)),
 				},
 			},
 			Death: &geniprofile.EventElement{
 				Date: &geniprofile.DateElement{
-					Day:   ptr[int32](1),
-					Month: ptr[int32](1),
-					Year:  ptr[int32](2000),
+					Day:   new(int32(1)),
+					Month: new(int32(1)),
+					Year:  new(int32(2000)),
 				},
 			},
 			Burial: &geniprofile.EventElement{
 				Date: &geniprofile.DateElement{
-					Day:   ptr[int32](1),
-					Month: ptr[int32](1),
-					Year:  ptr[int32](2000),
+					Day:   new(int32(1)),
+					Month: new(int32(1)),
+					Year:  new(int32(2000)),
 				},
 			},
 			CreatedAt: "1719709400",
@@ -129,10 +125,10 @@ func TestValueFrom(t *testing.T) {
 		givenProfile := &geniprofile.Profile{
 			DetailStrings: map[string]geniprofile.DetailsString{
 				"en-US": {
-					AboutMe: ptr("This is a test profile in English"),
+					AboutMe: new("This is a test profile in English"),
 				},
 				"fr-FR": {
-					AboutMe: ptr("Ceci est un profil de test en français"),
+					AboutMe: new("Ceci est un profil de test en français"),
 				},
 			},
 		}
@@ -255,10 +251,10 @@ func TestUpdateComputedFields(t *testing.T) {
 			Projects: []string{"project-stale"},
 			Birth: &geniprofile.EventElement{
 				Name: "Birth",
-				Date: &geniprofile.DateElement{Year: ptr[int32](1990)},
+				Date: &geniprofile.DateElement{Year: new(int32(1990))},
 			},
 			DetailStrings: map[string]geniprofile.DetailsString{
-				"en-US": {AboutMe: ptr("Updated about")},
+				"en-US": {AboutMe: new("Updated about")},
 			},
 			Deleted:    true,
 			MergedInto: "profile-456",
@@ -412,8 +408,8 @@ func TestValueFromEdgeCases(t *testing.T) {
 		givenProfile := &geniprofile.Profile{
 			ID: "profile-details",
 			DetailStrings: map[string]geniprofile.DetailsString{
-				"en-US": {AboutMe: ptr("English bio")},
-				"de-DE": {AboutMe: ptr("German bio")},
+				"en-US": {AboutMe: new("English bio")},
+				"de-DE": {AboutMe: new("German bio")},
 			},
 		}
 
@@ -434,38 +430,38 @@ func TestNameValueFrom(t *testing.T) {
 		RegisterTestingT(t)
 		givenNames := map[string]geniprofile.NameElement{
 			"en": {
-				FirstName:   ptr("John"),
-				MiddleName:  ptr("A"),
-				LastName:    ptr("Doe"),
-				MaidenName:  ptr("Smith"),
-				DisplayName: ptr("John A Doe"),
-				Nicknames:   ptr("A,B"),
+				FirstName:   new("John"),
+				MiddleName:  new("A"),
+				LastName:    new("Doe"),
+				MaidenName:  new("Smith"),
+				DisplayName: new("John A Doe"),
+				Nicknames:   new("A,B"),
 			},
 			"fr": {
-				FirstName:   ptr("Jean"),
-				MiddleName:  ptr("B"),
-				LastName:    ptr("Dupont"),
-				MaidenName:  ptr("Bernard"),
-				DisplayName: ptr("Jean B Bernard"),
-				Nicknames:   ptr("C,D"),
+				FirstName:   new("Jean"),
+				MiddleName:  new("B"),
+				LastName:    new("Dupont"),
+				MaidenName:  new("Bernard"),
+				DisplayName: new("Jean B Bernard"),
+				Nicknames:   new("C,D"),
 			},
 		}
 
 		expectedNames := map[string]NameModel{
 			"en": {
-				FirstName:     types.StringPointerValue(ptr("John")),
-				MiddleName:    types.StringPointerValue(ptr("A")),
-				LastName:      types.StringPointerValue(ptr("Doe")),
-				BirthLastName: types.StringPointerValue(ptr("Smith")),
-				DisplayName:   types.StringPointerValue(ptr("John A Doe")),
+				FirstName:     types.StringPointerValue(new("John")),
+				MiddleName:    types.StringPointerValue(new("A")),
+				LastName:      types.StringPointerValue(new("Doe")),
+				BirthLastName: types.StringPointerValue(new("Smith")),
+				DisplayName:   types.StringPointerValue(new("John A Doe")),
 				Nicknames:     types.SetValueMust(types.StringType, []attr.Value{types.StringValue("A"), types.StringValue("B")}),
 			},
 			"fr": {
-				FirstName:     types.StringPointerValue(ptr("Jean")),
-				MiddleName:    types.StringPointerValue(ptr("B")),
-				LastName:      types.StringPointerValue(ptr("Dupont")),
-				BirthLastName: types.StringPointerValue(ptr("Bernard")),
-				DisplayName:   types.StringPointerValue(ptr("Jean B Bernard")),
+				FirstName:     types.StringPointerValue(new("Jean")),
+				MiddleName:    types.StringPointerValue(new("B")),
+				LastName:      types.StringPointerValue(new("Dupont")),
+				BirthLastName: types.StringPointerValue(new("Bernard")),
+				DisplayName:   types.StringPointerValue(new("Jean B Bernard")),
 				Nicknames:     types.SetValueMust(types.StringType, []attr.Value{types.StringValue("C"), types.StringValue("D")}),
 			},
 		}
@@ -485,11 +481,11 @@ func TestNamesWithFlatFallback(t *testing.T) {
 	t.Run("Returns the API names map as-is when it has entries", func(t *testing.T) {
 		RegisterTestingT(t)
 		original := map[string]geniprofile.NameElement{
-			"fr": {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
+			"fr": {FirstName: new("Jean"), LastName: new("Dupont")},
 		}
 		profile := &geniprofile.Profile{
 			Names:     original,
-			FirstName: ptr("ignored-because-map-is-populated"),
+			FirstName: new("ignored-because-map-is-populated"),
 		}
 
 		result := namesWithFlatFallback(profile)
@@ -500,11 +496,11 @@ func TestNamesWithFlatFallback(t *testing.T) {
 	t.Run("Synthesizes an en-US entry from flat fields when the map is empty", func(t *testing.T) {
 		RegisterTestingT(t)
 		profile := &geniprofile.Profile{
-			FirstName:   ptr("John"),
-			MiddleName:  ptr("A"),
-			LastName:    ptr("Doe"),
-			MaidenName:  ptr("Smith"),
-			DisplayName: ptr("John A Doe"),
+			FirstName:   new("John"),
+			MiddleName:  new("A"),
+			LastName:    new("Doe"),
+			MaidenName:  new("Smith"),
+			DisplayName: new("John A Doe"),
 		}
 
 		result := namesWithFlatFallback(profile)
@@ -522,7 +518,7 @@ func TestNamesWithFlatFallback(t *testing.T) {
 	t.Run("Joins flat nicknames into a comma-separated string", func(t *testing.T) {
 		RegisterTestingT(t)
 		profile := &geniprofile.Profile{
-			FirstName: ptr("John"),
+			FirstName: new("John"),
 			Nicknames: []string{"Johnny", "JD"},
 		}
 
@@ -564,8 +560,8 @@ func TestValueFrom_NamesFlatFallback(t *testing.T) {
 		givenResponse := &geniprofile.Profile{
 			ID:        "profile-42",
 			Public:    true,
-			FirstName: ptr("John"),
-			LastName:  ptr("Doe"),
+			FirstName: new("John"),
+			LastName:  new("Doe"),
 		}
 
 		var model ResourceModel
@@ -586,10 +582,10 @@ func TestValueFrom_NamesFlatFallback(t *testing.T) {
 		givenResponse := &geniprofile.Profile{
 			ID:        "profile-43",
 			Public:    true,
-			FirstName: ptr("ignored"),
-			LastName:  ptr("ignored"),
+			FirstName: new("ignored"),
+			LastName:  new("ignored"),
 			Names: map[string]geniprofile.NameElement{
-				"fr": {FirstName: ptr("Jean"), LastName: ptr("Dupont")},
+				"fr": {FirstName: new("Jean"), LastName: new("Dupont")},
 			},
 		}
 

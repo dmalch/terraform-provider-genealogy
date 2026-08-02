@@ -15,6 +15,7 @@ linters:
     - intrange
     - makezero
     - misspell
+    - modernize
     - nilerr
     - nilnil
     - noctx

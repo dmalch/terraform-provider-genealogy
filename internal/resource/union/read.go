@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -122,10 +123,8 @@ func (r *Resource) findExistingUnionForPartners(ctx context.Context, partners ty
 				}
 
 				// Check if the profile is a partner in the union
-				for _, partnerId := range unionResponse.Partners {
-					if partnerId == profileResponse.ID {
-						return unionId, diags
-					}
+				if slices.Contains(unionResponse.Partners, profileResponse.ID) {
+					return unionId, diags
 				}
 			}
 

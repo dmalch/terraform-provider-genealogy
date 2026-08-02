@@ -14,7 +14,7 @@ func TestValueFrom(t *testing.T) {
 		givenResponse := &geniproject.Project{
 			ID:          "project-123",
 			Name:        "Test Project",
-			Description: ptr("This is a test project"),
+			Description: new("This is a test project"),
 			UpdatedAt:   "1719709400",
 			CreatedAt:   "1719709300",
 		}
@@ -47,8 +47,4 @@ func TestValueFrom(t *testing.T) {
 		Expect(model.Name.ValueString()).To(Equal("Minimal Project"))
 		Expect(model.Description.IsNull()).To(BeTrue())
 	})
-}
-
-func ptr[T any](s T) *T {
-	return &s
 }

@@ -1,6 +1,7 @@
 package event
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -124,9 +125,7 @@ func eventWithDate(fields map[string]attr.Value) types.Object {
 		"end_month": types.Int32Null(),
 		"end_year":  types.Int32Null(),
 	}
-	for k, v := range fields {
-		full[k] = v
-	}
+	maps.Copy(full, fields)
 	dateObj := types.ObjectValueMust(DateRangeModelAttributeTypes(), full)
 	return types.ObjectValueMust(EventModelAttributeTypes(), map[string]attr.Value{
 		"name":        types.StringNull(),
