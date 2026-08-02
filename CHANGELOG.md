@@ -1,5 +1,16 @@
 ## 0.26.1 (Unreleased)
 
+BUG FIXES:
+
+* Bump `github.com/dmalch/go-geni` to v1.29.0: a request blocked by Incapsula,
+  the DDoS protection in front of Geni, is now retried instead of failing the
+  resource on the first block. It was the last transient class that did not
+  recover — 429s, 401s, `502`/`503`/`504` and transient network errors were
+  already retried. Blocks get their own long backoff and a deliberately small
+  attempt budget, since retrying into bot protection can prolong it. A single
+  block during a large `terraform apply` no longer costs a whole re-plan and
+  re-apply round.
+
 ## 0.26.0
 
 FEATURES:
