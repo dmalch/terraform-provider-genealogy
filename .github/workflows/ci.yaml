@@ -57,10 +57,32 @@ jobs:
       - name: Generate docs
         run: |
           go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
-          export PATH="$(go env GOPATH)/bin:$PATH"
+          GOPATH="$(go env GOPATH)"
+          export PATH="$GOPATH/bin:$PATH"
           make docs
 
       - name: Check docs are up to date
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "docs/ is out of date. Run 'make docs' and commit the result."; exit 1)
+
+  actionlint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      # The image bundles shellcheck and pyflakes, which actionlint shells out
+      # to in order to check `run:` blocks. Without them it still exits 0 and
+      # simply stops checking scripts, so a green run would not mean what it
+      # looks like — hence a fixed environment rather than whatever a laptop
+      # happens to have installed.
+      #
+      # Pinned like golangci-lint above: a new actionlint release can start
+      # failing every open PR at once with no change on our side.
+      - name: Lint workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
