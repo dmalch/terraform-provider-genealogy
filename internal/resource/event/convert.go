@@ -185,12 +185,10 @@ func DateValueFrom(ctx context.Context, dateElement *geniprofile.DateElement) (b
 func DateRangeValueFrom(ctx context.Context, dateElement *geniprofile.DateElement) (basetypes.ObjectValue, diag.Diagnostics) {
 	if dateElement != nil {
 		dateModel := DateRangeModel{
-			DateModel: DateModel{
-				Circa: types.BoolPointerValue(dateElement.Circa),
-				Day:   types.Int32PointerValue(dateElement.Day),
-				Month: types.Int32PointerValue(dateElement.Month),
-				Year:  types.Int32PointerValue(dateElement.Year),
-			},
+			Circa:    types.BoolPointerValue(dateElement.Circa),
+			Day:      types.Int32PointerValue(dateElement.Day),
+			Month:    types.Int32PointerValue(dateElement.Month),
+			Year:     types.Int32PointerValue(dateElement.Year),
 			Range:    types.StringPointerValue(dateElement.Range),
 			EndCirca: types.BoolPointerValue(dateElement.EndCirca),
 			EndDay:   types.Int32PointerValue(dateElement.EndDay),
