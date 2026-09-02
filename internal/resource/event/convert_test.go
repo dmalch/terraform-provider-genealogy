@@ -342,12 +342,10 @@ func TestDateRangeElementFrom(t *testing.T) {
 	t.Run("full model with range", func(t *testing.T) {
 		RegisterTestingT(t)
 		model := &DateRangeModel{
-			DateModel: DateModel{
-				Circa: types.BoolValue(false),
-				Day:   types.Int32Value(1),
-				Month: types.Int32Value(1),
-				Year:  types.Int32Value(1800),
-			},
+			Circa:    types.BoolValue(false),
+			Day:      types.Int32Value(1),
+			Month:    types.Int32Value(1),
+			Year:     types.Int32Value(1800),
 			Range:    types.StringValue("between"),
 			EndCirca: types.BoolValue(true),
 			EndDay:   types.Int32Value(31),

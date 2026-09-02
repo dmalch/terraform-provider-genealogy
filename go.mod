@@ -1,6 +1,6 @@
 module github.com/dmalch/terraform-provider-genealogy
 
-go 1.26
+go 1.27
 
 require (
 	github.com/dmalch/go-geni v1.29.2

@@ -3,7 +3,7 @@ YELLOW:=\033[0;33m
 WHITE:=\033[0;37m
 NC:=\033[0m # No Color
 
-GOLANGCI_LINT_VERSION := v2.11.4
+GOLANGCI_LINT_VERSION := v2.13.2
 GOLANGCI_LINT := bin/golangci-lint
 
 # VERSION and PLATFORM feed build-local's Terraform filesystem-mirror path, so it
