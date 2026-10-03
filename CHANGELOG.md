@@ -1,4 +1,41 @@
-## 0.26.2 (Unreleased)
+## 0.26.4
+
+SECURITY:
+
+* `google.golang.org/grpc` v1.79.3 → v1.83.2. govulncheck reports 0.26.3 as
+  reachable by GO-2026-6061, GO-2026-6348 (HTTP/2 DATA-frame heap exhaustion) and
+  GO-2026-6443 (panic on a missing `:authority`/`Host`). They sit in the server half
+  Terraform talks to over a local plugin socket, so the practical exposure is small,
+  but every scanner flags the binary until it moves.
+
+DEPENDENCIES:
+
+* `github.com/dmalch/go-geni` v1.29.1 → v1.30.0. The new work is in the CLI and the
+  `web/` packages (merge-center links, cookie discovery), none of which the provider
+  imports, so no behaviour changes here.
+* `terraform-plugin-log` v0.10.0 → v0.11.0, `golang.org/x/oauth2` v0.36.0 → v0.37.0.
+* Built with Go 1.27.
+
+## 0.26.3
+
+BUG FIXES:
+
+* **Updating a profile that belongs to a project we do not own no longer fails.**
+  Update re-sent every project link, and linking a profile to a project is something
+  only that project's owner may do, so a membership somebody else created — a public
+  project's curators adding one of our ancestors — failed every later edit of the
+  profile with "access denied", even though the profile itself had already been
+  updated on Geni. Update now links only the projects the plan adds. It still does
+  not unlink projects the plan drops.
+
+## 0.26.2
+
+BUG FIXES:
+
+* Bump `github.com/dmalch/go-geni` to v1.29.1, which bounds every HTTP attempt with a
+  timeout. A request that Geni accepted and never answered parked the provider
+  indefinitely: the retry ladder only classifies requests that returned, so a silent
+  hang consumed no attempt and surfaced no error.
 
 ## 0.26.1
 
