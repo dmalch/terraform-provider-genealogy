@@ -1,3 +1,29 @@
+## 0.26.5
+
+BUG FIXES:
+
+* **A write retried after a rate limit is no longer sent with an empty body.** go-geni
+  reused one request for every retry attempt, and the first attempt had already
+  consumed its body, so a profile, union or document create/update that hit a 429, a
+  401, a transient 5xx or an Incapsula block failed with
+  `http: ContentLength=N with Body length 0` instead of being retried. Large applies —
+  the ones that run into the rate limit — were the most exposed. The body is now
+  rewound before each retry (dmalch/go-geni#97).
+* **Emoji and other characters above U+FFFF are saved intact.** go-geni escapes every
+  non-ASCII character in a request body, and wrote these as one five-digit escape,
+  which JSON reads as four digits plus a stray character: 😀 in a name or `about_me`
+  was stored as `ὠ0`, with no error. They are now sent as a UTF-16 surrogate pair
+  (dmalch/go-geni#98).
+
+DEPENDENCIES:
+
+* `github.com/dmalch/go-geni` v1.30.0 → v1.31.0, for the two fixes above. Its new
+  `geni api` command and `transport.Client.DoRaw` are not used here. The transport now
+  adds `api_version` and `only_ids` only when a request lacks them, which changes
+  nothing for the provider: it sets neither.
+* `golang.org/x/crypto`, `mod`, `net`, `sync`, `sys`, `text`, `time` and `tools` move
+  with go-geni's own bumps; `go mod tidy` reproduces them from the one-line edit.
+
 ## 0.26.4
 
 SECURITY:
