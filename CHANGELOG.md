@@ -1,3 +1,20 @@
+## 0.26.6
+
+BUG FIXES:
+
+* **A backslash in a profile, union or document field is saved as written.** go-geni
+  replaced every `\\` with `\` in the JSON it sent, a step left over from the
+  provider's first `CreateProfile`. A backslash before `t`, `n`, `r`, `b` or `f` was
+  therefore stored as a control character (`C:\temp` became `C:`, a tab, `emp`), and
+  any other backslash (`\o/`, a trailing `\`) made the request invalid JSON, so the
+  apply failed with Geni's 500 maintenance page. A value without a backslash is sent
+  exactly as before, so resources that never had one plan no changes
+  (dmalch/go-geni#101).
+
+DEPENDENCIES:
+
+* `github.com/dmalch/go-geni` v1.31.0 → v1.31.1, for the fix above.
+
 ## 0.26.5
 
 BUG FIXES:

@@ -3,7 +3,7 @@ module github.com/dmalch/terraform-provider-genealogy
 go 1.27
 
 require (
-	github.com/dmalch/go-geni v1.31.0
+	github.com/dmalch/go-geni v1.31.1
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
